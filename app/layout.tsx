@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_TC } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 import { CurrencyProvider } from "@/lib/currency/context";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -69,6 +70,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans">
         <I18nProvider><CurrencyProvider>{children}</CurrencyProvider></I18nProvider>
+        <Analytics />
       </body>
     </html>
   );

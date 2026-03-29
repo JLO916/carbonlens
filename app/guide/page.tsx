@@ -46,6 +46,11 @@ const faqJsonLd = {
       name: "碳費2030年會漲到多少？",
       acceptedAnswer: { "@type": "Answer", text: "台灣碳費預計從NT$300逐步調升至NT$1,200-1,800/tCO₂e。加上CL係數從0.2升至0.6，高碳排企業的碳費可能在2030年達到2025年水準的12倍。" },
     },
+    {
+      "@type": "Question",
+      name: "CBAM什麼時候開始收錢？",
+      acceptedAnswer: { "@type": "Answer", text: "CBAM正式期自2026年1月開始，但憑證購買自2027年2月才啟動。進口商須在次年9月30日前完成申報和繳交憑證。2026年的憑證價格按季度平均EU ETS拍賣價計算。" },
+    },
   ],
 };
 

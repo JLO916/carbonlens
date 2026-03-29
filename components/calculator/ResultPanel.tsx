@@ -125,6 +125,14 @@ export default function ResultPanel({ result, country }: Props) {
               );
             })}
           </div>
+          {country.code === 'tw' && result.breakdown.some(s => s.step === 'tw_step_cl_coefficient') && (
+            <p className="text-xs text-amber-600 mt-2 p-2 bg-amber-50 rounded">
+              {t(
+                '提醒：CL 係數需提出自主減量計畫經環境部核定後適用。如未核定，碳費以非高碳洩漏風險方式計算（扣除 K 值 25,000 噸後全額計費）。',
+                'Note: CL coefficient requires an approved voluntary reduction plan. Without approval, non-carbon-leakage calculation applies (K-value 25,000t deduction, full rate on remainder).'
+              )}
+            </p>
+          )}
         </div>
 
         <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">

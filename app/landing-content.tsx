@@ -14,9 +14,10 @@ export default function LandingContent() {
   const { t } = useI18n();
 
   const CBAM_TIMELINE = [
-    { year: '2023-25', label: t('過渡期', 'Transition'), active: false },
-    { year: '2026', label: t('正式實施', 'Enforcement'), active: true },
-    { year: '2027-33', label: t('配額遞減', 'Phase-out'), active: false },
+    { year: '2023-25', label: t('過渡期（僅申報）', 'Transition (reporting only)'), active: false },
+    { year: '2026', label: t('正式期開始', 'Definitive phase begins'), active: true },
+    { year: '2027/2', label: t('憑證購買開始', 'Certificate sales begin'), active: false },
+    { year: '2027-33', label: t('配額遞減', 'Free allocation phase-out'), active: false },
     { year: '2034', label: t('全額徵收', 'Full CBAM'), active: false },
   ];
 

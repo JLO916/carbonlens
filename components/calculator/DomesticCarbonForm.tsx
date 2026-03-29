@@ -171,6 +171,33 @@ export default function DomesticCarbonForm({ calculator }: Props) {
               />
             </Label>
             <Input id="emissions" type="number" value={annualEmissions} onChange={(e) => setAnnualEmissions(Number(e.target.value))} min={0} />
+            <details className="mt-2">
+              <summary className="text-xs text-[#89B56C] cursor-pointer hover:underline">
+                {t('不確定排放量？點這裡估算', 'Not sure about your emissions? Click here to estimate')}
+              </summary>
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg space-y-3 text-xs text-gray-600">
+                <p>{t('最簡單的估算方式：用年度電費單推算用電的間接排放。', 'Simplest estimate: use your annual electricity bill for indirect emissions.')}</p>
+                <div className="space-y-2">
+                  <Label className="text-xs">{t('年用電量（度/kWh）', 'Annual electricity (kWh)')}</Label>
+                  <Input type="number" placeholder={t('例如：5,000,000', 'e.g. 5,000,000')}
+                    onChange={(e) => {
+                      const kwh = Number(e.target.value);
+                      if (kwh > 0) {
+                        const cc = calculator.countryCode;
+                        const factor = cc === 'tw' ? 0.495 : cc === 'sg' ? 0.408 : cc === 'kr' ? 0.459 : cc === 'jp' ? 0.457 : cc === 'th' ? 0.519 : 0.750;
+                        setAnnualEmissions(Math.round(kwh * factor / 1000));
+                      }
+                    }}
+                  />
+                  <p className="text-xs text-gray-400">
+                    {t(
+                      '此估算僅含用電間接排放（Scope 2），不含燃料燃燒等直接排放（Scope 1）。實際碳盤查結果可能差異 30-100%。如需更準確數據，建議洽詢專業查驗機構。',
+                      'Covers Scope 2 only (electricity), not Scope 1 (fuel combustion). Actual inventory results may differ by 30-100%. For accurate figures, consult a professional verification body.'
+                    )}
+                  </p>
+                </div>
+              </div>
+            </details>
           </div>
           <div className="space-y-2">
             <Label htmlFor="industry" className="text-sm font-medium">

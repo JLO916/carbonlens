@@ -124,6 +124,12 @@ export default function CompareClient() {
 
       {results && (
         <>
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 mb-4">
+            {t(
+              '注意：此比較假設各國生產同一產品的碳排放強度相同。實際上，不同國家的生產技術和能源結構差異可能導致排放強度相差 30-50%。下方差異主要反映各國碳價和抵扣能力的差異。',
+              'Note: This comparison assumes identical emission intensity across countries. Actual production technology and energy mix differences can cause 30-50% variation. Differences shown primarily reflect carbon pricing and deduction capability.'
+            )}
+          </div>
           {/* Chart */}
           <Card>
             <CardHeader>

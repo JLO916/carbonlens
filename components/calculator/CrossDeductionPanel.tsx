@@ -45,9 +45,9 @@ const DEDUCTION_CONFIDENCE: Record<CountryCode, DeductionInfo> = {
 
 const LEVEL_LABELS: Record<string, { zhTW: string; en: string }> = {
   high: { zhTW: '高度可能', en: 'Highly Likely' },
-  medium: { zhTW: '部分待定', en: 'Partly Pending' },
+  medium: { zhTW: '可能但待確認', en: 'Likely, Pending Confirmation' },
   low: { zhTW: '不確定', en: 'Uncertain' },
-  none: { zhTW: '無法抵扣', en: 'No Deduction' },
+  none: { zhTW: '無法抵扣', en: 'No Deduction Available' },
 };
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -91,8 +91,8 @@ export function AllCountriesDeductionTable() {
         <CardTitle className="text-lg">{t('各國碳價被歐盟認定為可抵扣的可能性', 'Likelihood of EU Recognition for CBAM Carbon Price Deduction')}</CardTitle>
         <p className="text-xs text-gray-400 mt-1">
           {t(
-            '下表依我們的分析判斷排序，不是歐盟官方認定結果。歐盟尚未公布各國碳價 CBAM 抵扣資格的正式清單。🟢 表示該國碳價機制高度可能符合 CBAM 抵扣條件；⚫ 表示無正式碳價，進口商須全額負擔 CBAM 成本。⚠️ 以下為基於現行法規的分析判斷，非歐盟官方認定。',
-            "Ranked by our analytical assessment, not official EU determinations. The EU has not published a formal list of eligible carbon prices. 🟢 = highly likely to qualify for CBAM deduction; ⚫ = no formal carbon price, importer bears full CBAM cost. ⚠️ These assessments are analytical judgments based on current regulations, not official EU determinations."
+            '⚠️ 以下為基於各國碳定價結構特徵的分析判斷，不是歐盟官方認定。各國評估依據不同（碳稅結構、ETS 配額定義、稅制嵌入方式等），不宜視為同一維度的線性排序。🟢 表示該國碳價機制高度可能符合 CBAM 抵扣條件；⚫ 表示無正式碳價，進口商須全額負擔 CBAM 成本。',
+            "⚠️ These are analytical assessments based on each country's pricing structure, not official EU determinations. Each is based on different factors and should not be read as a linear ranking. 🟢 = highly likely to qualify for CBAM deduction; ⚫ = no formal carbon price, importer bears full CBAM cost."
           )}
         </p>
       </CardHeader>

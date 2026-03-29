@@ -45,6 +45,8 @@ export default function CBAMForm() {
   const [year, setYear] = useState(2026);
   const [euEtsPrice, setEuEtsPrice] = useState(85);
   const [domesticPrice, setDomesticPrice] = useState(0);
+  const [domesticFeeLocal, setDomesticFeeLocal] = useState(0);
+  const [euExportShare, setEuExportShare] = useState(30);
   const [result, setResult] = useState<CBAMResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -158,8 +160,8 @@ export default function CBAMForm() {
           <CardTitle className="text-lg">{t('CBAM 參數', 'CBAM Parameters')}</CardTitle>
           <p className="text-xs text-gray-400 mt-1">
             {t(
-              '計算年度決定免費配額遞減比例（2026 年 97.5% → 2034 年 0%）。EU ETS 價格為 CBAM 憑證的計價基準。已在原產國繳納的碳價可抵扣 CBAM，降低淨成本。',
-              'The calculation year determines the free allocation phase-out rate (2026: 97.5% → 2034: 0%). The EU ETS price is the pricing basis for CBAM certificates. Carbon prices already paid in the country of origin can be deducted, reducing net CBAM cost.'
+              '計算年度決定免費配額遞減比例（2026 年 97.5% → 2034 年 0%）。CBAM 憑證購買自 2027 年 2 月開始，涵蓋 2026 年進口的碳排放。2026 年憑證價格按季度平均 EU ETS 拍賣價，2027 年起按週平均價。',
+              'The year determines the free allocation phase-out rate (2026: 97.5% → 2034: 0%). CBAM certificate purchases begin February 2027, covering 2026 imports retroactively. 2026 prices use quarterly average EU ETS auction prices; from 2027, weekly averages.'
             )}
           </p>
         </CardHeader>
@@ -185,14 +187,40 @@ export default function CBAMForm() {
             <Input type="number" value={euEtsPrice} onChange={(e) => setEuEtsPrice(Number(e.target.value))} min={0} />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">{t('原產國已繳碳價總額（€）', 'Domestic Carbon Price Paid (EUR total)')}
-              <InfoTip zhTW="若出口商已在生產國繳納碳費/碳稅/ETS 配額成本，此金額可申請抵扣 CBAM 費用，避免重複課徵。填入時需按出口歐盟產品的佔比折算，並換算為歐元。例如：國內碳費 NT$200 萬，30% 出口歐盟 → 可抵扣 NT$60 萬 ≈ €17,647。" en="If exporters have already paid carbon fees/taxes/ETS costs in the country of production, this amount can be deducted from CBAM obligations to avoid double charging. Enter the amount pro-rated by EU export share, converted to EUR. Example: domestic carbon fee NT$2M, 30% exported to EU → deductible NT$600K ≈ €17,647." />
-            </Label>
-            <Input type="number" value={domesticPrice} onChange={(e) => setDomesticPrice(Number(e.target.value))} min={0} />
-            <p className="text-xs text-gray-400">
-              {t('將國內碳費/碳稅按出口歐盟佔比折算為歐元後填入', 'Convert domestic carbon cost by EU export share to EUR')}
-            </p>
+          {/* Three-step guided domestic carbon price deduction */}
+          <div className="space-y-3 p-3 bg-gray-50 rounded-lg border">
+            <p className="text-xs font-medium text-gray-700">{t('原產國碳價抵扣計算', 'Domestic Carbon Price Deduction')}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">{t('① 國內碳費/碳稅總額（當地幣）', '① Domestic carbon fee/tax (local currency)')}</Label>
+                <Input type="number" value={domesticFeeLocal || ''} placeholder="e.g. 2000000"
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setDomesticFeeLocal(v);
+                    if (v > 0 && euExportShare > 0) {
+                      setDomesticPrice(Math.round(v * (euExportShare / 100) / 34 * 100) / 100);
+                    }
+                  }} min={0} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">{t('② 出口歐盟佔比（%）', '② EU export share (%)')}</Label>
+                <Input type="number" value={euExportShare} placeholder="30"
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setEuExportShare(v);
+                    if (domesticFeeLocal > 0 && v > 0) {
+                      setDomesticPrice(Math.round(domesticFeeLocal * (v / 100) / 34 * 100) / 100);
+                    }
+                  }} min={0} max={100} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{t('③ 可抵扣金額（€）— 自動計算或手動輸入', '③ Deductible amount (€) — auto-calculated or manual')}</Label>
+              <Input type="number" value={domesticPrice} onChange={(e) => setDomesticPrice(Number(e.target.value))} min={0} />
+              <p className="text-xs text-gray-400">
+                {t('公式：國內碳費 × 出口佔比 ÷ 匯率（預設 EUR/TWD=34）', 'Formula: domestic fee × export share ÷ exchange rate (default EUR/TWD=34)')}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -271,8 +299,8 @@ export default function CBAMForm() {
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mt-4">
               <p className="text-xs text-amber-800">
                 {t(
-                  '提醒：CBAM 憑證的購買義務由歐盟進口商承擔。本工具估算的是進口商面臨的成本，對你（出口商）的影響取決於雙方的商業條件。各國碳價的 CBAM 抵扣資格以歐盟最終認定為準。',
-                  "Note: CBAM certificate obligations are borne by EU importers. Costs shown represent the importer's liability. The impact on you as an exporter depends on your commercial terms. CBAM deduction eligibility is subject to final EU determination."
+                  '提醒：CBAM 正式期自 2026 年 1 月起算，憑證購買自 2027 年 2 月開始。進口商須在次年 9 月 30 日前完成申報和繳交憑證。CBAM 的繳費義務由歐盟進口商承擔，對出口商的影響取決於雙方商業條件。各國碳價的 CBAM 抵扣資格以歐盟最終認定為準。',
+                  'Note: CBAM definitive phase starts January 2026; certificate purchases begin February 2027. Importers must declare and surrender certificates by 30 September of the following year. CBAM obligations are borne by EU importers. Impact on exporters depends on commercial terms. Deduction eligibility subject to EU determination.'
                 )}
               </p>
             </div>

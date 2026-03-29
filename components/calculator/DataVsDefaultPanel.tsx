@@ -63,6 +63,12 @@ export default function DataVsDefaultPanel({
               '→ This gap represents how much carbon border tax your EU buyer saves when you provide actual emissions data'
             )}
           </p>
+          <p className="text-xs text-gray-500 mt-3 text-center">
+            {t(
+              '參考：建立產品碳排放數據管理能力（ISO 14064 碳盤查）一般投入約 NT$30-80 萬、3-6 個月，依企業規模和產品複雜度而異。',
+              'Reference: Building carbon data capability (ISO 14064) typically requires NT$300K-800K and 3-6 months, varying by company size and product complexity.'
+            )}
+          </p>
         </div>
       </CardContent>
     </Card>

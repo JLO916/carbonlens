@@ -62,6 +62,14 @@ export default function ScenarioChart({ countryCode, annualEmissions }: Props) {
             `Assuming constant ${annualEmissions.toLocaleString()} tCO₂e/yr, EU ETS €80/tCO₂e`
           )}
         </p>
+        {countryCode === 'tw' && (
+          <p className="text-xs text-amber-600 mt-1">
+            {t(
+              '⚠️ 高碳洩漏風險的 CL 係數（0.2→0.4→0.6）需提出自主減量計畫並經環境部核定後適用。未核定者不適用 CL 係數，改以扣除 K 值（25,000 噸）後全額計費。',
+              '⚠️ Carbon leakage CL coefficients (0.2→0.4→0.6) require an approved voluntary reduction plan. Without approval, K-value threshold (25,000t) applies with full-rate calculation.'
+            )}
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={320}>

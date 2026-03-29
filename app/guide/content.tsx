@@ -528,7 +528,7 @@ export default function GuideContent() {
             <span className="text-lg">⚫</span>
             <div>
               <p className="text-sm font-medium">{t('無法抵扣 — 越南', 'No Deduction — Vietnam')}</p>
-              <p className="text-xs text-gray-500">{t('無正式碳價，出口商面臨全額 CBAM 負擔', 'No formal carbon price — full CBAM cost exposure')}</p>
+              <p className="text-xs text-gray-500">{t('無正式碳價，進口商須全額負擔 CBAM 成本', 'No formal carbon price — EU importer bears full CBAM cost')}</p>
             </div>
           </div>
         </div>

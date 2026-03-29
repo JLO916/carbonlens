@@ -68,12 +68,12 @@ export default function ResultPanel({ result, country }: Props) {
       <CardContent className="pt-6 space-y-6">
         <p className="text-xs text-gray-400 text-center">
           {t(
-            '以下為您依據輸入參數計算出的年度碳成本。此金額代表您的設施每年須繳納的碳費/碳稅/配額購買成本。',
-            'Below is your calculated annual carbon cost based on the parameters entered. This amount represents the carbon fee, tax, or allowance purchase cost your facility must pay each year.'
+            '以下為依據您輸入參數估算的年度碳成本。此金額為概略估算，供內部評估和初步規劃使用，實際碳費義務以主管機關核定為準。',
+            'Below is the estimated annual carbon cost based on your inputs. This is an approximate figure for internal assessment and preliminary planning. Actual obligations are subject to regulatory determination.'
           )}
         </p>
         <div className="text-center space-y-2">
-          <p className="text-sm text-gray-500">{t('碳費總額', 'Total Carbon Cost')}</p>
+          <p className="text-sm text-gray-500">{t('碳成本曝險', 'Carbon Cost Exposure')}</p>
           <p className="text-4xl font-bold text-gray-900">
             {country.currencySymbol}{formatCurrency(result.totalCarbonCost)}
           </p>
@@ -129,12 +129,12 @@ export default function ResultPanel({ result, country }: Props) {
 
         <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
           <p className="text-sm font-medium text-blue-900">
-            {t('可用於 CBAM 抵扣金額', 'Deductible for CBAM')}
+            {t('可供歐盟進口商申請 CBAM 抵扣的金額', "Amount your EU importer may claim for CBAM deduction")}
           </p>
           <p className="text-xs text-blue-600 mb-1">
             {t(
-              '若您的產品出口至歐盟，已在國內繳納的碳費/碳稅可申請抵扣 CBAM 費用，避免重複計費。',
-              'If your products are exported to the EU, the domestic carbon fee/tax you already paid can be claimed as a CBAM deduction to avoid double charging.'
+              '如果你的產品出口到歐盟，你在國內繳的碳費可以作為歐盟進口商申請抵扣碳關稅的依據——也就是幫你的客戶降低他的 CBAM 成本。但這筆抵扣的受益者是進口商，是否反映在給你的採購價格上，取決於你們之間的商業談判。',
+              "If you export to the EU, the carbon fee you pay domestically can serve as the basis for your EU buyer to claim a CBAM deduction — helping them reduce their carbon border tax. However, the beneficiary of this deduction is the importer. Whether it's reflected in your purchase price depends on your commercial arrangement."
             )}
           </p>
           <p className="text-2xl font-bold text-blue-800 mt-1">
@@ -146,7 +146,7 @@ export default function ResultPanel({ result, country }: Props) {
             )}
           </p>
           <p className="text-xs text-blue-600 mt-1">
-            {t('CBAM 抵扣確定性因國家而異，詳見雙軌分析', 'CBAM deduction certainty varies by country')}
+            {t('此抵扣可能性為分析判斷，非歐盟官方認定。實際認定以歐盟公告為準。', 'This deduction likelihood is an analytical assessment, not an official EU determination. Actual eligibility is subject to EU ruling.')}
           </p>
         </div>
       </CardContent>

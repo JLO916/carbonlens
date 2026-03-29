@@ -27,20 +27,20 @@ export default function LandingContent() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             {t(
-              '亞太六國碳費與歐盟 CBAM 雙軌試算器 — 30 秒算出合規成本',
-              'Carbon pricing & EU CBAM calculator for Asia-Pacific exporters — get your numbers in 30 seconds'
+              '亞太碳成本分析工具 — 30 秒掌握碳定價對你的生意影響',
+              'Asia-Pacific Carbon Cost Analyzer — See how carbon pricing affects your business'
             )}
           </h1>
           <p className="text-lg text-[#6E9156] font-medium mb-4">
             {t(
-              '你的產品出口歐盟，碳成本到底是多少？',
-              'How much will carbon cost your exports to Europe?'
+              '你的產品出口歐盟，碳成本曝險有多大？',
+              'How much carbon cost exposure do your EU exports carry?'
             )}
           </p>
           <p className="text-sm text-gray-500 max-w-2xl mx-auto mb-8 leading-relaxed">
             {t(
-              '2026 年起，歐盟碳邊境調整機制（CBAM）正式對進口鋼鐵、鋁、水泥等產品課徵碳關稅，同時台灣碳費、新加坡碳稅、韓國 K-ETS 等亞太碳定價制度也陸續上路。企業同時面對國內碳價與國際碳關稅的雙重成本壓力，卻缺乏工具一次算清楚。CarbonLens 是第一個專為亞太出口企業設計的碳成本計算器，幫你在一個頁面完成國內碳價試算、CBAM 成本估算，以及兩者之間的交叉抵扣分析。',
-              'Starting 2026, the EU Carbon Border Adjustment Mechanism (CBAM) charges real money on imported steel, aluminum, cement, and more. At the same time, carbon pricing is ramping up across Asia — Taiwan\'s carbon fee, Singapore\'s carbon tax, Korea\'s K-ETS, and Japan\'s GX-ETS are all in effect. Exporters face a double cost squeeze, yet no tool calculates both sides together. CarbonLens is the first calculator built for Asia-Pacific exporters: estimate your domestic carbon costs, EU CBAM exposure, and cross-border deductions — all in one place, for free.'
+              '2026 年起，歐盟碳邊境調整機制（CBAM）正式對進口鋼鐵、鋁、水泥等產品課徵碳關稅，同時台灣碳費、新加坡碳稅、韓國 K-ETS 等亞太碳定價制度也陸續上路。企業同時面對國內碳價與國際碳關稅的雙重成本壓力，卻缺乏工具一次算清楚。CarbonLens 是專為亞太出口企業設計的碳成本分析工具，幫你在一個頁面評估國內碳價曝險、歐盟客戶面臨的 CBAM 成本、以及各國碳價可供抵扣的可能性。',
+              'Starting 2026, the EU Carbon Border Adjustment Mechanism (CBAM) charges real money on imported steel, aluminum, cement, and more. At the same time, carbon pricing is ramping up across Asia — Taiwan\'s carbon fee, Singapore\'s carbon tax, Korea\'s K-ETS, and Japan\'s GX-ETS are all in effect. Exporters face a double cost squeeze, yet no tool calculates both sides together. CarbonLens helps you see three things in one place: your domestic carbon cost, how much carbon border tax your EU buyer faces, and how likely your country\'s carbon price is to qualify for a CBAM deduction. Free, no signup, results in 30 seconds.'
             )}
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
@@ -88,38 +88,38 @@ export default function LandingContent() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-10">
-            {t('三件事，一次算清楚', 'Three questions, one calculator')}
+            {t('三個問題，一次看清楚', 'Three questions, one clear picture')}
           </h2>
           <div className="space-y-6">
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">{t('算你的國內碳成本', 'What\'s your domestic carbon cost?')}</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('你的國內碳成本曝險有多大？', 'How big is your domestic carbon cost exposure?')}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   {t(
-                    '選擇你的所在國 — 台灣、新加坡、韓國、日本、泰國或越南 — 輸入排放量和產業別，系統自動套用該國最新碳費率、免徵門檻、優惠機制，算出你今年要繳多少碳費或碳稅。台灣企業還能比較一般費率和兩種優惠費率方案，找到最省的申報策略。',
-                    'Select your country — Taiwan, Singapore, South Korea, Japan, Thailand, or Vietnam — enter your emissions and industry, and the tool applies your country\'s latest carbon rates, thresholds, and preferential schemes. Taiwan users can compare all three fee rate options to find the most cost-effective filing strategy.'
+                    '選擇你的國家，輸入排放量和產業別，工具自動套用該國最新的碳費率和免徵門檻。台灣企業可以比較三種費率方案（一般費率 NT$300、優惠 B NT$100、優惠 A NT$50），看十年下來每種方案各花多少錢。其他五國也各有對應的計算邏輯。',
+                    'Select your country, enter your emissions and industry, and the tool applies the latest carbon rates and thresholds. Taiwan users can compare three fee rate options (Standard NT$300, Preferential B NT$100, Preferential A NT$50) to see how much each costs over ten years. Each of the other five countries has its own calculation logic.'
                   )}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">{t('算你的 CBAM 碳關稅', 'What\'s your CBAM exposure?')}</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('你的歐盟客戶面臨多少 CBAM 成本？', 'How much CBAM cost does your EU buyer face?')}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   {t(
-                    '如果你的產品出口歐盟，輸入出口量和產品類型，系統根據 EU ETS 碳價、CBAM 因子和產品排放強度，估算你的歐盟碳邊境調整成本。支援實際排放數據和預設值兩種模式，直接看到「有數據 vs 沒數據」的成本差異。',
-                    'If you export to the EU, enter your shipment volume and product type. The tool estimates your Carbon Border Adjustment costs based on the EU ETS price, CBAM phase-in factors, and product emission intensity. Toggle between actual emissions data and default values to see how much accurate data can save you.'
+                    '如果你的產品出口歐盟，這裡幫你估算歐盟進口商面臨的 CBAM 碳關稅成本。重點功能是「有數據 vs 沒數據」的比較——如果你能提供產品的實際排放數據，客戶的碳關稅可能比被套預設值低 20-40%。這個差距就是你建立碳盤查能力的投資價值。',
+                    'If you export to the EU, this estimates the CBAM cost your European importer will face. The key feature is the "actual data vs. defaults" comparison — if you can provide real emissions data for your products, your buyer\'s carbon border tax could be 20-40% lower than with default values. That gap is what your investment in carbon data management is worth.'
                   )}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-2">{t('算你能省多少', 'How much can you deduct?')}</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('各國碳價的 CBAM 抵扣可能性有多大？', 'How likely is your carbon price to qualify for CBAM deduction?')}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   {t(
-                    '這是其他工具做不到的：你在國內繳的碳價，有多少可以折抵歐盟 CBAM？系統自動計算交叉抵扣金額，並標示抵扣的確定性等級 — 從新加坡的高確定性到越南的零抵扣，一目了然。',
-                    'This is what no other tool does: how much of your domestic carbon price can offset your EU CBAM obligation? The calculator maps cross-border deductions automatically and flags the confidence level — from Singapore\'s high-certainty deduction to Vietnam\'s zero offset — so you know exactly where you stand.'
+                    '你在國內繳的碳費或碳稅，有多少可以被歐盟認定為可抵扣的金額？這個答案因國家而異，差距很大：新加坡和韓國的碳價幾乎確定可以抵扣，台灣和日本部分規則還在跟歐盟談，泰國的碳稅設計特殊所以有疑問，越南則因為沒有正式碳價而完全無法抵扣。工具會標示每個國家的可能性等級，幫你判斷。',
+                    'How much of the carbon fee or tax you pay domestically can the EU recognize as deductible? The answer varies dramatically by country: Singapore and Korea\'s carbon prices almost certainly qualify, Taiwan and Japan\'s are partly under negotiation with the EU, Thailand\'s tax design raises questions, and Vietnam has no formal carbon price at all — meaning zero deduction. The tool flags the likelihood level for each country.'
                   )}
                 </p>
               </CardContent>
@@ -132,7 +132,7 @@ export default function LandingContent() {
       <section className="py-16 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-10">
-            {t('用數字看碳成本的真實面貌', 'See the real shape of carbon costs')}
+            {t('用實際案例看碳成本的影響', 'See carbon costs through real examples')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Card 1 */}
@@ -141,14 +141,14 @@ export default function LandingContent() {
                 <CardContent className="p-6 space-y-3">
                   <h3 className="font-semibold text-gray-900 text-sm leading-snug">
                     {t(
-                      '選優惠費率到底能省多少？不只是國內碳費的差別',
-                      'How much does choosing the preferential rate actually save? It\'s not just about domestic fees.'
+                      '選優惠費率到底能省多少？算上 CBAM 的連動效果',
+                      'How much does choosing a preferential rate really save — including the CBAM effect?'
                     )}
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed">
                     {t(
-                      '台灣鋼鐵廠，年排放 10 萬噸，出口歐盟 5,000 噸。選一般費率繳 NT$600 萬碳費，但能折抵較多 CBAM；選優惠 A 只繳 NT$100 萬，但 CBAM 折抵也少了。算上兩邊的總成本——優惠 A 方案仍然省下約 NT$240 萬，比一般費率低 17%。',
-                      'A Taiwan steel plant, 100K tonnes annual emissions, exporting 5,000 tonnes to the EU. The standard rate means NT$6M in domestic fees with a larger CBAM deduction. Preferential A means only NT$1M — but less CBAM offset too. Total cost under Preferential A is still ~NT$2.4M lower, a 17% saving.'
+                      '一家台灣鋼鐵廠，年排放 10 萬噸，出口 5,000 噸鋼鐵到歐盟。選一般費率要繳 NT$600 萬碳費，但國內繳越多，歐盟客戶能申請抵扣的碳關稅也越多；選優惠 A 只繳 NT$100 萬，抵扣的空間也跟著縮小。把兩邊加起來算——優惠 A 的總成本仍然比一般費率低約 NT$240 萬。國內碳費和歐盟碳關稅之間有連動關係，值得一起看。',
+                      'A Taiwan steel plant, 100K tonnes annual emissions, exporting 5,000 tonnes to the EU. The standard rate means NT$6M in domestic carbon fees, but paying more domestically also means the EU buyer can claim a larger CBAM deduction. Preferential A means only NT$1M, but less deduction room. Add both sides up — Preferential A still saves about NT$2.4M total. Domestic fees and EU carbon border tax are linked, and worth looking at together.'
                     )}
                   </p>
                   <span className="text-xs font-medium text-[#89B56C]">{t('→ 點擊試算', '→ Try it')}</span>
@@ -162,14 +162,14 @@ export default function LandingContent() {
                 <CardContent className="p-6 space-y-3">
                   <h3 className="font-semibold text-gray-900 text-sm leading-snug">
                     {t(
-                      '同一批鋼鐵，從台灣、韓國、越南出口——碳成本差在哪？',
-                      'Same steel, shipped from Taiwan, Korea, or Vietnam — where does carbon cost differ?'
+                      '同一批鋼鐵從不同國家出口，歐盟客戶的碳關稅差多少？',
+                      'Same steel from different countries — how much does your EU buyer\'s carbon border tax differ?'
                     )}
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed">
                     {t(
-                      '5,000 噸高爐鋼鐵出口歐盟，越南淨 CBAM 成本約 €338,000，台灣約 €321,000，差距約 €18,000。金額差距看似不大，但背後是結構性差異：越南沒有正式碳價，每一分 CBAM 都得自己扛。隨著 CBAM 免費配額在 2034 年歸零，這個差距只會擴大。',
-                      '5,000 tonnes of BF-BOF steel exported to the EU. Vietnam\'s net CBAM cost: ~€338,000. Taiwan\'s: ~€321,000. The gap is about €18,000 — modest today, but it reflects a structural difference: Vietnam has no formal carbon price, meaning zero CBAM deduction. As free allowances phase out by 2034, this gap will only widen.'
+                      '5,000 噸鋼鐵出口歐盟。歐盟進口商從越南買，CBAM 成本約 €338,000；從台灣買約 €321,000。差距目前不大，但背後原因是結構性的：越南沒有正式碳價，進口商無法申請任何抵扣，等於全額負擔碳關稅。2034 年歐盟免費配額歸零後，這個差距會越拉越大。',
+                      '5,000 tonnes of steel exported to the EU. The importer\'s CBAM cost from Vietnam: ~€338,000. From Taiwan: ~€321,000. The gap is modest for now, but structural: Vietnam has no carbon price, so the importer gets zero deduction — full carbon border tax. By 2034 when EU free allowances hit zero, this gap widens significantly.'
                     )}
                   </p>
                   <span className="text-xs font-medium text-[#89B56C]">{t('→ 點擊比較', '→ Compare')}</span>
@@ -183,14 +183,14 @@ export default function LandingContent() {
                 <CardContent className="p-6 space-y-3">
                   <h3 className="font-semibold text-gray-900 text-sm leading-snug">
                     {t(
-                      '越南沒有碳價——出口歐盟的隱形代價',
-                      'Vietnam has no carbon price — the hidden cost of exporting to Europe'
+                      '越南沒有碳價——歐盟客戶的額外負擔',
+                      'Vietnam has no carbon price — the extra cost for EU buyers'
                     )}
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed">
                     {t(
-                      '越南是亞洲第三大 CBAM 涵蓋產品對歐出口國，年出口額約 30 億美元。但因為沒有正式碳定價機制，出口商無法折抵任何 CBAM 費用——同一批鋼鐵，從越南出口就是全額負擔。這不是小比例的差異，而是「有折抵」和「零折抵」的結構性鴻溝。',
-                      'Vietnam is Asia\'s third-largest exporter of CBAM-covered goods to the EU, with ~$3B in annual exports. But without a formal carbon pricing mechanism, exporters cannot deduct any domestic payments — the same steel shipped from Vietnam means full CBAM exposure. This isn\'t a marginal difference; it\'s the structural gap between "some offset" and "zero offset."'
+                      '越南是亞洲第三大 CBAM 涵蓋產品對歐出口國。但因為沒有正式碳定價機制，歐盟進口商從越南採購時無法申請任何碳價抵扣——同樣的鋼鐵，從越南進口就是全額碳關稅。對正在評估供應鏈佈局的企業來說，供應商所在國的碳定價狀態，已經直接影響到歐盟端的採購成本。',
+                      'Vietnam is Asia\'s third-largest exporter of CBAM-covered goods to the EU. But without formal carbon pricing, EU importers sourcing from Vietnam cannot claim any carbon price deduction — the same steel means full carbon border tax. For companies planning supply chain shifts, a supplier\'s country-level carbon pricing status now directly affects EU procurement costs.'
                     )}
                   </p>
                   <span className="text-xs font-medium text-red-500">{t('→ 點擊試算', '→ Calculate')}</span>
@@ -210,8 +210,8 @@ export default function LandingContent() {
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed">
                     {t(
-                      '台灣碳費預計從 NT$300 逐步調升至 NT$1,200-1,800，加上高碳洩漏風險的 CL 係數從 0.2 升至 0.6，高碳排企業的碳費可能在 2030 年達到現在的 12 倍。同時，歐盟 CBAM 免費配額從 97.5% 遞減到 0%，出口碳成本在 2034 年將是 2026 年的 2.5 倍。',
-                      'Taiwan\'s carbon fee is projected to rise from NT$300 to NT$1,200-1,800, and the carbon leakage factor climbs from 0.2 to 0.6. For high-emission manufacturers, domestic fees alone could reach 12× their 2025 level by 2030. Meanwhile, EU CBAM free allowances decrease from 97.5% to zero, pushing export carbon costs to 2.5× their 2026 level by 2034.'
+                      '台灣碳費預計從 NT$300 逐步調升至 NT$1,200-1,800。加上高碳洩漏風險的 CL 係數從 0.2 升至 0.6，雙重疊加之下，高碳排企業的碳費可能在 2030 年達到現在的 12 倍。歐盟端也一樣：CBAM 免費配額從 97.5% 遞減到 0%，2034 年的碳關稅是 2026 年的約 2.5 倍。國內和國際碳成本同步攀升——用情境模擬看看你的十年成本曲線。',
+                      'Taiwan\'s carbon fee is projected to rise from NT$300 to NT$1,200-1,800. Combined with the carbon leakage CL coefficient increasing from 0.2 to 0.6, high-emission manufacturers could see domestic carbon fees reach 12× their 2025 level by 2030. On the EU side, CBAM free allowances drop from 97.5% to zero, pushing carbon border tax to ~2.5× its 2026 level by 2034. Run the scenario simulator to see your 10-year cost curve.'
                     )}
                   </p>
                   <span className="text-xs font-medium text-[#89B56C]">{t('→ 點擊模擬', '→ Simulate')}</span>
@@ -260,7 +260,7 @@ export default function LandingContent() {
       <section className="py-16 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold mb-6">
-            {t('亞太碳定價的資訊斷層', 'The information gap in Asia-Pacific carbon pricing')}
+            {t('亞太碳定價正在快速改變，但資訊還沒跟上', 'Carbon pricing in Asia-Pacific is changing fast — the tools haven\'t kept up')}
           </h2>
           <div className="prose prose-sm prose-gray max-w-none space-y-4 text-gray-600 leading-relaxed">
             <p>
@@ -271,17 +271,17 @@ export default function LandingContent() {
             </p>
             <p>
               {t(
-                '然而，市場上的工具跟不上這個變化。現有的 CBAM 計算器清一色為歐盟進口商設計，計算的是「進口商要買多少憑證」，而不是「亞洲出口企業的實際碳成本是多少」。更關鍵的問題 — 國內繳的碳費能折抵多少 CBAM？不同國家的抵扣規則差異有多大？選擇優惠費率和一般費率的長期成本差異是什麼？ — 這些問題沒有任何公開工具能回答。',
-                'But the tools haven\'t kept up. Every CBAM calculator on the market is built for EU importers — calculating how many certificates an importer needs to buy, not what the actual carbon cost is for an Asian exporter. The more critical questions — how much of your domestic carbon payments can offset CBAM? How do deduction rules differ across countries? What\'s the long-term cost difference between preferential and standard fee rates? — no public tool answers these.'
+                '然而，市場上的工具跟不上這個變化。現有的碳關稅計算器大多從歐盟進口商的角度設計，計算的是「進口商要買多少憑證」，而不是「亞洲出口企業的實際碳成本是多少」。更關鍵的問題 — 國內繳的碳費能折抵多少 CBAM？不同國家的抵扣規則差異有多大？選擇優惠費率和一般費率的長期成本差異是什麼？ — 把這些問題整合在一起回答的公開工具還很少。',
+                'But the tools haven\'t kept up. Most CBAM calculators on the market are built from the EU importer\'s perspective — calculating how many certificates an importer needs to buy, not what the actual carbon cost is for an Asian exporter. The more critical questions — how much of your domestic carbon payments can offset CBAM? How do deduction rules differ across countries? What\'s the long-term cost difference between preferential and standard fee rates? — few public tools bring these together.'
               )}
             </p>
             <p className="font-medium text-gray-800">
-              {t('CarbonLens 的設計就是為了補上這個資訊斷層。', 'CarbonLens was built to close that gap.')}
+              {t('CarbonLens 就是為了補上這個缺口。', 'CarbonLens was built to close that gap.')}
             </p>
             <p>
               {t(
-                '這是一個免費工具，因為碳成本的透明度不應該有門檻。無論是台灣的鋼鐵廠主管、新加坡的煉油廠財務、泰國的水泥出口商、還是越南的工廠供應鏈經理，都應該能在 30 秒內知道碳定價對營運意味著什麼 — 而不是花幾十萬請顧問才能得到一個數字。',
-                'It\'s free because carbon cost transparency shouldn\'t have a paywall. Whether it\'s a steel plant executive in Taiwan, a finance director at a Singapore refinery, a cement exporter in Thailand, or a supply chain manager at a factory in Vietnam — anyone should be able to see what carbon pricing means for their bottom line in 30 seconds, without paying a consultant a six-figure fee.'
+                '這是一個免費工具，因為碳成本的透明度不應該有門檻。無論是台灣的鋼鐵廠主管、新加坡的煉油廠財務、泰國的水泥出口商、還是越南的工廠供應鏈經理，都應該能在 30 秒內掌握碳定價的影響量級 — 作為進一步評估和規劃的起點。',
+                'It\'s free because carbon cost transparency shouldn\'t have a paywall. Whether it\'s a steel plant executive in Taiwan, a finance director at a Singapore refinery, a cement exporter in Thailand, or a supply chain manager at a factory in Vietnam — anyone should be able to gauge the magnitude of carbon pricing impact in 30 seconds, as a starting point for further evaluation and planning.'
               )}
             </p>
             <p className="text-xs text-gray-400">

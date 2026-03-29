@@ -17,15 +17,15 @@ const notoSansTC = Noto_Sans_TC({
 });
 
 export const metadata: Metadata = {
-  title: "碳費與CBAM試算器 | 亞太六國碳成本計算工具 — CarbonLens",
-  description: "免費計算台灣碳費、新加坡碳稅、韓國K-ETS、日本GX-ETS的實際成本，同步試算歐盟CBAM碳關稅義務與交叉抵扣金額。涵蓋亞太六國，支援情境模擬與跨國比較。",
+  title: "碳費試算與CBAM碳關稅計算器｜亞太六國碳成本分析 — CarbonLens",
+  description: "免費線上碳成本分析工具。台灣碳費三種費率方案十年成本比較、歐盟CBAM碳關稅影響評估、亞太六國碳價競爭力比較。幫企業在決策前看清碳定價的長期影響。",
   keywords: [
     "碳費計算", "碳費試算", "CBAM計算器", "CBAM試算", "碳關稅計算", "碳成本計算", "台灣碳費", "碳費優惠費率", "歐盟碳邊境調整機制", "碳定價", "亞太碳價",
     "CBAM calculator", "carbon cost calculator", "carbon pricing calculator", "CBAM cost estimator", "carbon fee calculator Taiwan", "carbon tax calculator Singapore", "K-ETS calculator Korea", "APAC carbon pricing",
   ],
   openGraph: {
-    title: "碳費與CBAM試算器 — 亞太六國碳成本計算工具 | CarbonLens",
-    description: "免費計算台灣碳費、新加坡碳稅、韓國K-ETS、日本GX-ETS的實際碳成本，同步試算歐盟CBAM碳關稅與交叉抵扣金額。",
+    title: "碳費試算與CBAM碳關稅計算器｜亞太六國碳成本分析 — CarbonLens",
+    description: "免費線上碳成本分析工具。台灣碳費三種費率方案十年成本比較、歐盟CBAM碳關稅影響評估、亞太六國碳價競爭力比較。",
     type: "website",
     locale: "zh_TW",
     alternateLocale: "en_US",
@@ -47,7 +47,7 @@ const jsonLd = {
   "@type": "WebApplication",
   name: "CarbonLens",
   alternateName: "碳成本透視鏡",
-  description: "Free carbon cost calculator for Asia-Pacific exporters covering domestic carbon pricing and EU CBAM",
+  description: "Free carbon cost analysis tool for Asia-Pacific businesses. Compare domestic carbon pricing across 6 countries and assess EU CBAM carbon border tax exposure.",
   url: "https://carbonlens.app",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",

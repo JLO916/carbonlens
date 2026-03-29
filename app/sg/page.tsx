@@ -3,8 +3,8 @@ import Footer from '@/components/layout/Footer';
 import SingaporeCalculatorClient from './client';
 
 export const metadata = {
-  title: '新加坡碳稅試算 | Singapore Carbon Tax Calculator',
-  description: 'Singapore carbon tax calculator covering 2024-2030 rate schedules with international carbon credit offsets.',
+  title: '新加坡碳稅計算器｜SGD 25→45→80 碳稅成本估算 — CarbonLens',
+  description: '免費新加坡碳稅估算工具。依年排放量和年度計算碳稅成本，含2024-2030年費率調升路徑預覽及CBAM交叉抵扣可能性評估。',
 };
 
 export default function SingaporePage() {

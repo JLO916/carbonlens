@@ -25,8 +25,8 @@ export default function Footer() {
               Jimmy Lo
             </a>
             {t(
-              ' 製作與維護。本工具提供碳成本估算參考，不構成法律或稅務建議。各國碳定價與歐盟 CBAM 規則持續更新，實際義務請以各國主管機關公告為準。計算邏輯與資料來源詳見各頁面說明。',
-              '. This tool provides carbon cost estimates for reference only and does not constitute legal or tax advice. Carbon pricing rules and EU CBAM regulations are subject to change — always verify with the relevant authorities. Calculation methodologies and data sources are documented on each page.'
+              ' 製作與維護。本工具提供碳成本估算參考，不構成法律或稅務建議。各國碳定價與歐盟 CBAM 規則持續更新，實際義務請以各國主管機關公告為準。CBAM 繳費義務由歐盟進口商承擔。',
+              '. This tool provides carbon cost estimates for reference only and does not constitute legal or tax advice. Carbon pricing rules and EU CBAM regulations are subject to change — verify with relevant authorities. CBAM payment obligations are borne by EU importers.'
             )}
           </p>
         </div>

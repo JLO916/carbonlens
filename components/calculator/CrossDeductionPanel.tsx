@@ -14,39 +14,39 @@ const DEDUCTION_CONFIDENCE: Record<CountryCode, DeductionInfo> = {
   sg: {
     level: 'high',
     icon: '🟢',
-    reason: { zhTW: '明確碳稅，直接適用 CBAM 抵扣', en: 'Clear carbon tax, directly applicable for CBAM deduction' },
+    reason: { zhTW: '明確的碳稅制度，高度可能被歐盟認定為可抵扣', en: 'Clear carbon tax mechanism, highly likely to be recognized by the EU for deduction' },
   },
   kr: {
     level: 'high',
     icon: '🟢',
-    reason: { zhTW: 'K-ETS 配額購買成本符合 CBAM 定義', en: 'K-ETS allowance purchase costs meet CBAM definition' },
+    reason: { zhTW: 'K-ETS 配額購買成本符合歐盟對「碳價」的定義，高度可能被認定', en: "K-ETS allowance purchase costs meet the EU's definition of \"carbon price,\" highly likely to be recognized" },
   },
   tw: {
     level: 'medium',
     icon: '🟡',
-    reason: { zhTW: '碳費可抵，但 Scope 2 折算規則待與歐盟協商', en: 'Carbon fee deductible, but Scope 2 conversion rules pending EU negotiation' },
+    reason: { zhTW: '碳費制度可抵扣，但碳費涵蓋的 Scope 2（間接排放）部分如何折算，仍待與歐盟協商', en: 'Carbon fee is deductible, but how to convert Scope 2 (indirect emissions) coverage is still under negotiation with the EU' },
   },
   jp: {
     level: 'medium',
     icon: '🟡',
-    reason: { zhTW: '碳稅 ¥289 定義模糊；GX-ETS 配額較明確可抵扣', en: 'Carbon tax ¥289 definition unclear; GX-ETS allowances more clearly deductible' },
+    reason: { zhTW: '碳稅 ¥289 是否被歐盟視為「碳價」存在定義模糊；GX-ETS 配額購買成本較明確可抵', en: 'Whether the ¥289 carbon tax qualifies as a "carbon price" under EU rules is ambiguous; GX-ETS allowance costs are more clearly deductible' },
   },
   th: {
     level: 'low',
     icon: '🔴',
-    reason: { zhTW: '碳稅嵌入消費稅且不影響價格，歐盟認定存疑', en: 'Carbon tax embedded in excise with no price impact — EU recognition uncertain' },
+    reason: { zhTW: '碳稅嵌入消費稅結構，不額外增加終端價格，歐盟是否認定為有效「碳價」存在不確定性', en: "Carbon tax is embedded in excise tax structure with no additional price impact — whether the EU recognizes this as a valid \"carbon price\" is uncertain" },
   },
   vn: {
     level: 'none',
     icon: '⚫',
-    reason: { zhTW: '無正式碳價，無法抵扣 — 出口商面臨全額 CBAM 負擔', en: 'No formal carbon price — exporters face full CBAM cost exposure' },
+    reason: { zhTW: '目前沒有正式碳定價機制，歐盟進口商無法申請任何碳價抵扣', en: 'No formal carbon pricing mechanism currently in place — EU importers cannot claim any carbon price deduction' },
   },
 };
 
 const LEVEL_LABELS: Record<string, { zhTW: string; en: string }> = {
-  high: { zhTW: '高確定性', en: 'High Confidence' },
-  medium: { zhTW: '中等確定性', en: 'Medium Confidence' },
-  low: { zhTW: '低確定性', en: 'Low Confidence' },
+  high: { zhTW: '高度可能', en: 'Highly Likely' },
+  medium: { zhTW: '部分待定', en: 'Partly Pending' },
+  low: { zhTW: '不確定', en: 'Uncertain' },
   none: { zhTW: '無法抵扣', en: 'No Deduction' },
 };
 
@@ -65,15 +65,15 @@ export default function CrossDeductionPanel({ countryCode }: { countryCode: Coun
     <Card className={`border ${LEVEL_COLORS[info.level]}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          {info.icon} {t('CBAM 抵扣確定性', 'CBAM Deduction Confidence')}：{tObj(LEVEL_LABELS[info.level])}
+          {info.icon} {t('CBAM 抵扣可能性評估', 'CBAM Deduction Likelihood Assessment')}：{tObj(LEVEL_LABELS[info.level])}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
         <p className="text-sm text-gray-600">{tObj(info.reason)}</p>
         <p className="text-xs text-gray-400">
           {t(
-            '歐盟僅認可符合其定義的「碳價」用於 CBAM 抵扣。碳稅、ETS 配額購買成本通常符合；但嵌入式碳稅或無正式碳價的國家可能無法抵扣。',
-            'The EU only recognizes carbon prices meeting its definition for CBAM deduction. Carbon taxes and ETS allowance costs typically qualify; embedded excise taxes or countries without formal carbon pricing may not.'
+            '歐盟只認可符合其定義的「碳價」用於 CBAM 抵扣。一般來說，碳稅和排放交易配額購買成本比較明確；嵌入其他稅制或沒有正式碳價的國家，認定上存在不確定性。抵扣的受益者是歐盟進口商，不是出口商。',
+            "The EU only recognizes carbon prices meeting its specific definition for CBAM deduction. Generally, carbon taxes and emissions trading allowance costs are more clearly eligible; countries with embedded taxes or no formal carbon pricing face uncertainty. The deduction benefits the EU importer, not the exporter."
           )}
         </p>
       </CardContent>
@@ -88,11 +88,11 @@ export function AllCountriesDeductionTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">{t('各國 CBAM 抵扣確定性', 'CBAM Deduction Confidence by Country')}</CardTitle>
+        <CardTitle className="text-lg">{t('各國碳價被歐盟認定為可抵扣的可能性', 'Likelihood of EU Recognition for CBAM Carbon Price Deduction')}</CardTitle>
         <p className="text-xs text-gray-400 mt-1">
           {t(
-            '下表依歐盟認定的確定性排序。🟢 表示該國碳價機制明確符合 CBAM 抵扣條件；⚫ 表示無正式碳價，出口商須全額負擔 CBAM 成本。',
-            'Ranked below by EU recognition certainty. 🟢 indicates the country\'s carbon pricing clearly qualifies for CBAM deduction; ⚫ means no formal carbon price — exporters bear the full CBAM cost.'
+            '下表依我們的分析判斷排序，不是歐盟官方認定結果。歐盟尚未公布各國碳價 CBAM 抵扣資格的正式清單。🟢 表示該國碳價機制高度可能符合 CBAM 抵扣條件；⚫ 表示無正式碳價，進口商須全額負擔 CBAM 成本。⚠️ 以下為基於現行法規的分析判斷，非歐盟官方認定。',
+            "Ranked by our analytical assessment, not official EU determinations. The EU has not published a formal list of eligible carbon prices. 🟢 = highly likely to qualify for CBAM deduction; ⚫ = no formal carbon price, importer bears full CBAM cost. ⚠️ These assessments are analytical judgments based on current regulations, not official EU determinations."
           )}
         </p>
       </CardHeader>

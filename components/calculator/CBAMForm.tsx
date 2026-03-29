@@ -15,6 +15,10 @@ import { formatCurrency } from '@/lib/data/exchange-rates';
 import { useI18n } from '@/lib/i18n/context';
 import { useCurrency } from '@/lib/currency/context';
 import InfoTip from '@/components/ui/info-tip';
+import DataVsDefaultPanel from './DataVsDefaultPanel';
+import RecommendationsPanel from './RecommendationsPanel';
+import { DEFAULT_EMBEDDED_EMISSIONS as DEF_EMISSIONS } from '@/lib/data/cbam-defaults';
+import { DEFAULT_EMISSION_SURCHARGES } from '@/lib/data/cbam-defaults';
 
 const STEP_LABELS: Record<string, { zhTW: string; en: string }> = {
   cbam_step_import_volume: { zhTW: '進口量', en: 'Import Volume' },
@@ -223,7 +227,7 @@ export default function CBAMForm() {
             ) : (
               <>
                 <div className="text-center space-y-2">
-                  <p className="text-sm text-gray-500">{t('CBAM 淨成本', 'Net CBAM Cost')}</p>
+                  <p className="text-sm text-gray-500">{t('歐盟進口商的 CBAM 淨成本', "EU Importer's Net CBAM Cost")}</p>
                   <p className="text-4xl font-bold text-gray-900">€{formatCurrency(result.netCBAMCost)}</p>
                   {displayCurrency !== 'EUR' && (
                     <p className="text-lg text-gray-500">≈ {formatConverted(result.netCBAMCost, 'EUR')}</p>
@@ -236,7 +240,7 @@ export default function CBAMForm() {
                     <p className="text-lg font-semibold">{formatCurrency(result.grossEmissions, 1)} tCO₂e</p>
                   </div>
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500">{t('原產國碳價抵扣', 'Domestic Deduction')}</p>
+                    <p className="text-xs text-gray-500">{t('原產國碳價可抵扣金額', 'Domestic Carbon Price Deductible')}</p>
                     <p className="text-lg font-semibold text-green-600">-€{formatCurrency(result.domesticCreditDeduction)}</p>
                   </div>
                 </div>
@@ -264,8 +268,36 @@ export default function CBAMForm() {
                 </div>
               </>
             )}
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mt-4">
+              <p className="text-xs text-amber-800">
+                {t(
+                  '提醒：CBAM 憑證的購買義務由歐盟進口商承擔。本工具估算的是進口商面臨的成本，對你（出口商）的影響取決於雙方的商業條件。各國碳價的 CBAM 抵扣資格以歐盟最終認定為準。',
+                  "Note: CBAM certificate obligations are borne by EU importers. Costs shown represent the importer's liability. The impact on you as an exporter depends on your commercial terms. CBAM deduction eligibility is subject to final EU determination."
+                )}
+              </p>
+            </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Data vs Default comparison */}
+      {result && !result.isExempt && !useDefaultEmissions && specificEmissions > 0 && (
+        <DataVsDefaultPanel
+          actualEmissions={specificEmissions}
+          defaultEmissions={DEF_EMISSIONS[productType] ?? 1.85}
+          defaultMarkupPercent={year <= 2026 ? 10 : year <= 2027 ? 20 : 30}
+          importVolume={importVolume}
+          euEtsPrice={euEtsPrice}
+          year={year}
+        />
+      )}
+
+      {/* Recommendations */}
+      {result && !result.isExempt && (
+        <RecommendationsPanel
+          countryCode="other"
+          cbamResult={result}
+        />
       )}
     </div>
   );

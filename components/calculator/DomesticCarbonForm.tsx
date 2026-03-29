@@ -15,6 +15,7 @@ import ResultPanel from './ResultPanel';
 import ScenarioChart from './ScenarioChart';
 import CrossDeductionPanel from './CrossDeductionPanel';
 import InfoTip from '@/components/ui/info-tip';
+import RecommendationsPanel from './RecommendationsPanel';
 
 interface Props {
   calculator: DomesticCarbonPriceCalculator;
@@ -227,6 +228,7 @@ export default function DomesticCarbonForm({ calculator }: Props) {
         <>
           <ResultPanel result={result} country={country} />
           <CrossDeductionPanel countryCode={calculator.countryCode} />
+          <RecommendationsPanel countryCode={calculator.countryCode} domesticResult={result} />
           <ScenarioChart countryCode={calculator.countryCode} annualEmissions={annualEmissions} />
         </>
       )}

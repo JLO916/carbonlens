@@ -3,8 +3,8 @@ import Footer from '@/components/layout/Footer';
 import CBAMForm from '@/components/calculator/CBAMForm';
 
 export const metadata = {
-  title: 'EU CBAM 碳邊境調整機制試算 | CBAM Calculator',
-  description: '計算歐盟碳邊境調整機制（CBAM）成本 — 涵蓋鋼鐵、鋁、水泥、化肥、氫、電力。',
+  title: 'CBAM碳關稅計算器｜歐盟碳邊境調整機制成本評估 — CarbonLens',
+  description: '免費CBAM成本評估工具。從亞洲出口企業角度評估歐盟進口商面臨的碳關稅成本，比較實際排放數據vs預設值的成本差異，以及各國碳價CBAM抵扣可能性。',
 };
 
 export default function CBAMPage() {

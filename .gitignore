@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cbam parser cache (downloaded official Excel)
+/.cache
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

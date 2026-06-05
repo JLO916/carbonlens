@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
 import type { CbamResult } from '@/lib/diagnose/types';
 import { CBAM_LIVE_CACHE } from '@/lib/diagnose/data/cbam-cache';
+import { STAGED_COUNT, STAGED_COUNTRIES, STAGED_AS_OF, STAGED_SOURCE } from '@/lib/diagnose/data/cbam-staging';
+import { CBAM_PITFALLS, CITATION_CBAM_PRACTICE } from '@/lib/diagnose/data/cbam';
 import CitationTag from './CitationTag';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n));
@@ -40,6 +42,14 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
               <p className="mt-1 text-xs text-gray-500">{t('預設值通過驗證同步前不顯示數字（不估算）', 'No number shown until a verified sync (never estimated)')}</p>
             </div>
             {CBAM_LIVE_CACHE.meta.note && <p className="text-xs leading-relaxed text-gray-500">{tObj(CBAM_LIVE_CACHE.meta.note)}</p>}
+            <div className="rounded-lg border border-[#89B56C]/30 bg-[#89B56C]/5 p-2.5 text-xs leading-relaxed text-gray-600">
+              <span className="font-medium text-[#5d7d44]">✓ {t('同步管線已就位', 'Sync pipeline in place')}：</span>
+              {t(
+                `已自官方 Excel 解析 ${STAGED_COUNT.toLocaleString()} 筆預設值(${STAGED_COUNTRIES.length} 國,${STAGED_AS_OF})至暫存,待異常檢查與人工基線確認後解鎖、顯示數字。`,
+                `Parsed ${STAGED_COUNT.toLocaleString()} default values (${STAGED_COUNTRIES.length} countries, ${STAGED_AS_OF}) from the official Excel into staging; unlocks once anomaly checks pass and a human confirms the baseline.`,
+              )}
+              <span className="mt-1 block text-[11px] text-gray-400">{t('來源', 'Source')}：{tObj(STAGED_SOURCE)}</span>
+            </div>
             <p className="text-xs text-gray-500">{t('改用「實際數據」即可立即估算指示性暴露。', 'Switch to “actual data” to get an indicative estimate now.')}</p>
           </CardContent>
         </Card>
@@ -117,6 +127,23 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* 常見實務坑 — collapsible（critique #12） */}
+      {input.exportsToEU && (
+        <details className="rounded-xl border border-gray-200 bg-white p-4">
+          <summary className="cursor-pointer list-none text-sm font-medium text-gray-700 marker:hidden">
+            ▸ {t('常見實務坑：為什麼要先把可查證數據備好', 'Common pitfalls: why to get verifiable data ready first')}
+          </summary>
+          <div className="mt-3 space-y-2">
+            <ul className="list-disc space-y-1.5 pl-5 text-xs leading-relaxed text-gray-600">
+              {CBAM_PITFALLS.map((p, i) => (
+                <li key={i}>{tObj(p)}</li>
+              ))}
+            </ul>
+            <CitationTag citation={CITATION_CBAM_PRACTICE} className="mt-1" />
+          </div>
+        </details>
+      )}
     </div>
   );
 }

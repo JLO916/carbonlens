@@ -62,7 +62,21 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
             <div className="text-center">
               <p className="text-sm text-gray-500">{t(`在 ETS €${exposure.etsPrice}／噸時`, `At ETS €${exposure.etsPrice}/t`)}</p>
               <p className="mt-1 text-5xl font-extrabold tracking-tight text-gray-900">≈ €{fmt(exposure.indicativeExposureEUR)}</p>
-              <p className="mt-1.5 text-xs text-gray-400">{t('指示性、條件於 ETS 價，實際因廠而異', 'Indicative, conditional on ETS price; actual varies by facility')}</p>
+              {exposure.fromOfficialDefault && exposure.exposureMinEUR !== undefined && exposure.exposureMaxEUR !== undefined && (
+                <p className="mt-1 text-sm text-gray-500">
+                  {t('區間', 'Range')} €{fmt(exposure.exposureMinEUR)} – €{fmt(exposure.exposureMaxEUR)}
+                </p>
+              )}
+              {exposure.fromOfficialDefault ? (
+                <p className="mt-1.5 text-xs text-gray-400">
+                  {t(
+                    `依官方預設值中位數（該類別 ${exposure.defaultN} 筆官方值，${exposure.defaultAsOf}，含加成）;非實際數據,因 CN 碼與廠而異。`,
+                    `Median of official defaults (${exposure.defaultN} CN values in this category, ${exposure.defaultAsOf}, incl. mark-up); not actual data — varies by CN code and facility.`,
+                  )}
+                </p>
+              ) : (
+                <p className="mt-1.5 text-xs text-gray-400">{t('指示性、條件於 ETS 價，實際因廠而異', 'Indicative, conditional on ETS price; actual varies by facility')}</p>
+              )}
             </div>
             <div className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">
               {t(

@@ -8,7 +8,7 @@ import CbamResultView from '@/components/diagnose/CbamResult';
 import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
-import { diagnoseCbam } from '@/lib/diagnose/logic/cbam';
+import { diagnoseCbam, type CbamDefaultLookup } from '@/lib/diagnose/logic/cbam';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildCbamChecklist } from '@/lib/diagnose/logic/checklist';
 import type { CbamInput, CbamResult, LeadRoutingResult } from '@/lib/diagnose/types';
@@ -26,9 +26,21 @@ export default function CbamDiagnoseClient() {
   const [result, setResult] = useState<CbamResult | null>(null);
   const [routing, setRouting] = useState<LeadRoutingResult | null>(null);
 
-  function handleSubmit(input: CbamInput) {
+  async function handleSubmit(input: CbamInput) {
     setRouting(null);
-    setResult(diagnoseCbam(input));
+    let lookup: CbamDefaultLookup | undefined;
+    if (input.emissionsSource === 'official_default' && input.exportsToEU) {
+      try {
+        const res = await fetch(
+          `/api/cbam-default?country=${encodeURIComponent(input.originCountry)}&product=${encodeURIComponent(input.product)}&year=${input.year}`,
+        );
+        const d = await res.json();
+        if (d && !d.locked) lookup = { value: d.value, min: d.min, max: d.max, n: d.n, asOf: d.asOf };
+      } catch {
+        /* leave locked */
+      }
+    }
+    setResult(diagnoseCbam(input, lookup));
   }
 
   function handleReset() {

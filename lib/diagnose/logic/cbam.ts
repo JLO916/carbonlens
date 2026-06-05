@@ -13,34 +13,60 @@ import {
   CITATION_CBAM_LEGAL,
   CITATION_CBAM_DEFAULTS,
 } from '@/lib/diagnose/data/cbam';
-import { CBAM_LIVE_CACHE, isCbamDefaultsLive } from '@/lib/diagnose/data/cbam-cache';
+import { CBAM_LIVE_CACHE } from '@/lib/diagnose/data/cbam-cache';
 
-export function diagnoseCbam(input: CbamInput): CbamResult {
+/** The promoted official default for (country, product, year) — passed in by the client after
+ *  fetching /api/cbam-default. Absent → the official-default path stays locked (§7.3). */
+export interface CbamDefaultLookup {
+  value: number;
+  min: number;
+  max: number;
+  n: number;
+  asOf: string;
+}
+
+export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup): CbamResult {
   const product = CBAM_PRODUCTS.find((p) => p.key === input.product);
   const deMinimisEligible = product?.deMinimisEligible ?? false;
   const deMinimisExempt =
     deMinimisEligible && input.annualVolumeTonnes > 0 && input.annualVolumeTonnes <= CBAM_DE_MINIMIS_TONNES;
 
-  const defaultsLive = isCbamDefaultsLive(CBAM_LIVE_CACHE);
   const usingDefault = input.emissionsSource === 'official_default';
-  const defaultsLocked = usingDefault && !defaultsLive;
+  const defaultsLocked = usingDefault && !defaultLookup;
+  const etsPrice = input.etsPrice && input.etsPrice > 0 ? input.etsPrice : undefined;
 
   let exposure: CbamExposure = { deMinimisExempt, defaultsLocked };
 
-  if (!deMinimisExempt && input.emissionsSource === 'actual') {
-    const spec = input.actualSpecificEmissions;
-    if (spec && spec > 0) {
-      // Actual-data path: emissions = volume × specific. No mark-up (mark-up is the
-      // default-path surcharge for not having actual data, §6B).
-      const totalEmissions = input.annualVolumeTonnes * spec;
-      const etsPrice = input.etsPrice && input.etsPrice > 0 ? input.etsPrice : undefined;
+  if (!deMinimisExempt) {
+    if (input.emissionsSource === 'actual') {
+      const spec = input.actualSpecificEmissions;
+      if (spec && spec > 0) {
+        // Actual-data path: emissions = volume × specific. No mark-up.
+        const totalEmissions = input.annualVolumeTonnes * spec;
+        exposure = {
+          deMinimisExempt: false,
+          defaultsLocked: false,
+          totalEmissions,
+          markupApplied: 0,
+          etsPrice,
+          indicativeExposureEUR: etsPrice ? totalEmissions * etsPrice : undefined,
+        };
+      }
+    } else if (usingDefault && defaultLookup) {
+      // Official-default path (human-baseline confirmed): volume × median default(incl. mark-up) × ETS.
+      const totalEmissions = input.annualVolumeTonnes * defaultLookup.value;
       exposure = {
         deMinimisExempt: false,
         defaultsLocked: false,
         totalEmissions,
-        markupApplied: 0,
         etsPrice,
         indicativeExposureEUR: etsPrice ? totalEmissions * etsPrice : undefined,
+        fromOfficialDefault: true,
+        defaultPerTonne: defaultLookup.value,
+        defaultN: defaultLookup.n,
+        defaultAsOf: defaultLookup.asOf,
+        exposureMinEUR: etsPrice ? input.annualVolumeTonnes * defaultLookup.min * etsPrice : undefined,
+        exposureMaxEUR: etsPrice ? input.annualVolumeTonnes * defaultLookup.max * etsPrice : undefined,
       };
     }
   }
@@ -74,6 +100,6 @@ export function diagnoseCbam(input: CbamInput): CbamResult {
     markupNote: CBAM_MARKUP_NOTE,
     disclosures,
     citations: [CITATION_CBAM_LEGAL, CITATION_CBAM_DEFAULTS],
-    cacheStatus: CBAM_LIVE_CACHE.status,
+    cacheStatus: defaultLookup ? 'live' : CBAM_LIVE_CACHE.status,
   };
 }

@@ -66,6 +66,21 @@ export default function AdminLeadsClient() {
     URL.revokeObjectURL(url);
   }
 
+  async function del(body: { email?: string; receivedAt?: string; test?: boolean }) {
+    const t = token.trim();
+    if (!t) return;
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) await load();
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
     <div className="space-y-6">
       <header>
@@ -90,6 +105,16 @@ export default function AdminLeadsClient() {
             ⬇ 匯出 CSV
           </Button>
         )}
+        {leads && leads.length > 0 && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (window.confirm('刪除所有 @carbonlens.test 測試線索？')) del({ test: true });
+            }}
+          >
+            清測試資料
+          </Button>
+        )}
         {leads && <span className="text-sm text-gray-500">共 {count} 筆（顯示最近 {leads.length} 筆）</span>}
       </div>
 
@@ -108,6 +133,7 @@ export default function AdminLeadsClient() {
                 <th className="px-3 py-2 font-medium">角色</th>
                 <th className="px-3 py-2 font-medium">分數／壓力</th>
                 <th className="px-3 py-2 font-medium">輸入</th>
+                <th className="px-3 py-2 font-medium"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -122,6 +148,16 @@ export default function AdminLeadsClient() {
                   <td className="whitespace-nowrap px-3 py-2">{l.score ?? l.pressureLevel ?? ''}</td>
                   <td className="max-w-xs px-3 py-2 text-gray-400">
                     <code className="break-all">{cell(l, 'input')}</code>
+                  </td>
+                  <td className="px-3 py-2">
+                    <button
+                      type="button"
+                      title="刪除這筆"
+                      onClick={() => del({ email: l.email, receivedAt: l.receivedAt })}
+                      className="text-gray-300 transition-colors hover:text-red-500"
+                    >
+                      🗑
+                    </button>
                   </td>
                 </tr>
               ))}

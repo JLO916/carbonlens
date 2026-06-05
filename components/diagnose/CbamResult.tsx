@@ -104,7 +104,7 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
               <li key={i}>{tObj(d)}</li>
             ))}
           </ul>
-          <div className="space-y-1 pt-2">
+          <div className="space-y-2 pt-2">
             {result.citations.map((c, i) => (
               <CitationTag key={i} citation={c} />
             ))}

@@ -55,7 +55,7 @@ export default function SupplyChainResultView({ result }: { result: SupplyChainR
           ) : (
             <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">{result.unsureNote ? tObj(result.unsureNote) : ''}</p>
           )}
-          <CitationTag citation={result.frameworksCitation} className="pt-1" />
+          <CitationTag citation={result.frameworksCitation} className="mt-2" />
         </CardContent>
       </Card>
 
@@ -73,7 +73,7 @@ export default function SupplyChainResultView({ result }: { result: SupplyChainR
           {result.scope3.industryNote && (
             <p className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">{tObj(result.scope3.industryNote)}</p>
           )}
-          <CitationTag citation={result.scope3.citation} className="pt-1" />
+          <CitationTag citation={result.scope3.citation} className="mt-2" />
         </CardContent>
       </Card>
 
@@ -84,7 +84,7 @@ export default function SupplyChainResultView({ result }: { result: SupplyChainR
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-gray-700">
           <p>{tObj(result.transmission.text)}</p>
-          <CitationTag citation={result.transmission.citation} className="pt-1" />
+          <CitationTag citation={result.transmission.citation} className="mt-2" />
         </CardContent>
       </Card>
 
@@ -104,7 +104,7 @@ export default function SupplyChainResultView({ result }: { result: SupplyChainR
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-gray-700">
           <p>{tObj(result.csrdProtection.text)}</p>
-          <CitationTag citation={result.csrdProtection.citation} className="pt-1" />
+          <CitationTag citation={result.csrdProtection.citation} className="mt-2" />
         </CardContent>
       </Card>
     </div>

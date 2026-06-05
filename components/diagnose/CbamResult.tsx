@@ -51,8 +51,8 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
           <CardContent className="space-y-4">
             <div className="text-center">
               <p className="text-sm text-gray-500">{t(`在 ETS €${exposure.etsPrice}／噸時`, `At ETS €${exposure.etsPrice}/t`)}</p>
-              <p className="text-4xl font-bold text-gray-900">€{fmt(exposure.indicativeExposureEUR)}</p>
-              <p className="mt-1 text-xs text-gray-400">{t('指示性、條件於 ETS 價，實際因廠而異', 'Indicative, conditional on ETS price; actual varies by facility')}</p>
+              <p className="mt-1 text-5xl font-extrabold tracking-tight text-gray-900">≈ €{fmt(exposure.indicativeExposureEUR)}</p>
+              <p className="mt-1.5 text-xs text-gray-400">{t('指示性、條件於 ETS 價，實際因廠而異', 'Indicative, conditional on ETS price; actual varies by facility')}</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-gray-50 p-3 text-center">
@@ -104,7 +104,7 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
               <li key={i}>{tObj(d)}</li>
             ))}
           </ul>
-          <div className="space-y-1 pt-2">
+          <div className="space-y-2 pt-2">
             {result.citations.map((c, i) => (
               <CitationTag key={i} citation={c} />
             ))}

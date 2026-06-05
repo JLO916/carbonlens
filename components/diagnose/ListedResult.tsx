@@ -35,7 +35,7 @@ export default function ListedResultView({ result }: { result: ListedResult }) {
             <span className="font-medium">{t('編製基準', 'Basis')}：</span>
             {tObj(gri.basis)}
           </p>
-          <CitationTag citation={gri.citation} className="pt-2" />
+          <CitationTag citation={gri.citation} className="mt-2" />
         </CardContent>
       </Card>
 
@@ -66,7 +66,7 @@ export default function ListedResultView({ result }: { result: ListedResult }) {
           <p className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">
             {tObj(result.adoptionBasisNote)}
           </p>
-          <CitationTag citation={ifrs.citation} className="pt-1" />
+          <CitationTag citation={ifrs.citation} className="mt-2" />
         </CardContent>
       </Card>
 
@@ -92,7 +92,7 @@ export default function ListedResultView({ result }: { result: ListedResult }) {
               <p className="mt-1 text-xs leading-relaxed text-gray-600">{tObj(s.description)}</p>
             </div>
           ))}
-          <CitationTag citation={disclosureScope.citation} className="pt-1" />
+          <CitationTag citation={disclosureScope.citation} className="mt-2" />
         </CardContent>
       </Card>
     </div>

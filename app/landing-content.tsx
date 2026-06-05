@@ -136,6 +136,11 @@ export default function LandingContent() {
               </Button>
             </Link>
           </div>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500">
+            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('每筆數字標來源與同步日期', 'Every figure has its source & sync date')}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('3 個合規模組・完全免費', '3 compliance modules · free')}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('非法律意見・非永續簽證', 'Not legal advice · not assurance')}</span>
+          </div>
         </div>
       </section>
 
@@ -236,6 +241,24 @@ export default function LandingContent() {
                 'CarbonLens helps you see it first, for free: which phase you’re in, when you’re on the hook, how big the exposure is, how urgent — with a starter action checklist. Every output carries its source and sync date. This is a preliminary diagnostic and intelligence reference — not legal advice, not a sustainability assurance.',
               )}
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Closing CTA — repeat the pain + action */}
+      <section className="bg-gradient-to-br from-[#89B56C]/15 via-[#89B56C]/5 to-white py-16">
+        <div className="mx-auto max-w-2xl px-4 text-center sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">{t('還在猜自己被要求了什麼？', 'Still guessing what you’re on the hook for?')}</h2>
+          <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-gray-600">
+            {t('30 秒看清你的合規暴露與急迫度，附初步因應清單——免費、不需註冊。', 'See your compliance exposure and urgency in 30 seconds, with a starter checklist — free, no signup.')}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link href="/diagnose">
+              <Button className="h-12 bg-[#89B56C] px-8 text-base text-white hover:bg-[#6E9156]">{t('看清我的暴露', 'See my exposure')}</Button>
+            </Link>
+            <Link href="/tw">
+              <Button variant="outline" className="h-12 border-[#89B56C] px-8 text-base text-[#5d7d44] hover:bg-[#89B56C]/10">{t('試算碳成本', 'Calculate cost')}</Button>
+            </Link>
           </div>
         </div>
       </section>

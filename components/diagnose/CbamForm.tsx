@@ -190,6 +190,7 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
         >
           {t('評估我的 CBAM 暴露', 'Assess my CBAM exposure')}
         </Button>
+        <p className="text-center text-xs text-gray-400">{t('免費・即時計算・不需註冊', 'Free · instant · no signup')}</p>
       </CardContent>
     </Card>
   );

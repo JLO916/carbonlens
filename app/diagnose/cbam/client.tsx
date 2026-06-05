@@ -9,6 +9,7 @@ import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
 import { diagnoseCbam } from '@/lib/diagnose/logic/cbam';
+import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildCbamChecklist } from '@/lib/diagnose/logic/checklist';
 import type { CbamInput, CbamResult, LeadRoutingResult } from '@/lib/diagnose/types';
 
@@ -83,6 +84,7 @@ export default function CbamDiagnoseClient() {
               routingInput={{ euExporter: result.input.exportsToEU }}
               input={result.input}
               onSuccess={setRouting}
+              onSkip={() => setRouting(classifyLead({ euExporter: result.input.exportsToEU }))}
             />
           ) : (
             <div className="space-y-5">

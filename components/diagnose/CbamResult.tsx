@@ -46,13 +46,19 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
       ) : exposure.indicativeExposureEUR !== undefined ? (
         <Card className="border-2 border-[#89B56C]/40">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t('指示性 CBAM 暴露（條件式）', 'Indicative CBAM exposure (conditional)')}</CardTitle>
+            <CardTitle className="text-base">{t('你買家面臨的 CBAM 成本（指示性、條件式）', 'CBAM cost your buyer faces (indicative, conditional)')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
               <p className="text-sm text-gray-500">{t(`在 ETS €${exposure.etsPrice}／噸時`, `At ETS €${exposure.etsPrice}/t`)}</p>
               <p className="mt-1 text-5xl font-extrabold tracking-tight text-gray-900">≈ €{fmt(exposure.indicativeExposureEUR)}</p>
               <p className="mt-1.5 text-xs text-gray-400">{t('指示性、條件於 ETS 價，實際因廠而異', 'Indicative, conditional on ETS price; actual varies by facility')}</p>
+            </div>
+            <div className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">
+              {t(
+                '法律上這筆由你的歐盟「進口商」繳納——這是他的成本。對你（出口商）的衝擊是商業性的：可能被轉嫁、被壓價，或在無法提供已查證數據時被換掉供應商。',
+                'Legally this is paid by your EU importer — it’s their cost. The impact on you (the exporter) is commercial: it may be passed back, priced down, or you may be switched out if you can’t provide verified data.',
+              )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-gray-50 p-3 text-center">

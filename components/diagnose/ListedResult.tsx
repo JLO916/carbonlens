@@ -12,7 +12,22 @@ export default function ListedResultView({ result }: { result: ListedResult }) {
 
   return (
     <div className="space-y-5">
-      {/* Urgency first — the headline number */}
+      {/* Hard deadlines first — the concrete headline (the score is only a reminder) */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <p className="text-sm font-medium text-gray-500">{t('你的硬死線', 'Your hard deadlines')}</p>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border border-[#89B56C]/30 bg-[#89B56C]/5 p-3">
+            <p className="text-xs text-gray-500">{t('永續報告書（每年）', 'Sustainability report (annual)')}</p>
+            <p className="mt-0.5 font-semibold text-gray-800">{tObj(gri.annualDeadlineLabel)}</p>
+          </div>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <p className="text-xs text-gray-500">{t('IFRS S1/S2 首次申報', 'IFRS S1/S2 first filing')}</p>
+            <p className="mt-0.5 font-semibold text-gray-800">{tObj(ifrs.fileLabel)}</p>
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-gray-400">{t('以這些法定時程排你的工作；下方的分數只是輔助提醒。', 'Plan around these statutory dates — the score below is only a supporting reminder.')}</p>
+      </div>
+
       <UrgencyMeter urgency={urgency} />
 
       {/* GRI universal obligation */}

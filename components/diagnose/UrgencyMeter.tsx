@@ -52,7 +52,7 @@ export default function UrgencyMeter({ urgency }: { urgency: UrgencyBreakdown })
           <p className="mt-1 text-xl font-bold" style={{ color: b.color }}>
             {t('急迫度', 'Urgency')}：{tObj(b.label)}
           </p>
-          <p className="mt-1 text-xs text-gray-400">{t('0–100，越高越該優先處理', '0–100, higher = act sooner')}</p>
+          <p className="mt-1 text-xs text-gray-400">{t('提醒指標（0–100），不取代你的合規排程', 'A reminder signal (0–100) — not a substitute for your compliance plan')}</p>
         </div>
       </div>
 

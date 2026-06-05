@@ -3,8 +3,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
 import type { ListedResult } from '@/lib/diagnose/types';
+import {
+  IFRS_LOCAL_NUANCES,
+  CITATION_IFRS_ROADMAP,
+  IMPLEMENTATION_STEPS,
+  CITATION_IMPLEMENTATION,
+} from '@/lib/diagnose/data/listed-disclosure';
 import CitationTag from './CitationTag';
 import UrgencyMeter from './UrgencyMeter';
+import Scope3Focus from './Scope3Focus';
 
 export default function ListedResultView({ result }: { result: ListedResult }) {
   const { t, tObj } = useI18n();
@@ -85,6 +92,22 @@ export default function ListedResultView({ result }: { result: ListedResult }) {
         </CardContent>
       </Card>
 
+      {/* 在地細節 — collapsible（critique #7） */}
+      <details className="rounded-xl border border-gray-200 bg-white p-4">
+        <summary className="cursor-pointer list-none text-sm font-medium text-gray-700 marker:hidden">
+          ▸ {t('在地細節：你的情況可能不同（金融業／KY 股／過渡規定／查證）', 'Local nuances: your case may differ (financials / KY shares / transition relief / assurance)')}
+        </summary>
+        <div className="mt-3 space-y-2.5">
+          {IFRS_LOCAL_NUANCES.map((n, i) => (
+            <div key={i}>
+              <p className="text-sm font-semibold text-gray-800">{tObj(n.title)}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-gray-600">{tObj(n.detail)}</p>
+            </div>
+          ))}
+          <CitationTag citation={CITATION_IFRS_ROADMAP} className="mt-1" />
+        </div>
+      </details>
+
       {/* Disclosure scope */}
       <Card>
         <CardHeader className="pb-3">
@@ -107,9 +130,26 @@ export default function ListedResultView({ result }: { result: ListedResult }) {
               <p className="mt-1 text-xs leading-relaxed text-gray-600">{tObj(s.description)}</p>
             </div>
           ))}
+          <Scope3Focus industry={result.input.industry} />
           <CitationTag citation={disclosureScope.citation} className="mt-2" />
         </CardContent>
       </Card>
+
+      {/* 實務下一步 — collapsible（critique #9） */}
+      <details className="rounded-xl border border-gray-200 bg-white p-4">
+        <summary className="cursor-pointer list-none text-sm font-medium text-gray-700 marker:hidden">
+          ▸ {t('實務下一步：你真正要做的工（盤查／系統／查證）', 'Next in practice: the real work ahead (inventory / tooling / assurance)')}
+        </summary>
+        <div className="mt-3 space-y-2.5">
+          {IMPLEMENTATION_STEPS.map((s, i) => (
+            <div key={i}>
+              <p className="text-sm font-semibold text-gray-800">{tObj(s.title)}</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-gray-600">{tObj(s.detail)}</p>
+            </div>
+          ))}
+          <CitationTag citation={CITATION_IMPLEMENTATION} className="mt-1" />
+        </div>
+      </details>
     </div>
   );
 }

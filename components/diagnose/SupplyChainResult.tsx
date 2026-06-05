@@ -3,7 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
 import type { PressureLevel, SupplyChainResult } from '@/lib/diagnose/types';
+import { TAIWAN_SUPPLY_NOTES, TAIWAN_SUPPLY_GENERAL, CITATION_TAIWAN_SUPPLY } from '@/lib/diagnose/data/supply-chain';
 import CitationTag from './CitationTag';
+import Scope3Focus from './Scope3Focus';
 
 // Qualitative pressure → alert color (high = more pressure). Not a stock metric.
 function band(level: PressureLevel) {
@@ -91,6 +93,7 @@ export default function SupplyChainResultView({ result }: { result: SupplyChainR
           {result.scope3.industryNote && (
             <p className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">{tObj(result.scope3.industryNote)}</p>
           )}
+          <Scope3Focus industry={result.input.industry} />
           <CitationTag citation={result.scope3.citation} className="mt-2" />
         </CardContent>
       </Card>
@@ -102,7 +105,12 @@ export default function SupplyChainResultView({ result }: { result: SupplyChainR
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-gray-700">
           <p>{tObj(result.transmission.text)}</p>
+          <div className="rounded-lg bg-gray-50 p-2.5 text-xs leading-relaxed text-gray-600">
+            <span className="font-medium text-gray-700">{t('台灣在地', 'In Taiwan')}：</span>
+            {tObj(TAIWAN_SUPPLY_NOTES[result.input.industry] ?? TAIWAN_SUPPLY_GENERAL)}
+          </div>
           <CitationTag citation={result.transmission.citation} className="mt-2" />
+          <CitationTag citation={CITATION_TAIWAN_SUPPLY} className="mt-1" />
         </CardContent>
       </Card>
 

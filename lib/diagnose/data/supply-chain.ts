@@ -139,6 +139,45 @@ export const CSRD_CAP_PROTECTED: BilingualText = {
   en: 'Under CSRD (post-Omnibus), companies with <1,000 employees cannot be required to provide emissions information beyond the voluntary SME standard (VSME) — a protection for smaller suppliers; no need to over-panic.',
 };
 
+// ---- 台灣在地觀察(critique #8)。只給產業普遍情形 + 公開準則,守紅線:不編特定品牌要求 ----
+
+export const CITATION_TAIWAN_SUPPLY: Citation = {
+  source: {
+    zhTW: 'RBA 責任商業聯盟行為準則（環境章）;品牌 RE100／低碳供應鏈公開承諾',
+    en: 'RBA Responsible Business Alliance Code of Conduct (Environmental); brand RE100 / low-carbon supply-chain public commitments',
+  },
+  officialDocVersion: {
+    zhTW: 'RBA Code of Conduct;品牌公開永續承諾',
+    en: 'RBA Code of Conduct; brands’ public sustainability commitments',
+  },
+  asOfDate: '2026-06',
+  nextReview: '2026-12',
+};
+
+export const TAIWAN_SUPPLY_NOTES: Record<string, BilingualText> = {
+  electronics: {
+    zhTW: '台灣電子業普遍受客戶「RBA 行為準則」（含環境／碳）約束,品牌客戶的 RE100／低碳供應鏈承諾也會往供應鏈下傳——這是產業普遍情形,非特定品牌對貴司的具體要求。',
+    en: 'Taiwan electronics suppliers are commonly bound by customers’ RBA Code of Conduct (incl. environment/carbon); brand RE100 / low-carbon supply-chain commitments cascade down — an industry norm, not any brand’s specific demand on your company.',
+  },
+  metals: {
+    zhTW: '鋼鐵／扣件對歐出口者,買家面臨的 CBAM 成本可能反映到採購條件與排放數據要求。',
+    en: 'For steel/fastener exporters to the EU, the buyer’s CBAM cost may surface as procurement terms and emissions-data requests.',
+  },
+  cement: {
+    zhTW: '水泥／建材對歐出口者,買家的 CBAM 成本可能反映到採購條件與數據要求。',
+    en: 'For cement/building-material exporters to the EU, the buyer’s CBAM cost may surface as procurement terms and data requests.',
+  },
+  chemicals: {
+    zhTW: '化工對歐出口（如肥料）者,買家的 CBAM 與下游品牌承諾可能往採購端傳遞。',
+    en: 'For chemical exporters to the EU (e.g. fertilizer), the buyer’s CBAM and downstream brand commitments may pass through to procurement.',
+  },
+};
+
+export const TAIWAN_SUPPLY_GENERAL: BilingualText = {
+  zhTW: '即使台灣尚未全面法定強制,大型品牌客戶與投資人對供應商的碳數據要求正逐年提高。',
+  en: 'Even where Taiwan does not yet mandate it broadly, large brand customers and investors are raising carbon-data expectations on suppliers year over year.',
+};
+
 export const CSRD_CAP_ABOVE_THRESHOLD: BilingualText = {
   zhTW: '員工數 ≥1,000 人，不在 CSRD 中小企業價值鏈上限（VSME）的保護範圍內，較可能被要求提供完整排放資訊。',
   en: 'With ≥1,000 employees you fall outside the CSRD SME value-chain cap (VSME) protection, and are more likely to be asked for full emissions information.',

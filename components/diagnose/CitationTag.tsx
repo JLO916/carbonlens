@@ -30,6 +30,12 @@ export default function CitationTag({
         {tObj(citation.officialDocVersion)}
         <span className="text-gray-300"> · </span>
         {t('同步', 'as of')} {citation.asOfDate}
+        {citation.nextReview && (
+          <>
+            <span className="text-gray-300"> · </span>
+            {t('下次校對', 'next review')} {citation.nextReview}
+          </>
+        )}
         {citation.url && (
           <>
             <span className="text-gray-300"> · </span>

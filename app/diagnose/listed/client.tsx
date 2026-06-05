@@ -9,6 +9,7 @@ import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
 import { diagnoseListed } from '@/lib/diagnose/logic/listed';
+import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildChecklist } from '@/lib/diagnose/logic/checklist';
 import type { ListedInput, ListedResult, LeadRoutingResult } from '@/lib/diagnose/types';
 
@@ -76,6 +77,7 @@ export default function ListedDiagnoseClient() {
               score={result.urgency.total}
               input={result.input}
               onSuccess={setRouting}
+              onSkip={() => setRouting(classifyLead({ capitalTier: result.input.capitalTier }))}
             />
           ) : (
             <div className="space-y-5">

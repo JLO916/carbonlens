@@ -9,6 +9,7 @@ import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
 import { diagnoseSupplyChain } from '@/lib/diagnose/logic/supply-chain';
+import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildSupplyChainChecklist } from '@/lib/diagnose/logic/checklist';
 import type { SupplyChainInput, SupplyChainResult, LeadRoutingResult } from '@/lib/diagnose/types';
 
@@ -84,6 +85,7 @@ export default function SupplyChainDiagnoseClient() {
               pressureLevel={result.pressureLevel}
               input={result.input}
               onSuccess={setRouting}
+              onSkip={() => setRouting(classifyLead({ employeeBand: result.input.employeeBand, exportSupplyChain: result.input.exportSupplyChain }))}
             />
           ) : (
             <div className="space-y-5">

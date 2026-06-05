@@ -48,6 +48,12 @@ export default function DiagnoseLandingClient() {
             'Open the question on your mind for a 30-second personalized diagnosis and urgency score, with a starter checklist. Every figure carries its source and sync date.',
           )}
         </p>
+        <p className="mx-auto mt-2 max-w-2xl text-xs text-gray-400">
+          {t(
+            '給決策者與初判用——快速掌握量級與時程；不取代你的合規排程或專業意見。',
+            'For decision-makers and a first pass — gauge the magnitude and timeline fast; not a substitute for your compliance plan or professional advice.',
+          )}
+        </p>
       </header>
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-3">

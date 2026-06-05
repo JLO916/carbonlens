@@ -14,6 +14,8 @@ export interface Citation {
   officialDocVersion: BilingualText;
   /** Sync / verification date, ISO-ish (YYYY-MM or YYYY-MM-DD). */
   asOfDate: string;
+  /** Target next-review date (maintenance cadence) — surfaces freshness so a stale date isn't mistaken for current. */
+  nextReview?: string;
   /** Optional canonical URL. */
   url?: string;
 }

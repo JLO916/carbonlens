@@ -26,6 +26,7 @@ export default function LeadCaptureForm({
   pressureLevel,
   input,
   onSuccess,
+  onSkip,
 }: {
   module: ModuleKey;
   routingInput: RoutingInput;
@@ -33,6 +34,7 @@ export default function LeadCaptureForm({
   pressureLevel?: PressureLevel;
   input: DiagnosticInput;
   onSuccess: (routing: LeadRoutingResult) => void;
+  onSkip?: () => void;
 }) {
   const { t, tObj } = useI18n();
   const [email, setEmail] = useState('');
@@ -86,15 +88,15 @@ export default function LeadCaptureForm({
   return (
     <Card className="border-2 border-[#89B56C]/30">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">{t('取得完整結果與初步因應清單', 'Get the full result & action checklist')}</CardTitle>
+        <CardTitle className="text-base">{t('想要可下載清單與後續資源？（選填）', 'Want a downloadable checklist & resources? (optional)')}</CardTitle>
         <p className="mt-1 text-xs text-gray-500">
-          {t('留下 email 即可下載初步因應清單，並依您的身分提供後續資源。', 'Leave your email to download the action checklist and get resources matched to your role.')}
+          {t('上方診斷已是完整結果。留個 email 可拿到可下載的因應清單，並依你的身分提供後續資源——不留也能直接看建議路徑。', 'The diagnosis above is already the full result. Leave an email for a downloadable checklist and role-matched resources — or skip straight to your recommended path.')}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label className="text-sm font-medium">
-            {t('工作信箱', 'Work email')} <span className="text-red-500">*</span>
+            {t('工作信箱', 'Work email')}
           </Label>
           <Input
             type="email"
@@ -138,8 +140,17 @@ export default function LeadCaptureForm({
           disabled={status === 'submitting'}
           className="h-11 w-full bg-[#89B56C] text-base text-white hover:bg-[#6E9156]"
         >
-          {status === 'submitting' ? t('送出中…', 'Submitting…') : t('查看完整結果', 'Show full result')}
+          {status === 'submitting' ? t('送出中…', 'Submitting…') : t('送出 · 取得清單與資源', 'Send · get checklist & resources')}
         </Button>
+        {onSkip && (
+          <button
+            type="button"
+            onClick={onSkip}
+            className="w-full text-center text-xs text-gray-400 underline-offset-2 hover:text-gray-600 hover:underline"
+          >
+            {t('略過，直接看建議路徑 →', 'Skip — see my recommended path →')}
+          </button>
+        )}
         <p className="text-[11px] leading-relaxed text-gray-400">
           {t('我們僅用此 email 提供合規資源與後續聯繫，不會公開或販售。', 'We use this email only to share compliance resources and follow up — never published or sold.')}
         </p>

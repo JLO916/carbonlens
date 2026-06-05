@@ -110,6 +110,44 @@ export const CBAM_MARKUP_NOTE: BilingualText = {
   en: 'Mark-up applies only to the “official default” path: aluminium/cement/steel +10% (2026), +20% (2027), +30% (2028); fertilizer +1%. Using actual emissions data, no mark-up applies.',
 };
 
+// ---- 常見實務坑(critique #12)。出口商角度,已查證來源 ----
+
+export const CITATION_CBAM_PRACTICE: Citation = {
+  source: {
+    zhTW: 'Crowell & Moring、Squire Patton Boggs、O’Melveny CBAM 實務指引;ICAP;taxation-customs',
+    en: 'Crowell & Moring, Squire Patton Boggs, O’Melveny CBAM practice notes; ICAP; taxation-customs',
+  },
+  officialDocVersion: {
+    zhTW: 'CBAM 過渡期／定義期報告實務(法律事務所與 ICAP 指引,2024–2026)',
+    en: 'CBAM transitional/definitive reporting practice (law-firm & ICAP guidance, 2024–2026)',
+  },
+  asOfDate: '2026-06',
+  nextReview: '2026-12',
+};
+
+export const CBAM_PITFALLS: BilingualText[] = [
+  {
+    zhTW: '拿不到準確、可查證的排放數據 → 你買家被套「國別×產品預設值＋加成」,成本通常更高,且可能轉嫁給你。',
+    en: 'Without accurate, verifiable emissions data, your buyer is assigned country×product default values plus a mark-up — usually higher, and often passed back to you.',
+  },
+  {
+    zhTW: '供應鏈數據不配合是最常見痛點;非關聯進口商對你提供資料的查證能力有限,更倚賴你先把數據做扎實。',
+    en: 'Supplier data gaps are the most common pain point; unrelated importers have limited ability to verify what you provide — so solid data from you matters more.',
+  },
+  {
+    zhTW: '查證瓶頸:非歐盟生產設施的合格查證機構生態仍在發展,要預留查證時間。',
+    en: 'Verification bottleneck: the pool of accredited verifiers for non-EU facilities is still developing — reserve lead time.',
+  },
+  {
+    zhTW: '估算逐步收緊:過渡期後段複雜商品估算上限 20%;定義期更嚴——實際排放數據才是長解。',
+    en: 'Estimates are tightening: late transitional period caps estimates at 20% for complex goods; the definitive period is stricter — actual data is the durable answer.',
+  },
+  {
+    zhTW: '逾 50 噸進口者,你買家須為「授權 CBAM 申報人」;過渡期未盡申報義務每噸罰 €10–50。',
+    en: 'Above 50 t, your buyer must be an authorised CBAM declarant; transitional non-compliance is penalised at €10–50 per tonne.',
+  },
+];
+
 // ---- 來源國（§3B 輸入；國別僅影響「官方預設值」查表與顯示，預設值目前鎖定） ----
 
 export const CBAM_ORIGIN_COUNTRIES: { value: string; label: BilingualText }[] = [

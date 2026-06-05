@@ -23,7 +23,7 @@ export function leadStoreConfigured(): boolean {
   return kvCreds() !== null;
 }
 
-async function kvCommand(command: (string | number)[]): Promise<unknown> {
+export async function kvCommand(command: (string | number)[]): Promise<unknown> {
   const c = kvCreds();
   if (!c) throw new Error('kv_not_configured');
   const res = await fetch(c.url, {
@@ -68,4 +68,42 @@ export async function listLeads(limit = 200): Promise<StoredLead[]> {
 export async function leadCount(): Promise<number> {
   const n = (await kvCommand(['LLEN', LEADS_KEY])) as number;
   return typeof n === 'number' ? n : 0;
+}
+
+/** Delete a specific lead (matched by email + receivedAt). Returns rows removed. */
+export async function deleteLead(email: string, receivedAt: string): Promise<number> {
+  const raw = (await kvCommand(['LRANGE', LEADS_KEY, 0, -1])) as string[];
+  if (!Array.isArray(raw)) return 0;
+  let removed = 0;
+  for (const s of raw) {
+    try {
+      const l = JSON.parse(s) as StoredLead;
+      if (l.email === email && l.receivedAt === receivedAt) {
+        const n = (await kvCommand(['LREM', LEADS_KEY, 0, s])) as number;
+        removed += typeof n === 'number' ? n : 0;
+      }
+    } catch {
+      // skip unparseable
+    }
+  }
+  return removed;
+}
+
+/** Delete all test leads (email ending @carbonlens.test). Returns rows removed. */
+export async function deleteTestLeads(): Promise<number> {
+  const raw = (await kvCommand(['LRANGE', LEADS_KEY, 0, -1])) as string[];
+  if (!Array.isArray(raw)) return 0;
+  let removed = 0;
+  for (const s of raw) {
+    try {
+      const l = JSON.parse(s) as StoredLead;
+      if (typeof l.email === 'string' && l.email.endsWith('@carbonlens.test')) {
+        const n = (await kvCommand(['LREM', LEADS_KEY, 0, s])) as number;
+        removed += typeof n === 'number' ? n : 0;
+      }
+    } catch {
+      // skip
+    }
+  }
+  return removed;
 }

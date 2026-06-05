@@ -1,4 +1,5 @@
 import { diagnoseCbam } from '@/lib/diagnose/logic/cbam';
+import { computeBaselineFromStaging } from '@/lib/diagnose/cbam-live-store';
 import { runAnomalyChecks, promoteIfPassed } from '@/lib/diagnose/logic/cbam-sync';
 import { CBAM_LIVE_CACHE } from '@/lib/diagnose/data/cbam-cache';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
@@ -110,6 +111,33 @@ describe('promoteIfPassed (Brief §7.2)', () => {
     expect(live).toBe(prev); // still serving the locked baseline
     expect(staged?.status).toBe('pending_human_baseline');
     expect(staged?.defaultValues).toHaveLength(1);
+  });
+});
+
+describe('CBAM baseline + unlock (P2-11)', () => {
+  it('computeBaselineFromStaging yields per-(country,product) medians with a valid spread', () => {
+    const { baseline, count } = computeBaselineFromStaging();
+    expect(count).toBeGreaterThan(20);
+    const tw = baseline['tw|steel'];
+    expect(tw).toBeDefined();
+    expect(tw.m2026).toBeGreaterThan(0);
+    expect(tw.min2026).toBeLessThanOrEqual(tw.m2026);
+    expect(tw.max2026).toBeGreaterThanOrEqual(tw.m2026);
+    expect(tw.m2028).toBeGreaterThanOrEqual(tw.m2026); // mark-up rises 2026→2028
+  });
+
+  it('diagnoseCbam unlocks exposure (+range) when a default lookup is supplied', () => {
+    const r = diagnoseCbam(
+      base({ emissionsSource: 'official_default', annualVolumeTonnes: 5000, etsPrice: 80, actualSpecificEmissions: undefined }),
+      { value: 2.0, min: 1.5, max: 2.5, n: 10, asOf: '2026-02-04' },
+    );
+    expect(r.exposure.defaultsLocked).toBe(false);
+    expect(r.exposure.fromOfficialDefault).toBe(true);
+    expect(r.exposure.totalEmissions).toBe(10000);
+    expect(r.exposure.indicativeExposureEUR).toBe(800000);
+    expect(r.exposure.exposureMinEUR).toBe(600000);
+    expect(r.exposure.exposureMaxEUR).toBe(1000000);
+    expect(r.cacheStatus).toBe('live');
   });
 });
 

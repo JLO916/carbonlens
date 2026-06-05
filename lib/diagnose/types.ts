@@ -161,6 +161,13 @@ export interface CbamExposure {
   markupApplied?: number; // e.g. 0.10
   etsPrice?: number;
   indicativeExposureEUR?: number; // emissions(incl. mark-up) × ETS price
+  // Official-default path (unlocked after human baseline confirmation):
+  fromOfficialDefault?: boolean;
+  defaultPerTonne?: number; // marked-up median emission factor (tCO₂e/t)
+  defaultN?: number; // sample size behind the median
+  defaultAsOf?: string;
+  exposureMinEUR?: number; // category min–max spread → exposure range
+  exposureMaxEUR?: number;
 }
 
 export interface CbamResult {

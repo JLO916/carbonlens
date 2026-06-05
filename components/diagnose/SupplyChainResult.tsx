@@ -15,24 +15,42 @@ function band(level: PressureLevel) {
 export default function SupplyChainResultView({ result }: { result: SupplyChainResult }) {
   const { t, tObj } = useI18n();
   const b = band(result.pressureLevel);
+  const idx = result.pressureLevel === 'high' ? 2 : result.pressureLevel === 'medium' ? 1 : 0;
 
   return (
     <div className="space-y-5">
       {/* Expected pressure level */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <div className="flex items-end justify-between">
+        <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-500">{t('預期被要求壓力', 'Expected demand pressure')}</p>
-            <p className="mt-1 text-xs text-gray-400">{t('定性等級，非金額', 'Qualitative level, not an amount')}</p>
+            <p className="mt-0.5 text-3xl font-bold leading-tight" style={{ color: b.color }}>
+              {tObj(b.label)}
+            </p>
           </div>
           <span
-            className="rounded-full px-3 py-1 text-lg font-bold"
+            className="rounded-full px-3 py-1 text-xs font-medium"
             style={{ color: b.color, backgroundColor: `${b.color}1a` }}
           >
-            {tObj(b.label)}
+            {t('定性等級・非金額', 'Qualitative · not an amount')}
           </span>
         </div>
-        <p className="mt-3 text-sm text-gray-700">{tObj(result.pressureRationale)}</p>
+        {/* 3-segment pressure gauge */}
+        <div className="mt-4 flex gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-2 flex-1 rounded-full transition-colors"
+              style={{ backgroundColor: i <= idx ? b.color : '#e5e7eb' }}
+            />
+          ))}
+        </div>
+        <div className="mt-1 flex justify-between text-[10px] text-gray-400">
+          <span>{t('低', 'Low')}</span>
+          <span>{t('中', 'Medium')}</span>
+          <span>{t('高', 'High')}</span>
+        </div>
+        <p className="mt-4 text-sm text-gray-700">{tObj(result.pressureRationale)}</p>
         <p className="mt-3 border-t border-gray-100 pt-3 text-[11px] leading-relaxed text-gray-400">
           {tObj(result.pressureNote)}
         </p>

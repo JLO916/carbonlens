@@ -156,6 +156,7 @@ export default function SupplyChainForm({ onSubmit }: { onSubmit: (input: Supply
         >
           {t('側寫我的供應鏈碳壓力', 'Profile my supply-chain pressure')}
         </Button>
+        <p className="text-center text-xs text-gray-400">{t('免費・即時計算・不需註冊', 'Free · instant · no signup')}</p>
       </CardContent>
     </Card>
   );

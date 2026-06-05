@@ -128,6 +128,7 @@ export default function ListedForm({ onSubmit }: { onSubmit: (input: ListedInput
         >
           {t('診斷我的合規暴露', 'Diagnose my exposure')}
         </Button>
+        <p className="text-center text-xs text-gray-400">{t('免費・即時計算・不需註冊', 'Free · instant · no signup')}</p>
       </CardContent>
     </Card>
   );

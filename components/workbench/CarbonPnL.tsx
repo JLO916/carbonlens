@@ -19,7 +19,7 @@ export default function CarbonPnL({ result }: { result: WorkbenchResult }) {
         <CardContent className="p-4">
           <p className="text-xs font-medium text-gray-500">{t('國內碳費（現在）', 'Domestic carbon fee (now)')}</p>
           <p className="mt-1 text-2xl font-bold text-gray-900">NT${fmt(domestic.totalFeeTWD)}</p>
-          <p className="text-xs text-gray-400">≈ US${fmt(domestic.totalFeeUSD)}／{t('年', 'yr')} · {domestic.facilities.length} {t('廠區', 'sites')}</p>
+          <p className="text-xs text-gray-400">≈ US${fmt(domestic.totalFeeUSD)}／{t('年', 'yr')} · {domestic.facilities.length} {t('廠區', domestic.facilities.length === 1 ? 'site' : 'sites')}</p>
         </CardContent>
       </Card>
 

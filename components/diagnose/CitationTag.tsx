@@ -3,16 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Citation } from '@/lib/diagnose/types';
 import { useI18n } from '@/lib/i18n/context';
-
-/** Whole months between a snapshot date (YYYY-MM or YYYY-MM-DD) and now. null if unparseable. */
-function monthsSince(asOf: string): number | null {
-  const m = /^(\d{4})-(\d{2})/.exec(asOf);
-  if (!m) return null;
-  const y = Number(m[1]);
-  const mo = Number(m[2]);
-  const now = new Date();
-  return (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - mo);
-}
+import { monthsSince, STALE_MONTHS } from '@/lib/diagnose/aging';
 
 /** Honest-disclosure source badge: 來源 + 官方文件版本 + 資料快照日 (Brief §5).
  *  We show a "snapshot" date + "verify against the authority's latest notice" instead of a
@@ -28,7 +19,7 @@ export default function CitationTag({
   // Compute snapshot age client-side only (avoids SSR/CSR hydration mismatch on the date).
   const [aged, setAged] = useState<number | null>(null);
   useEffect(() => setAged(monthsSince(citation.asOfDate)), [citation.asOfDate]);
-  const stale = aged !== null && aged >= 9;
+  const stale = aged !== null && aged >= STALE_MONTHS;
   return (
     <div
       className={`flex items-start gap-1.5 rounded-md bg-[#89B56C]/[0.06] px-2.5 py-1.5 text-[11px] leading-relaxed text-gray-500 ring-1 ring-[#89B56C]/15 ${className}`}

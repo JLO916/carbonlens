@@ -82,6 +82,7 @@ const YES_NO: { value: boolean; label: BilingualText }[] = [
 export default function ProfileForm({ profile, onChange }: { profile: CompanyProfile; onChange: (p: CompanyProfile) => void }) {
   const { t, tObj } = useI18n();
   const set = (patch: Partial<CompanyProfile>) => onChange({ ...profile, ...patch });
+  const nn = (v: string) => Math.max(0, Number(v) || 0); // non-negative guard (input defensiveness)
 
   const setFacility = (id: string, patch: Partial<FacilityLine>) => set({ facilities: profile.facilities.map((f) => (f.id === id ? { ...f, ...patch } : f)) });
   const addFacility = () => set({ facilities: [...profile.facilities, { id: crypto.randomUUID(), label: `廠區 ${profile.facilities.length + 1}`, countryCode: 'tw', annualEmissionsTonnes: 25000, highCarbonLeakage: false, rateType: 'general', carbonCreditOffset: 0, hasApprovedReductionPlan: false }] });
@@ -150,12 +151,12 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-1.5"><Label className="text-sm">{t('出口歐盟？', 'Export to EU?')}</Label><Toggle value={profile.exportsToEU} onChange={(v) => set({ exportsToEU: v })} options={YES_NO} /></div>
-            <div className="space-y-1.5"><Label className="text-sm">{t('EU ETS 價·中（€/t）', 'EU ETS price·central (€/t)')}</Label><Input type="number" value={profile.etsPrice || ''} placeholder={t('如 80', 'e.g. 80')} onChange={(e) => set({ etsPrice: Number(e.target.value) || undefined })} /></div>
-            <div className="space-y-1.5"><Label className="text-sm">{t('轉嫁情境（%，選填）', 'Pass-through (%, opt)')}</Label><Input type="number" value={profile.passThroughPct || ''} placeholder={t('如 50', 'e.g. 50')} onChange={(e) => set({ passThroughPct: Number(e.target.value) || undefined })} /></div>
+            <div className="space-y-1.5"><Label className="text-sm">{t('EU ETS 價·中（€/t）', 'EU ETS price·central (€/t)')}</Label><Input type="number" value={profile.etsPrice || ''} placeholder={t('如 80', 'e.g. 80')} onChange={(e) => set({ etsPrice: nn(e.target.value) || undefined })} /></div>
+            <div className="space-y-1.5"><Label className="text-sm">{t('轉嫁情境（%，選填）', 'Pass-through (%, opt)')}</Label><Input type="number" value={profile.passThroughPct || ''} placeholder={t('如 50', 'e.g. 50')} onChange={(e) => set({ passThroughPct: Math.min(100, nn(e.target.value)) || undefined })} /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label className="text-sm">{t('ETS 低（選填,敏感度）', 'ETS low (opt)')}</Label><Input type="number" value={profile.etsPriceLow || ''} placeholder={t('如 60', 'e.g. 60')} onChange={(e) => set({ etsPriceLow: Number(e.target.value) || undefined })} /></div>
-            <div className="space-y-1.5"><Label className="text-sm">{t('ETS 高（選填,敏感度）', 'ETS high (opt)')}</Label><Input type="number" value={profile.etsPriceHigh || ''} placeholder={t('如 120', 'e.g. 120')} onChange={(e) => set({ etsPriceHigh: Number(e.target.value) || undefined })} /></div>
+            <div className="space-y-1.5"><Label className="text-sm">{t('ETS 低（選填,敏感度）', 'ETS low (opt)')}</Label><Input type="number" value={profile.etsPriceLow || ''} placeholder={t('如 60', 'e.g. 60')} onChange={(e) => set({ etsPriceLow: nn(e.target.value) || undefined })} /></div>
+            <div className="space-y-1.5"><Label className="text-sm">{t('ETS 高（選填,敏感度）', 'ETS high (opt)')}</Label><Input type="number" value={profile.etsPriceHigh || ''} placeholder={t('如 120', 'e.g. 120')} onChange={(e) => set({ etsPriceHigh: nn(e.target.value) || undefined })} /></div>
           </div>
           <p className="text-xs text-gray-400">{t('ETS 價是 CBAM 最會動的變數;填低/高即可在 ramp 圖看到「進董事會」的暴露區間。', 'ETS price is CBAM’s biggest swing factor; set low/high to see a board-ready exposure band on the ramp chart.')}</p>
         </CardContent>
@@ -169,10 +170,10 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
             <div key={f.id} className="rounded-lg border border-gray-200 p-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="col-span-2 space-y-1"><Label className="text-xs">{t('名稱', 'Name')}</Label><Input value={f.label} onChange={(e) => setFacility(f.id, { label: e.target.value })} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('年排放 tCO₂e（S1+2）', 'Annual tCO₂e (S1+2)')}</Label><Input type="number" value={f.annualEmissionsTonnes || ''} onChange={(e) => setFacility(f.id, { annualEmissionsTonnes: Number(e.target.value) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('年排放 tCO₂e（S1+2）', 'Annual tCO₂e (S1+2)')}</Label><Input type="number" value={f.annualEmissionsTonnes || ''} onChange={(e) => setFacility(f.id, { annualEmissionsTonnes: nn(e.target.value) })} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('費率', 'Rate')}</Label><Picker value={f.rateType} onChange={(v) => setFacility(f.id, { rateType: v })} options={RATE_TYPES} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('高碳洩漏？', 'High leakage?')}</Label><Toggle value={f.highCarbonLeakage} onChange={(v) => setFacility(f.id, { highCarbonLeakage: v })} options={YES_NO} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('碳權扣抵 t', 'Credit offset t')}</Label><Input type="number" value={f.carbonCreditOffset || ''} onChange={(e) => setFacility(f.id, { carbonCreditOffset: Number(e.target.value) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('碳權扣抵 t', 'Credit offset t')}</Label><Input type="number" value={f.carbonCreditOffset || ''} onChange={(e) => setFacility(f.id, { carbonCreditOffset: nn(e.target.value) })} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('已核定自主減量計畫?', 'Approved reduction plan?')}</Label><Toggle value={f.hasApprovedReductionPlan} onChange={(v) => setFacility(f.id, { hasApprovedReductionPlan: v })} options={YES_NO} /></div>
                 {profile.facilities.length > 1 && <div className="flex items-end"><Button size="sm" variant="outline" onClick={() => delFacility(f.id)} className="text-gray-400">🗑</Button></div>}
               </div>
@@ -192,10 +193,10 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 <div className="col-span-2 space-y-1"><Label className="text-xs">{t('名稱', 'Name')}</Label><Input value={c.label} onChange={(e) => setCbam(c.id, { label: e.target.value })} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('產品', 'Product')}</Label><Picker value={c.product} onChange={(v) => setCbam(c.id, { product: v as CbamProductKey })} options={CBAM_PRODUCTS.map((p) => ({ value: p.key, label: p.label }))} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('來源國', 'Origin')}</Label><Picker value={c.originCountry} onChange={(v) => setCbam(c.id, { originCountry: v })} options={CBAM_ORIGIN_COUNTRIES} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('年出口量 t', 'Volume t')}</Label><Input type="number" value={c.annualVolumeTonnes || ''} onChange={(e) => setCbam(c.id, { annualVolumeTonnes: Number(e.target.value) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('年出口量 t', 'Volume t')}</Label><Input type="number" value={c.annualVolumeTonnes || ''} onChange={(e) => setCbam(c.id, { annualVolumeTonnes: nn(e.target.value) })} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('數據來源', 'Data')}</Label><Toggle value={c.emissionsSource} onChange={(v) => setCbam(c.id, { emissionsSource: v })} options={[{ value: 'actual' as EmissionsSource, label: { zhTW: '實際', en: 'Actual' } }, { value: 'official_default' as EmissionsSource, label: { zhTW: '官方', en: 'Default' } }]} /></div>
                 {c.emissionsSource === 'actual' ? (
-                  <div className="space-y-1"><Label className="text-xs">{t('單位排放 tCO₂e/t', 'SEE tCO₂e/t')}</Label><Input type="number" step={0.01} value={c.actualSpecificEmissions || ''} onChange={(e) => setCbam(c.id, { actualSpecificEmissions: Number(e.target.value) || undefined })} /></div>
+                  <div className="space-y-1"><Label className="text-xs">{t('單位排放 tCO₂e/t', 'SEE tCO₂e/t')}</Label><Input type="number" step={0.01} value={c.actualSpecificEmissions || ''} onChange={(e) => setCbam(c.id, { actualSpecificEmissions: nn(e.target.value) || undefined })} /></div>
                 ) : (
                   <div className="space-y-1"><Label className="text-xs">{t('CN 碼（選填）', 'CN code (opt)')}</Label><Input value={c.cnCode ?? ''} placeholder={t('如 7208；空白=範圍', 'e.g. 7208; blank=range')} onChange={(e) => setCbam(c.id, { cnCode: e.target.value || undefined })} /></div>
                 )}

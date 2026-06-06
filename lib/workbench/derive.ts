@@ -42,17 +42,26 @@ export function toCbamInputs(p: CompanyProfile): CbamInput[] {
   }));
 }
 
-/** One DomesticInput per facility for the country's carbon-pricing engine (taiwanCalculator etc.). */
+/** One DomesticInput per facility for the country's carbon-pricing engine (taiwanCalculator etc.).
+ *  A1 gating: the preferential rate AND the carbon-leakage coefficient legally require an
+ *  MOENV-approved voluntary reduction plan — without it we force the general rate (no 優惠/CL). */
 export function toDomesticInput(facility: FacilityLine, p: CompanyProfile): DomesticInput {
+  const gated = !facility.hasApprovedReductionPlan;
   return {
     annualEmissions: facility.annualEmissionsTonnes,
     industryType: p.industry,
     year: p.year,
     countrySpecific: {
-      rateType: facility.rateType,
-      highCarbonLeakage: facility.highCarbonLeakage,
+      rateType: gated ? 'general' : facility.rateType,
+      highCarbonLeakage: gated ? false : facility.highCarbonLeakage,
       period: taiwanPeriodForYear(p.year),
       carbonCreditOffset: facility.carbonCreditOffset,
     },
   };
+}
+
+/** Whether a facility's chosen preferential rate / leakage is currently being WITHHELD for lack of
+ *  an approved plan (so the UI can flag it). */
+export function feeGated(facility: FacilityLine): boolean {
+  return !facility.hasApprovedReductionPlan && (facility.rateType !== 'general' || facility.highCarbonLeakage);
 }

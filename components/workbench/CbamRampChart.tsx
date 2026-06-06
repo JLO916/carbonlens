@@ -32,10 +32,13 @@ export default function CbamRampChart({ ramp }: { ramp: CbamRamp }) {
       <CardHeader className="pb-2">
         <CardTitle className="text-base">{t('CBAM 暴露逐年（2026→2034）', 'CBAM exposure ramp (2026→2034)')}</CardTitle>
         <p className="mt-1 text-xs leading-relaxed text-gray-400">
-          {t(
-            `在 ETS €${ramp.etsPrice}／噸下,隨免費配額退場(CBAM 因子 2.5%→100%)逐年爬升——現在小、之後大,備數據要前置時間。${ramp.hasCentral ? '線=你的值;' : ''}陰影=官方值範圍。`,
-            `At ETS €${ramp.etsPrice}/t, exposure ramps as free allocation phases out (CBAM factor 2.5%→100%) — small now, big later; data prep needs lead time. ${ramp.hasCentral ? 'Line = your value; ' : ''}shaded = official-value range.`,
-          )}
+          {(() => {
+            const etsLabel = ramp.etsLow !== undefined && ramp.etsHigh !== undefined && ramp.etsLow !== ramp.etsHigh ? `€${ramp.etsLow}–€${ramp.etsHigh}` : `€${ramp.etsPrice}`;
+            return t(
+              `在 ETS ${etsLabel}／噸下,隨免費配額退場(CBAM 因子 2.5%→100%)逐年爬升——現在小、之後大,備數據要前置時間。${ramp.hasCentral ? '線=你的中央值;' : ''}陰影=排放×ETS 區間。`,
+              `At ETS ${etsLabel}/t, exposure ramps as free allocation phases out (CBAM factor 2.5%→100%) — small now, big later; data prep needs lead time. ${ramp.hasCentral ? 'Line = central; ' : ''}shaded = emissions×ETS band.`,
+            );
+          })()}
           {ramp.lockedLines > 0 && t(` （${ramp.lockedLines} 筆官方預設值待解鎖,未計入）`, ` (${ramp.lockedLines} default line(s) locked, excluded)`)}
         </p>
       </CardHeader>

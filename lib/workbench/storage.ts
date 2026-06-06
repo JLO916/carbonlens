@@ -47,3 +47,21 @@ export function clearProfile(s: Storageish | null = defaultStore()): void {
     /* ignore */
   }
 }
+
+// ---- B1: file-based portability (export / import the profile as JSON) ----
+// Solves the "multi-CN hand-entry + lost on a new laptop" pain without an account.
+
+export function exportProfileJson(p: CompanyProfile): string {
+  return JSON.stringify(p, null, 2);
+}
+
+/** Parse + validate an imported profile JSON string. null if invalid / wrong schema version. */
+export function parseProfile(text: string): CompanyProfile | null {
+  try {
+    const p = JSON.parse(text) as Partial<CompanyProfile>;
+    if (!p || p.schemaVersion !== 1 || !Array.isArray(p.facilities) || !Array.isArray(p.cbamProducts)) return null;
+    return p as CompanyProfile;
+  } catch {
+    return null;
+  }
+}

@@ -48,4 +48,14 @@ describe('workbench derive — one profile → the existing *Input shapes', () =
     expect(taiwanPeriodForYear(2028)).toBe('period2_2027_2028');
     expect(taiwanPeriodForYear(2030)).toBe('period3_2029_2030');
   });
+
+  it('A1 gating: 優惠費率/leakage are withheld without an approved plan, kept with one', () => {
+    const fac = { ...p.facilities[0], rateType: 'preferB' as const, highCarbonLeakage: true };
+    const gated = toDomesticInput({ ...fac, hasApprovedReductionPlan: false }, p);
+    expect(gated.countrySpecific.rateType).toBe('general'); // forced general
+    expect(gated.countrySpecific.highCarbonLeakage).toBe(false); // CL withheld
+    const ok = toDomesticInput({ ...fac, hasApprovedReductionPlan: true }, p);
+    expect(ok.countrySpecific.rateType).toBe('preferB'); // honoured with plan
+    expect(ok.countrySpecific.highCarbonLeakage).toBe(true);
+  });
 });

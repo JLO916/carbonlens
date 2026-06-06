@@ -26,6 +26,22 @@ describe('applyReduction — one lever flows through the real engines (no abatem
     expect(reduced.cbamProducts[1].actualSpecificEmissions).toBeUndefined(); // default path unchanged
   });
 
+  it('A2 scope correctness: green power (Scope 2) cuts fee + cement CBAM but NOT steel CBAM', () => {
+    const p: CompanyProfile = {
+      ...emptyProfile(),
+      cbamProducts: [
+        { id: 's', label: 'steel', product: 'steel', originCountry: 'tw', annualVolumeTonnes: 5000, emissionsSource: 'actual', actualSpecificEmissions: 2.0 },
+        { id: 'c', label: 'cement', product: 'cement', originCountry: 'tw', annualVolumeTonnes: 5000, emissionsSource: 'actual', actualSpecificEmissions: 0.9 },
+      ],
+    };
+    const r = applyReduction(p, 20, 'scope2');
+    expect(r.facilities[0].annualEmissionsTonnes).toBe(40000); // fee always reduced (Scope 1+2)
+    expect(r.cbamProducts[0].actualSpecificEmissions).toBe(2.0); // steel = direct-only → unchanged by green power
+    expect(r.cbamProducts[1].actualSpecificEmissions).toBe(0.72); // cement counts indirect → reduced 20%
+    // scope-1 (process) DOES cut steel CBAM
+    expect(applyReduction(p, 20, 'scope1').cbamProducts[0].actualSpecificEmissions).toBe(1.6);
+  });
+
   it('0% is a no-op', () => {
     const base = emptyProfile();
     expect(applyReduction(base, 0)).toBe(base);

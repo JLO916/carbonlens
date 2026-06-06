@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
 import { computeWorkbench } from '@/lib/workbench/aggregate';
-import { applyReduction, REDUCTION_LEVERS, REDUCTION_CBAM_NOTE } from '@/lib/workbench/reduction';
+import { applyReduction, REDUCTION_LEVERS, REDUCTION_CBAM_NOTE, type ReductionType } from '@/lib/workbench/reduction';
+import { CBAM_SCOPE_NOTE } from '@/lib/workbench/data';
 import type { CompanyProfile } from '@/lib/workbench/profile';
 import type { CbamDefaultLookup } from '@/lib/diagnose/logic/cbam';
 
@@ -16,9 +17,10 @@ const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigit
 export default function ReductionLens({ profile, lookups }: { profile: CompanyProfile; lookups: (CbamDefaultLookup | undefined)[] }) {
   const { t, tObj } = useI18n();
   const [pct, setPct] = useState(0);
+  const [type, setType] = useState<ReductionType>('scope1');
 
   const base = useMemo(() => computeWorkbench(profile, lookups), [profile, lookups]);
-  const reduced = useMemo(() => computeWorkbench(applyReduction(profile, pct), lookups), [profile, pct, lookups]);
+  const reduced = useMemo(() => computeWorkbench(applyReduction(profile, pct, type), lookups), [profile, pct, type, lookups]);
 
   const feeBase = base.domestic.totalFeeTWD;
   const feeNew = reduced.domestic.totalFeeTWD;
@@ -39,6 +41,15 @@ export default function ReductionLens({ profile, lookups }: { profile: CompanyPr
             <span className="font-bold text-[#5d7d44]">{pct}%</span>
           </div>
           <input type="range" min={0} max={50} step={5} value={pct} onChange={(e) => setPct(Number(e.target.value))} className="mt-2 w-full accent-[#89B56C]" />
+        </div>
+
+        <div className="space-y-1.5">
+          <span className="text-sm font-medium text-gray-700">{t('減量類型', 'Reduction type')}</span>
+          <div className="flex flex-wrap gap-2">
+            {([['scope1', t('製程／燃料（直接 · Scope 1）', 'Process/fuel (direct · Scope 1)')], ['scope2', t('綠電（外購電力 · Scope 2）', 'Green power (Scope 2)')]] as [ReductionType, string][]).map(([v, label]) => (
+              <button key={v} type="button" onClick={() => setType(v)} className={`rounded-md border px-2.5 py-1 text-xs ${type === v ? 'border-[#89B56C] bg-[#89B56C]/10 font-medium text-[#5d7d44]' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>{label}</button>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -64,7 +75,10 @@ export default function ReductionLens({ profile, lookups }: { profile: CompanyPr
           </div>
         </div>
 
-        {pct > 0 && cbamUnchanged && (
+        {pct > 0 && type === 'scope2' && (
+          <p className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">{tObj(CBAM_SCOPE_NOTE)}</p>
+        )}
+        {pct > 0 && cbamUnchanged && type === 'scope1' && (
           <p className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">{tObj(REDUCTION_CBAM_NOTE)}</p>
         )}
 

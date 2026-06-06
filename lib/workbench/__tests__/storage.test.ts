@@ -1,5 +1,5 @@
 import { emptyProfile } from '@/lib/workbench/profile';
-import { saveProfile, loadProfile, clearProfile } from '@/lib/workbench/storage';
+import { saveProfile, loadProfile, clearProfile, exportProfileJson, parseProfile } from '@/lib/workbench/storage';
 import { snapshotOf, appendSnapshot, loadSnapshots, type Snapshot } from '@/lib/workbench/snapshots';
 import { computeWorkbench } from '@/lib/workbench/aggregate';
 import { monthsSince, STALE_MONTHS } from '@/lib/diagnose/aging';
@@ -29,6 +29,15 @@ describe('workbench storage (localStorage-shaped, injectable)', () => {
     saveProfile(emptyProfile(), s);
     clearProfile(s);
     expect(loadProfile(s)).toBeNull();
+  });
+
+  it('B1 export → import round-trips; bad input rejected', () => {
+    const p = { ...emptyProfile(), company: 'PORTABLE' };
+    const json = exportProfileJson(p);
+    expect(parseProfile(json)?.company).toBe('PORTABLE');
+    expect(parseProfile('{"schemaVersion":2}')).toBeNull();
+    expect(parseProfile('not json')).toBeNull();
+    expect(parseProfile(JSON.stringify({ schemaVersion: 1 }))).toBeNull(); // missing arrays
   });
 });
 

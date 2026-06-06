@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/context';
 import ProfileForm from '@/components/workbench/ProfileForm';
@@ -8,6 +8,9 @@ import CarbonPnL from '@/components/workbench/CarbonPnL';
 import PriorityList from '@/components/workbench/PriorityList';
 import CbamRampChart from '@/components/workbench/CbamRampChart';
 import ReductionLens from '@/components/workbench/ReductionLens';
+import SnapshotHistory from '@/components/workbench/SnapshotHistory';
+import { loadProfile, saveProfile } from '@/lib/workbench/storage';
+import { snapshotOf, appendSnapshot, loadSnapshots, type Snapshot } from '@/lib/workbench/snapshots';
 import ListedResultView from '@/components/diagnose/ListedResult';
 import SupplyChainResultView from '@/components/diagnose/SupplyChainResult';
 import CbamResultView from '@/components/diagnose/CbamResult';
@@ -17,7 +20,7 @@ import { computeWorkbench, type WorkbenchResult } from '@/lib/workbench/aggregat
 import { cbamRampSeries } from '@/lib/workbench/ramp';
 import type { CbamDefaultLookup } from '@/lib/diagnose/logic/cbam';
 
-interface Snapshot {
+interface ComputeSnapshot {
   profile: CompanyProfile;
   lookups: (CbamDefaultLookup | undefined)[];
   result: WorkbenchResult;
@@ -46,17 +49,31 @@ async function fetchLookup(line: CompanyProfile['cbamProducts'][number], profile
 export default function WorkbenchClient() {
   const { t } = useI18n();
   const [profile, setProfile] = useState<CompanyProfile>(emptyProfile());
-  const [snap, setSnap] = useState<Snapshot | null>(null);
+  const [snap, setSnap] = useState<ComputeSnapshot | null>(null);
+  const [history, setHistory] = useState<Snapshot[]>([]);
   const [busy, setBusy] = useState(false);
+
+  // Hydrate from localStorage after mount (client-only → no SSR/hydration mismatch).
+  useEffect(() => {
+    const saved = loadProfile();
+    if (saved) setProfile(saved);
+    setHistory(loadSnapshots());
+  }, []);
 
   async function compute() {
     setBusy(true);
     try {
       const lookups = await Promise.all(profile.cbamProducts.map((line) => fetchLookup(line, profile)));
       setSnap({ profile, lookups, result: computeWorkbench(profile, lookups) });
+      saveProfile(profile); // remember the profile across visits
     } finally {
       setBusy(false);
     }
+  }
+
+  function takeSnapshot() {
+    if (!snap) return;
+    setHistory(appendSnapshot(snapshotOf(snap.result, new Date().toISOString())));
   }
 
   return (
@@ -86,6 +103,10 @@ export default function WorkbenchClient() {
           <CbamRampChart ramp={cbamRampSeries(snap.profile, snap.lookups)} />
           <ReductionLens profile={snap.profile} lookups={snap.lookups} />
 
+          <Button variant="outline" onClick={takeSnapshot} className="w-full">
+            📸 {t('拍下這次快照（存到瀏覽器,追蹤變化）', 'Take a snapshot (saved in your browser to track change)')}
+          </Button>
+
           <details className="rounded-xl border border-gray-200 bg-white p-4">
             <summary className="cursor-pointer list-none text-sm font-medium text-gray-700">▸ {t('明細：各模組完整診斷', 'Detail: full per-module diagnosis')}</summary>
             <div className="mt-4 space-y-6">
@@ -112,6 +133,8 @@ export default function WorkbenchClient() {
           </details>
         </div>
       )}
+
+      {history.length > 0 && <SnapshotHistory snapshots={history} />}
 
       <Disclaimer />
     </div>

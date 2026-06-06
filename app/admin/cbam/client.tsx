@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 
 interface AdminCbamData {
   ok: boolean;
-  live: { status: 'live' | 'locked'; asOf?: string; syncedAt?: string; count?: number };
-  staged: { rows: number; asOf: string; baselineGroups: number };
+  live: { status: 'live' | 'locked'; asOf?: string; syncedAt?: string };
+  staged: { rows: number; categories: number; countries: number; asOf: string };
 }
 
 export default function AdminCbamClient() {
@@ -33,7 +33,7 @@ export default function AdminCbamClient() {
       if (method === 'GET') {
         setData(d as AdminCbamData);
       } else {
-        setMsg(method === 'POST' ? `已 promote ${d.promoted} 組代表值,CBAM 官方預設值已解鎖。` : '已鎖回,官方預設值恢復占位。');
+        setMsg(method === 'POST' ? `已解鎖 ${d.promoted?.toLocaleString?.() ?? d.promoted} 筆 CN 碼級官方預設值,CBAM 官方預設值路徑已開放。` : '已鎖回,官方預設值恢復占位。');
         await call('GET');
       }
     } catch {
@@ -50,8 +50,8 @@ export default function AdminCbamClient() {
       <header>
         <h1 className="text-2xl font-bold text-gray-900">CBAM 基線確認</h1>
         <p className="mt-1 text-sm leading-relaxed text-gray-500">
-          官方「僅供參考」Excel 已解析至暫存。在此做 §7.3 的「人工基線確認」:確認後把每(國×產品類別)的代表值
-          promote 為 live,CBAM 模組的「官方預設值」路徑才會顯示金額。代表值＝該類別官方 CN 值之中位數(含加成)。
+          官方「僅供參考」Excel 已解析至暫存。在此做 §7.3 的「人工基線確認」:確認後 CBAM 模組的「官方預設值」路徑才會開放。
+          解鎖後回傳的是「使用者 CN 碼的<strong>那一筆</strong>官方值(含加成)」;使用者不確定 CN 碼時,只顯示該類別官方值範圍(min–max),不給單一估值。
         </p>
       </header>
 
@@ -77,15 +77,15 @@ export default function AdminCbamClient() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-gray-200 bg-white p-4">
               <p className="text-xs text-gray-500">暫存(官方 Excel)</p>
-              <p className="mt-1 text-2xl font-bold text-gray-900">{data.staged.rows.toLocaleString()} 筆</p>
-              <p className="text-xs text-gray-400">聚合為 {data.staged.baselineGroups} 組(國×類別)代表值 · {data.staged.asOf}</p>
+              <p className="mt-1 text-2xl font-bold text-gray-900">{data.staged.rows.toLocaleString()} 筆 CN 碼級官方值</p>
+              <p className="text-xs text-gray-400">{data.staged.countries} 國 · {data.staged.categories} 類別(國×產品) · {data.staged.asOf}</p>
             </div>
             <div className={`rounded-xl border p-4 ${live?.status === 'live' ? 'border-[#89B56C]/40 bg-[#89B56C]/5' : 'border-gray-200 bg-white'}`}>
               <p className="text-xs text-gray-500">Live 狀態</p>
               {live?.status === 'live' ? (
                 <>
                   <p className="mt-1 text-2xl font-bold text-[#5d7d44]">已解鎖 ✓</p>
-                  <p className="text-xs text-gray-400">{live.count} 組 · as of {live.asOf} · 確認於 {live.syncedAt?.slice(0, 16).replace('T', ' ')}</p>
+                  <p className="text-xs text-gray-400">CN 碼級 · as of {live.asOf} · 確認於 {live.syncedAt?.slice(0, 16).replace('T', ' ')}</p>
                 </>
               ) : (
                 <>
@@ -99,7 +99,7 @@ export default function AdminCbamClient() {
           {live?.status !== 'live' ? (
             <div className="rounded-xl border-2 border-[#89B56C]/30 bg-white p-4">
               <p className="text-sm text-gray-700">
-                確認你已核對代表值方法(中位數、含加成、CN→類別降階),即可解鎖。法律約束力仍以 IR 2025/2621 為準;工具標為指示性。
+                確認你已核對暫存來源(官方「僅供參考」Excel、CN 碼與含加成值),即可解鎖。工具回傳「該 CN 碼的那一筆官方值」;法律約束力仍以 IR 2025/2621 為準,工具標為指示性。
               </p>
               <Button
                 onClick={() => {

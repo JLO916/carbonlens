@@ -30,12 +30,18 @@ export default function CbamDiagnoseClient() {
     setRouting(null);
     let lookup: CbamDefaultLookup | undefined;
     if (input.emissionsSource === 'official_default' && input.exportsToEU) {
+      const q = input.cnCode
+        ? `country=${encodeURIComponent(input.originCountry)}&cnCode=${encodeURIComponent(input.cnCode)}&year=${input.year}`
+        : `country=${encodeURIComponent(input.originCountry)}&product=${encodeURIComponent(input.product)}&year=${input.year}`;
       try {
-        const res = await fetch(
-          `/api/cbam-default?country=${encodeURIComponent(input.originCountry)}&product=${encodeURIComponent(input.product)}&year=${input.year}`,
-        );
+        const res = await fetch(`/api/cbam-default?${q}`);
         const d = await res.json();
-        if (d && !d.locked) lookup = { value: d.value, min: d.min, max: d.max, n: d.n, asOf: d.asOf };
+        if (d && !d.locked) {
+          lookup =
+            d.mode === 'cn'
+              ? { mode: 'cn', cnCode: d.cnCode, description: d.description, value: d.value, base: d.base, markupPct: d.markupPct, asOf: d.asOf }
+              : { mode: 'range', min: d.min, max: d.max, n: d.n, asOf: d.asOf };
+        }
       } catch {
         /* leave locked */
       }

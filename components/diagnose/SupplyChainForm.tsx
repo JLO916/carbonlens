@@ -7,13 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useI18n } from '@/lib/i18n/context';
 import { INDUSTRIES } from '@/lib/diagnose/data/industries';
-import type { BilingualText, EmployeeBand, FrameworkKey, SupplyChainInput } from '@/lib/diagnose/types';
+import type { BilingualText, BusinessModel, EmployeeBand, FrameworkKey, SupplyChainInput } from '@/lib/diagnose/types';
 
 const FRAMEWORK_OPTIONS: { value: FrameworkKey; label: BilingualText }[] = [
   { value: 're100', label: { zhTW: 'RE100', en: 'RE100' } },
   { value: 'sbti', label: { zhTW: 'SBTi', en: 'SBTi' } },
   { value: 'cdp', label: { zhTW: 'CDP', en: 'CDP' } },
   { value: 'unsure', label: { zhTW: '不確定', en: 'Not sure' } },
+];
+
+const BUSINESS_MODELS: { value: BusinessModel; label: BilingualText }[] = [
+  { value: 'brand', label: { zhTW: '品牌商', en: 'Brand owner' } },
+  { value: 'odm_oem', label: { zhTW: 'ODM／OEM 代工', en: 'ODM/OEM' } },
+  { value: 'component', label: { zhTW: '零組件供應商', en: 'Component supplier' } },
 ];
 
 const EMPLOYEE_BANDS: { value: EmployeeBand; label: BilingualText }[] = [
@@ -57,6 +63,7 @@ export default function SupplyChainForm({ onSubmit }: { onSubmit: (input: Supply
   const { t, tObj } = useI18n();
   const [frameworks, setFrameworks] = useState<FrameworkKey[]>(['sbti']);
   const [industry, setIndustry] = useState('electronics');
+  const [businessModel, setBusinessModel] = useState<BusinessModel>('odm_oem');
   const [exportSupplyChain, setExportSupplyChain] = useState(true);
   const [employeeBand, setEmployeeBand] = useState<EmployeeBand>('from250to999');
 
@@ -122,6 +129,12 @@ export default function SupplyChainForm({ onSubmit }: { onSubmit: (input: Supply
         </div>
 
         <div className="space-y-2">
+          <Label className="text-sm font-medium">{t('你的商業模式', 'Your business model')}</Label>
+          <ToggleRow<BusinessModel> value={businessModel} onChange={setBusinessModel} options={BUSINESS_MODELS} />
+          <p className="text-xs text-gray-400">{t('決定哪些 Scope 3 類別是你的：代工／零件廠通常不擁有「產品使用（類別11）」，而是品牌客戶的類別1。', 'Sets which Scope 3 categories are yours: ODM/OEM & component makers usually don’t own “use of sold products (Cat 11)” — they’re the brand’s Category 1.')}</p>
+        </div>
+
+        <div className="space-y-2">
           <Label className="text-sm font-medium">{t('是否供應出口供應鏈？', 'Do you supply an export supply chain?')}</Label>
           <ToggleRow<boolean>
             value={exportSupplyChain}
@@ -151,7 +164,7 @@ export default function SupplyChainForm({ onSubmit }: { onSubmit: (input: Supply
         </div>
 
         <Button
-          onClick={() => onSubmit({ frameworks, industry, exportSupplyChain, employeeBand })}
+          onClick={() => onSubmit({ frameworks, industry, businessModel, exportSupplyChain, employeeBand })}
           className="h-11 w-full bg-[#89B56C] text-base text-white hover:bg-[#6E9156]"
         >
           {t('側寫我的供應鏈碳壓力', 'Profile my supply-chain pressure')}

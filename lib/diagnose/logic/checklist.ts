@@ -1,15 +1,52 @@
-// Builds a downloadable "初步因應清單" from a (fully sourced) ListedResult.
-// Content = sourced obligations/timeline + GENERIC, qualitative next steps (no invented
-// numbers). Triggered client-side as a Blob — no localStorage/sessionStorage.
+// Builds a downloadable "初步因應清單" from a (fully sourced) result. V2: the checklist maps
+// to the REAL deliverables the user has to produce — IFRS S1/S2 four pillars, the sustainability
+// report's climate chapter, CDP questionnaire fields, numbered Scope 3 categories, and (CBAM)
+// the exact CN-code default value — so it can be pasted straight into their report/questionnaire.
+// Content stays sourced; next steps are generic/qualitative (no invented numbers).
 
 import type { CbamResult, ListedResult, PressureLevel, SupplyChainResult } from '@/lib/diagnose/types';
 import type { Lang } from '@/lib/i18n/context';
+import { materialScope3, BUSINESS_MODEL_NOTE } from '@/lib/diagnose/data/scope3-categories';
 
 const pick = (lang: Lang) => (o: { zhTW: string; en: string }) => (lang === 'zhTW' ? o.zhTW : o.en);
 
+/** IFRS S1/S2 (ISSB) four pillars — definitional structure (the disclosure skeleton). */
+function ifrsPillars(L: boolean): string[] {
+  return L
+    ? [
+        '治理（Governance）：氣候相關風險與機會的董事會監督，及管理階層的角色與流程。',
+        '策略（Strategy）：氣候風險／機會對商業模式、策略與財務的影響；含情境分析（首年可先質性）。',
+        '風險管理（Risk Management）：辨識、評估與管理氣候相關風險的流程，並整合進整體風險管理。',
+        '指標與目標（Metrics & Targets）：Scope 1／2（必揭）、Scope 3（適用時）、內部碳價、減量目標與進度。',
+      ]
+    : [
+        'Governance: board oversight and management’s role/processes for climate risks & opportunities.',
+        'Strategy: effects of climate risks/opportunities on business model, strategy and finances; scenario analysis (qualitative in year one is fine).',
+        'Risk Management: processes to identify, assess and manage climate risks, integrated into enterprise risk management.',
+        'Metrics & Targets: Scope 1/2 (required), Scope 3 (when applicable), internal carbon price, reduction targets & progress.',
+      ];
+}
+
+/** CDP questionnaire ↔ IFRS pillar crosswalk (when customers/investors ask via CDP). */
+function cdpCrosswalk(L: boolean): string[] {
+  return L
+    ? [
+        'CDP C1 治理 → 對應支柱 1（治理）。',
+        'CDP C2／C3 風險、機會與策略 → 對應支柱 2／3。',
+        'CDP C4 目標與績效 → 對應支柱 4（指標與目標）。',
+        'CDP C6／C7 排放數據 → Scope 1／2／3 盤查結果。',
+      ]
+    : [
+        'CDP C1 Governance → Pillar 1 (Governance).',
+        'CDP C2/C3 Risks, opportunities & strategy → Pillars 2/3.',
+        'CDP C4 Targets & performance → Pillar 4 (Metrics & Targets).',
+        'CDP C6/C7 Emissions data → your Scope 1/2/3 inventory.',
+      ];
+}
+
 export function buildChecklist(result: ListedResult, lang: Lang): string {
   const s = pick(lang);
-  const { gri, ifrs, disclosureScope, urgency } = result;
+  const { gri, ifrs, disclosureScope, urgency, input } = result;
   const L = lang === 'zhTW';
 
   const steps = L
@@ -17,16 +54,16 @@ export function buildChecklist(result: ListedResult, lang: Lang): string {
         '確認您的 IFRS S1/S2 適用階段與申報年度（如上）。',
         '盤點 Scope 1（直接）與 Scope 2（外購能源）排放源，建立量化方法。',
         '評估 Scope 3 價值鏈資料缺口——這是接軌的最大難點，宜最早啟動。',
-        '對照同業的揭露範圍與品質，找出您的落差。',
         '規劃內部治理與資料蒐集流程，並預留第三方查證時間。',
       ]
     : [
         'Confirm your IFRS S1/S2 phase and filing year (above).',
         'Inventory Scope 1 (direct) and Scope 2 (purchased energy) sources; set a quantification method.',
         'Assess Scope 3 value-chain data gaps — the hardest part; start earliest.',
-        'Benchmark peers’ disclosure scope and quality to find your gaps.',
         'Plan internal governance and data collection, and reserve time for third-party assurance.',
       ];
+
+  const cats = materialScope3(input.industry);
 
   const lines: string[] = [];
   const h = (x: string) => lines.push(x);
@@ -39,14 +76,34 @@ export function buildChecklist(result: ListedResult, lang: Lang): string {
   h(`- ${s(gri.scopeNote)}`);
   h(`- ${L ? '申報期限' : 'Deadline'}: ${s(gri.annualDeadlineLabel)}`);
   h(`- ${L ? '編製基準' : 'Basis'}: ${s(gri.basis)}`);
-  h(`- ${L ? '來源' : 'Source'}: ${s(gri.citation.source)} · ${s(gri.citation.officialDocVersion)} · ${gri.citation.asOfDate}`);
+  h(`- ${L ? '來源' : 'Source'}: ${s(gri.citation.source)} · ${s(gri.citation.officialDocVersion)} · ${L ? '資料快照' : 'snapshot'} ${gri.citation.asOfDate}（${L ? '以主管機關最新公告為準' : 'verify latest official notice'}）`);
   h('');
   h(L ? '## IFRS S1/S2（ISSB 接軌）' : '## IFRS S1/S2 (ISSB alignment)');
   h(`- ${L ? '階段' : 'Phase'}: ${ifrs.phase}（${s(ifrs.capitalLabel)}）`);
   h(`- ${L ? '編製會計年度' : 'Prepare for FY'}: ${s(ifrs.compileFY)}`);
   h(`- ${L ? '申報時程' : 'Filing'}: ${s(ifrs.fileLabel)}`);
-  h(`- ${L ? '來源' : 'Source'}: ${s(ifrs.citation.source)} · ${s(ifrs.citation.officialDocVersion)} · ${ifrs.citation.asOfDate}`);
+  h(`- ${L ? '來源' : 'Source'}: ${s(ifrs.citation.source)} · ${s(ifrs.citation.officialDocVersion)} · ${L ? '資料快照' : 'snapshot'} ${ifrs.citation.asOfDate}`);
   h('');
+  // ---- Deliverable mapping (critique #8) ----
+  h(L ? '## 對齊你的交付物（可直接落地）' : '## Map to your deliverables (ready to use)');
+  h(L ? '### IFRS S1/S2 四大支柱（揭露骨架）' : '### IFRS S1/S2 four pillars (disclosure skeleton)');
+  ifrsPillars(L).forEach((p, i) => h(`${i + 1}. ${p}`));
+  h('');
+  h(L ? '### 永續報告書（氣候相關專章）' : '### Sustainability report (climate chapter)');
+  h(
+    L
+      ? '- 將上述四支柱寫入永續報告書的氣候相關專章（對應 TCFD／IFRS S2），並與年報、財報數據相互一致。'
+      : '- Write the four pillars into your sustainability report’s climate chapter (aligned to TCFD/IFRS S2), consistent with your annual & financial reports.',
+  );
+  h('');
+  h(L ? '### CDP 問卷對應（若客戶／投資人要求）' : '### CDP questionnaire crosswalk (if asked by customers/investors)');
+  cdpCrosswalk(L).forEach((c) => h(`- ${c}`));
+  h('');
+  if (cats.length) {
+    h(L ? '### 你的 Scope 3 重點類別（起點，支柱4 指標）' : '### Your material Scope 3 categories (starting point, Pillar 4 metric)');
+    for (const c of cats) h(`- ${L ? '類別' : 'Cat'} ${c.num}・${s(c.name)}`);
+    h('');
+  }
   h(L ? '## 重點揭露範圍' : '## Key disclosure scope');
   for (const item of disclosureScope.items) {
     h(`- ${s(item.label)}${item.isHardest ? (L ? '（最大難點）' : ' (hardest)') : ''}: ${s(item.description)}`);
@@ -83,13 +140,17 @@ export function buildCbamChecklist(result: CbamResult, lang: Lang): string {
         ? L
           ? '官方預設值同步中、暫鎖，不顯示估算數字。'
           : 'Official defaults are syncing/locked — no estimate shown.'
-        : exposure.indicativeExposureEUR !== undefined
+        : exposure.defaultMode === 'range' && exposure.exposureMaxEUR !== undefined
           ? L
-            ? `在 ETS €${exposure.etsPrice}／噸時，指示性暴露 ≈ €${Math.round(exposure.indicativeExposureEUR).toLocaleString('en-US')}（排放 ${Math.round(exposure.totalEmissions ?? 0).toLocaleString('en-US')} tCO₂e）。`
-            : `At ETS €${exposure.etsPrice}/t, indicative exposure ≈ €${Math.round(exposure.indicativeExposureEUR).toLocaleString('en-US')} (${Math.round(exposure.totalEmissions ?? 0).toLocaleString('en-US')} tCO₂e).`
-          : L
-            ? '尚未輸入實際排放與 ETS 價，無法估算。'
-            : 'Actual emissions and ETS price not entered — no estimate.';
+            ? `未指定 CN 碼 → 該類別官方值範圍：在 ETS €${exposure.etsPrice}／噸時，暴露 €${Math.round(exposure.exposureMinEUR ?? 0).toLocaleString('en-US')} – €${Math.round(exposure.exposureMaxEUR).toLocaleString('en-US')}（${exposure.defaultN} 個 CN 碼）。`
+            : `No CN code → category range: at ETS €${exposure.etsPrice}/t, exposure €${Math.round(exposure.exposureMinEUR ?? 0).toLocaleString('en-US')} – €${Math.round(exposure.exposureMaxEUR).toLocaleString('en-US')} (${exposure.defaultN} CN codes).`
+          : exposure.indicativeExposureEUR !== undefined
+            ? L
+              ? `在 ETS €${exposure.etsPrice}／噸時，指示性暴露 ≈ €${Math.round(exposure.indicativeExposureEUR).toLocaleString('en-US')}（排放 ${Math.round(exposure.totalEmissions ?? 0).toLocaleString('en-US')} tCO₂e）。`
+              : `At ETS €${exposure.etsPrice}/t, indicative exposure ≈ €${Math.round(exposure.indicativeExposureEUR).toLocaleString('en-US')} (${Math.round(exposure.totalEmissions ?? 0).toLocaleString('en-US')} tCO₂e).`
+            : L
+              ? '尚未輸入 ETS 價（與實際排放或 CN 碼），無法估算。'
+              : 'ETS price (plus actual emissions or CN code) not entered — no estimate.';
 
   const steps = L
     ? [
@@ -111,6 +172,32 @@ export function buildCbamChecklist(result: CbamResult, lang: Lang): string {
   h('');
   h(`${L ? '暴露摘要' : 'Exposure summary'}: ${summary}`);
   h('');
+  // ---- CN-level official default used (critique #1/#8) ----
+  if (exposure.defaultMode === 'cn' && exposure.defaultCnCode) {
+    h(L ? '## 你採用的官方預設值（CN 碼級）' : '## Official default used (CN-code level)');
+    h(`- ${L ? 'CN 碼' : 'CN code'}: ${exposure.defaultCnCode} — ${exposure.defaultDescription ?? ''}`);
+    h(
+      L
+        ? `- 內含排放係數：${exposure.defaultPerTonne} tCO₂e/t（官方內含 ${exposure.defaultBase} ＋ ${exposure.defaultMarkupPct}% 加成，資料快照 ${exposure.defaultAsOf}）`
+        : `- Embedded factor: ${exposure.defaultPerTonne} tCO₂e/t (official ${exposure.defaultBase} + ${exposure.defaultMarkupPct}% mark-up, snapshot ${exposure.defaultAsOf})`,
+    );
+    h(
+      L
+        ? '- 用於 CBAM 報告：此為「無實際數據時的官方預設值」；提供經查證的實際數據通常更低。'
+        : '- For the CBAM report: this is the official default used when actual data is absent; verified actual data is usually lower.',
+    );
+    h('');
+  }
+  if (exposure.exporterShareEUR !== undefined || exposure.exporterShareMaxEUR !== undefined) {
+    h(L ? '## 落到出口商的份額（你的轉嫁假設）' : '## Share landing on the exporter (your pass-through assumption)');
+    h(
+      exposure.exporterShareEUR !== undefined
+        ? `- ${L ? `@ ${exposure.passThroughPct}% 轉嫁 ≈ €${Math.round(exposure.exporterShareEUR).toLocaleString('en-US')}` : `@ ${exposure.passThroughPct}% pass-through ≈ €${Math.round(exposure.exporterShareEUR).toLocaleString('en-US')}`}`
+        : `- ${L ? `@ ${exposure.passThroughPct}% 轉嫁 ≈ €${Math.round(exposure.exporterShareMinEUR ?? 0).toLocaleString('en-US')} – €${Math.round(exposure.exporterShareMaxEUR ?? 0).toLocaleString('en-US')}` : `@ ${exposure.passThroughPct}% pass-through ≈ €${Math.round(exposure.exporterShareMinEUR ?? 0).toLocaleString('en-US')} – €${Math.round(exposure.exporterShareMaxEUR ?? 0).toLocaleString('en-US')}`}`,
+    );
+    h(L ? '- 這是商業假設、非法定金額：CBAM 繳費義務在進口商，轉嫁比例由雙方合約決定。' : '- This is a commercial assumption, not a statutory amount: the CBAM obligation sits with the importer; pass-through is set by your contract.');
+    h('');
+  }
   h(L ? '## 時程' : '## Timeline');
   for (const row of result.timeline) h(`- ${s(row.label)}: ${s(row.value)}`);
   h('');
@@ -125,7 +212,7 @@ export function buildCbamChecklist(result: CbamResult, lang: Lang): string {
   h(L ? '## 初步因應步驟' : '## Suggested next steps');
   steps.forEach((step, i) => h(`${i + 1}. ${step}`));
   h('');
-  h(`${L ? '來源' : 'Sources'}: ${result.citations.map((c) => `${s(c.source)} · ${s(c.officialDocVersion)} · ${c.asOfDate}`).join(' ; ')}`);
+  h(`${L ? '來源' : 'Sources'}: ${result.citations.map((c) => `${s(c.source)} · ${s(c.officialDocVersion)} · ${L ? '資料快照' : 'snapshot'} ${c.asOfDate}`).join(' ; ')}`);
   h('');
   h(
     L
@@ -145,20 +232,23 @@ const PRESSURE_LABEL: Record<PressureLevel, { zhTW: string; en: string }> = {
 export function buildSupplyChainChecklist(result: SupplyChainResult, lang: Lang): string {
   const s = pick(lang);
   const L = lang === 'zhTW';
+  const { input } = result;
   const lines: string[] = [];
   const h = (x: string) => lines.push(x);
+
+  const cats = materialScope3(input.industry, input.businessModel);
 
   const steps = L
     ? [
         '對照 RE100／SBTi／CDP 公開會員名單，確認主要品牌客戶是否在列。',
-        '盤點自身 Scope 1/2，並識別客戶最可能要的數據（CDP 問卷／排放數據）。',
+        '盤點自身 Scope 1/2，並識別客戶最可能要的數據（CDP Supply Chain 問卷／排放數據）。',
         '若員工 <1,000 人，了解 VSME 範圍，避免提供超出義務的資訊。',
         '建立可被第三方查證的數據與回應流程。',
         '預約供應鏈碳數據與對標，了解同業如何回應品牌要求。',
       ]
     : [
         'Cross-check the public RE100 / SBTi / CDP member lists to confirm your key brand customers.',
-        'Inventory your Scope 1/2 and identify the data customers most likely want (CDP questionnaire / emissions data).',
+        'Inventory your Scope 1/2 and identify the data customers most likely want (CDP Supply Chain questionnaire / emissions data).',
         'If under 1,000 employees, understand the VSME scope to avoid over-providing beyond your obligation.',
         'Build a verifiable data and response process.',
         'Book a supply-chain carbon data & benchmarking session to see how peers respond.',
@@ -178,12 +268,24 @@ export function buildSupplyChainChecklist(result: SupplyChainResult, lang: Lang)
   } else if (result.unsureNote) {
     h(`- ${s(result.unsureNote)}`);
   }
-  h(`- ${L ? '來源' : 'Source'}: ${s(result.frameworksCitation.source)} · ${result.frameworksCitation.asOfDate}`);
+  h(`- ${L ? '來源' : 'Source'}: ${s(result.frameworksCitation.source)} · ${L ? '資料快照' : 'snapshot'} ${result.frameworksCitation.asOfDate}`);
+  h('');
+  // ---- Scope 3 boundary by business model + material categories (critique #6/#8) ----
+  h(L ? '## 你的 Scope 3 邊界（依商業模式）' : '## Your Scope 3 boundary (by business model)');
+  h(`- ${s(BUSINESS_MODEL_NOTE[input.businessModel])}`);
+  if (cats.length) {
+    h(L ? `- 重點類別（起點）：${cats.map((c) => `${L ? '類別' : 'Cat'} ${c.num}・${s(c.name)}`).join('；')}` : `- Material categories (start): ${cats.map((c) => `Cat ${c.num}・${s(c.name)}`).join('; ')}`);
+  }
+  h(
+    L
+      ? '- 對齊交付物：客戶多透過 CDP Supply Chain 問卷或自有平台要數據——先備好 Scope 1/2 ＋ 上述重點 Scope 3 類別。'
+      : '- Map to deliverables: customers usually ask via the CDP Supply Chain questionnaire or their own platform — have Scope 1/2 + the categories above ready.',
+  );
   h('');
   h(L ? '## 為何壓力落在供應商（Scope 3 規模）' : '## Why pressure lands on suppliers (Scope 3 scale)');
   for (const p of result.scope3.points) h(`- ${s(p)}`);
   if (result.scope3.industryNote) h(`- ${s(result.scope3.industryNote)}`);
-  h(`- ${L ? '來源' : 'Source'}: ${s(result.scope3.citation.source)} · ${result.scope3.citation.asOfDate}`);
+  h(`- ${L ? '來源' : 'Source'}: ${s(result.scope3.citation.source)} · ${L ? '資料快照' : 'snapshot'} ${result.scope3.citation.asOfDate}`);
   h('');
   h(L ? '## 傳導機制' : '## Transmission mechanism');
   h(`- ${s(result.transmission.text)}`);

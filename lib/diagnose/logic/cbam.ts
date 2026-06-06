@@ -1,6 +1,10 @@
 // CBAM 暴露診斷 (Brief §3B/§6B). Actual-data + user ETS price → indicative conditional
-// exposure. The official-default path reads the synced cache and is LOCKED until a
-// verified sync (§7.3) — it NEVER returns an estimated number.
+// exposure. The official-default path reads the synced cache and is LOCKED until a verified
+// sync (§7.3) — it NEVER returns an estimated number.
+//
+// V2: the official-default path returns the EXACT value for the user's CN code ('cn' mode),
+// or — if they don't know their CN code — an honest category min–max range with NO point
+// estimate ('range' mode). It never invents a single representative number.
 
 import type { CbamInput, CbamResult, CbamExposure, BilingualText } from '@/lib/diagnose/types';
 import {
@@ -15,15 +19,13 @@ import {
 } from '@/lib/diagnose/data/cbam';
 import { CBAM_LIVE_CACHE } from '@/lib/diagnose/data/cbam-cache';
 
-/** The promoted official default for (country, product, year) — passed in by the client after
- *  fetching /api/cbam-default. Absent → the official-default path stays locked (§7.3). */
-export interface CbamDefaultLookup {
-  value: number;
-  min: number;
-  max: number;
-  n: number;
-  asOf: string;
-}
+/** The promoted official default the client fetched (from /api/cbam-default). Two shapes:
+ *  - cn: the exact marked-up value for the user's CN code.
+ *  - range: the category min–max (CN unknown) — honest spread, no point estimate.
+ *  Absent → the official-default path stays locked (§7.3). */
+export type CbamDefaultLookup =
+  | { mode: 'cn'; cnCode: string; description: string; value: number; base: number; markupPct: number; asOf: string }
+  | { mode: 'range'; min: number; max: number; n: number; asOf: string };
 
 export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup): CbamResult {
   const product = CBAM_PRODUCTS.find((p) => p.key === input.product);
@@ -34,6 +36,7 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
   const usingDefault = input.emissionsSource === 'official_default';
   const defaultsLocked = usingDefault && !defaultLookup;
   const etsPrice = input.etsPrice && input.etsPrice > 0 ? input.etsPrice : undefined;
+  const vol = input.annualVolumeTonnes;
 
   let exposure: CbamExposure = { deMinimisExempt, defaultsLocked };
 
@@ -42,7 +45,7 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
       const spec = input.actualSpecificEmissions;
       if (spec && spec > 0) {
         // Actual-data path: emissions = volume × specific. No mark-up.
-        const totalEmissions = input.annualVolumeTonnes * spec;
+        const totalEmissions = vol * spec;
         exposure = {
           deMinimisExempt: false,
           defaultsLocked: false,
@@ -52,26 +55,56 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
           indicativeExposureEUR: etsPrice ? totalEmissions * etsPrice : undefined,
         };
       }
-    } else if (usingDefault && defaultLookup) {
-      // Official-default path (human-baseline confirmed): volume × median default(incl. mark-up) × ETS.
-      const totalEmissions = input.annualVolumeTonnes * defaultLookup.value;
+    } else if (usingDefault && defaultLookup?.mode === 'cn') {
+      // Exact official default for the user's CN code (incl. mark-up). One number, sourced.
+      const totalEmissions = vol * defaultLookup.value;
+      const indicative = etsPrice ? totalEmissions * etsPrice : undefined;
       exposure = {
         deMinimisExempt: false,
         defaultsLocked: false,
         totalEmissions,
         etsPrice,
-        indicativeExposureEUR: etsPrice ? totalEmissions * etsPrice : undefined,
+        indicativeExposureEUR: indicative,
+        exposureMinEUR: indicative,
+        exposureMaxEUR: indicative,
         fromOfficialDefault: true,
+        defaultMode: 'cn',
+        defaultCnCode: defaultLookup.cnCode,
+        defaultDescription: defaultLookup.description,
         defaultPerTonne: defaultLookup.value,
+        defaultBase: defaultLookup.base,
+        defaultMarkupPct: defaultLookup.markupPct,
+        defaultAsOf: defaultLookup.asOf,
+      };
+    } else if (usingDefault && defaultLookup?.mode === 'range') {
+      // CN unknown → honest category range, NO point estimate.
+      exposure = {
+        deMinimisExempt: false,
+        defaultsLocked: false,
+        etsPrice,
+        indicativeExposureEUR: undefined,
+        exposureMinEUR: etsPrice ? vol * defaultLookup.min * etsPrice : undefined,
+        exposureMaxEUR: etsPrice ? vol * defaultLookup.max * etsPrice : undefined,
+        fromOfficialDefault: true,
+        defaultMode: 'range',
         defaultN: defaultLookup.n,
         defaultAsOf: defaultLookup.asOf,
-        exposureMinEUR: etsPrice ? input.annualVolumeTonnes * defaultLookup.min * etsPrice : undefined,
-        exposureMaxEUR: etsPrice ? input.annualVolumeTonnes * defaultLookup.max * etsPrice : undefined,
       };
     }
   }
 
-  const etsLabel = input.etsPrice && input.etsPrice > 0 ? String(input.etsPrice) : '—';
+  // §2 — exporter's commercial share: apply the pass-through % to whatever exposure exists.
+  const ptRaw = input.passThroughPct;
+  const pt = typeof ptRaw === 'number' && ptRaw > 0 && ptRaw <= 100 ? ptRaw : undefined;
+  if (pt && !exposure.deMinimisExempt && !exposure.defaultsLocked) {
+    const share = (x?: number) => (x !== undefined ? Math.round(x * (pt / 100)) : undefined);
+    exposure.passThroughPct = pt;
+    exposure.exporterShareEUR = share(exposure.indicativeExposureEUR);
+    exposure.exporterShareMinEUR = share(exposure.exposureMinEUR);
+    exposure.exporterShareMaxEUR = share(exposure.exposureMaxEUR);
+  }
+
+  const etsLabel = etsPrice ? String(etsPrice) : '—';
   const disclosures: BilingualText[] = [
     {
       zhTW: '本工具簡化為「排放量 × ETS 價＝指示性暴露區間」，實際因廠而異，並標此免責。',
@@ -82,12 +115,12 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
       en: `Computed at your entered ETS price (€${etsLabel}/t); the ETS price changes daily.`,
     },
     {
-      zhTW: '官方預設值（含加成）最遲 2027/12 修訂；本工具預設值路徑目前鎖定占位，數值同步狀態見上。',
-      en: 'Official defaults (incl. mark-up) to be revised by Dec 2027 at the latest; this tool’s default-value path is currently locked/placeholder — sync status shown above.',
+      zhTW: '官方預設值路徑回傳「您 CN 碼的那一筆官方值（含加成）」；不確定 CN 碼時改顯示該類別官方值範圍，不給單一估值。',
+      en: 'The official-default path returns the exact official value for your CN code (incl. mark-up); when the CN code is unknown it shows the category’s official-value range — never a single estimate.',
     },
     {
-      zhTW: 'CBAM 繳費義務由歐盟進口商承擔，對出口商的影響取決於雙方商業條件。',
-      en: 'The CBAM payment obligation is borne by the EU importer; impact on exporters depends on commercial terms.',
+      zhTW: 'CBAM 繳費義務由歐盟進口商承擔，對出口商的影響取決於雙方商業條件（可被轉嫁、壓價或換供應商）。',
+      en: 'The CBAM payment obligation is borne by the EU importer; impact on exporters depends on commercial terms (pass-through, price pressure, or supplier switching).',
     },
   ];
 

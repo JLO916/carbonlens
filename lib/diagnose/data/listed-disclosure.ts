@@ -25,7 +25,6 @@ export const CITATION_GRI: Citation = {
     en: 'FSC / TPEx sustainability report preparation & filing rules',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 export const CITATION_IFRS: Citation = {
@@ -38,7 +37,6 @@ export const CITATION_IFRS: Citation = {
     en: 'FSC SFB ISSB-alignment timeline, 2026-01-20',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 // ---- §6A-1　永續報告書（GRI）— 普遍義務 ----
@@ -107,7 +105,6 @@ export const CITATION_IFRS_ROADMAP: Citation = {
     en: 'FSC SFB IFRS Sustainability Disclosure roadmap (6 Nov 2023) and updates',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
   url: 'https://www.fsc.gov.tw/ch/home.jsp?id=96&parentpath=0,2&mcustomize=news_view.jsp&dataserno=202308170002&dtable=News',
 };
 
@@ -159,7 +156,6 @@ export const CITATION_IMPLEMENTATION: Citation = {
     en: 'ISO 14064 series; FSC sustainability-report preparation & assurance rules',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 export const IMPLEMENTATION_STEPS: { title: BilingualText; detail: BilingualText }[] = [

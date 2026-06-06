@@ -3,8 +3,9 @@
 import type { Citation } from '@/lib/diagnose/types';
 import { useI18n } from '@/lib/i18n/context';
 
-/** Honest-disclosure source badge: 來源 + 官方文件版本 + 同步日期 (Brief §5).
- *  Styled as a subtle "sourced" chip — the sage check signals every figure is cited. */
+/** Honest-disclosure source badge: 來源 + 官方文件版本 + 資料快照日 (Brief §5).
+ *  We show a "snapshot" date + "verify against the authority's latest notice" instead of a
+ *  forward "next review" date — the tool makes no promise to re-check on a schedule. */
 export default function CitationTag({
   citation,
   className = '',
@@ -29,13 +30,7 @@ export default function CitationTag({
         <span className="text-gray-300"> · </span>
         {tObj(citation.officialDocVersion)}
         <span className="text-gray-300"> · </span>
-        {t('同步', 'as of')} {citation.asOfDate}
-        {citation.nextReview && (
-          <>
-            <span className="text-gray-300"> · </span>
-            {t('下次校對', 'next review')} {citation.nextReview}
-          </>
-        )}
+        {t('資料快照', 'snapshot')} {citation.asOfDate}
         {citation.url && (
           <>
             <span className="text-gray-300"> · </span>
@@ -49,6 +44,8 @@ export default function CitationTag({
             </a>
           </>
         )}
+        <span className="text-gray-300"> · </span>
+        <span className="text-gray-400">{t('以主管機關最新公告為準', 'verify against the latest official notice')}</span>
       </span>
     </div>
   );

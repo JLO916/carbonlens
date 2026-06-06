@@ -88,9 +88,9 @@ export default function LeadCaptureForm({
   return (
     <Card className="border-2 border-[#89B56C]/30">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">{t('想要可下載清單與後續資源？（選填）', 'Want a downloadable checklist & resources? (optional)')}</CardTitle>
+        <CardTitle className="text-base">{t('要我們把結果與清單寄給你嗎？（選填）', 'Want the result & checklist emailed to you? (optional)')}</CardTitle>
         <p className="mt-1 text-xs text-gray-500">
-          {t('上方診斷已是完整結果。留個 email 可拿到可下載的因應清單，並依你的身分提供後續資源——不留也能直接看建議路徑。', 'The diagnosis above is already the full result. Leave an email for a downloadable checklist and role-matched resources — or skip straight to your recommended path.')}
+          {t('上方診斷與下方清單都免費、不需 email——清單已對齊你的永續報告書／IFRS S2／CDP 問卷。若想收到信箱副本並依角色提供後續合規資源，可留個工作信箱；不留也能直接下載。', 'The diagnosis and the checklist below are free and need no email — the checklist already maps to your sustainability report / IFRS S2 / CDP questionnaire. Leave a work email only if you’d like a copy plus role-matched follow-up; otherwise just download.')}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">

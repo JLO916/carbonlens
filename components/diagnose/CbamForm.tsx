@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useI18n } from '@/lib/i18n/context';
 import { CBAM_PRODUCTS, CBAM_ORIGIN_COUNTRIES } from '@/lib/diagnose/data/cbam';
 import type { BilingualText, CbamInput, CbamProductKey, EmissionsSource } from '@/lib/diagnose/types';
+
+const UNKNOWN_CN = '__unknown__';
+const shortDesc = (d: string) => (d.length > 56 ? `${d.slice(0, 56)}…` : d);
 
 function ToggleRow<T extends string | boolean>({
   options,
@@ -51,9 +54,32 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
   const [emissionsSource, setEmissionsSource] = useState<EmissionsSource>('actual');
   const [specificEmissions, setSpecificEmissions] = useState(0);
   const [etsPrice, setEtsPrice] = useState(0);
+  const [cnCode, setCnCode] = useState<string>(UNKNOWN_CN);
+  const [cnOptions, setCnOptions] = useState<{ cnCode: string; description: string }[]>([]);
+  const [passThroughPct, setPassThroughPct] = useState(0);
 
   const productLabel = CBAM_PRODUCTS.find((p) => p.key === product)?.label;
   const countryLabel = CBAM_ORIGIN_COUNTRIES.find((c) => c.value === originCountry)?.label;
+  const usingDefault = emissionsSource === 'official_default';
+
+  // Load CN-code options for the chosen (country, product) when on the official-default path.
+  useEffect(() => {
+    if (!usingDefault) return;
+    let alive = true;
+    setCnCode(UNKNOWN_CN);
+    setCnOptions([]);
+    fetch(`/api/cbam-cn?country=${encodeURIComponent(originCountry)}&product=${encodeURIComponent(product)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive && Array.isArray(d.options)) setCnOptions(d.options);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [usingDefault, originCountry, product]);
+
+  const selectedCn = cnOptions.find((o) => o.cnCode === cnCode);
 
   return (
     <Card>
@@ -61,8 +87,8 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
         <CardTitle className="text-lg">{t('輸入出口與排放條件', 'Your export & emissions profile')}</CardTitle>
         <p className="mt-1 text-xs text-gray-400">
           {t(
-            '用「實際排放數據＋當前 ETS 價」即可算指示性暴露區間；官方預設值路徑目前鎖定（待驗證同步）。',
-            'Use “actual emissions + current ETS price” for an indicative range; the official-default path is locked (pending verified sync).',
+            '用「實際排放數據＋當前 ETS 價」算指示性暴露；或用「官方預設值」依你的 CN 碼回那一筆官方值。',
+            'Use “actual emissions + current ETS price” for an indicative range, or “official default” to return the exact official value for your CN code.',
           )}
         </p>
       </CardHeader>
@@ -148,15 +174,15 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
             <Button
               type="button"
               size="sm"
-              variant={emissionsSource === 'official_default' ? 'default' : 'outline'}
+              variant={usingDefault ? 'default' : 'outline'}
               onClick={() => setEmissionsSource('official_default')}
-              className={emissionsSource === 'official_default' ? 'bg-gray-500 text-white hover:bg-gray-600' : ''}
+              className={usingDefault ? 'bg-[#89B56C] text-white hover:bg-[#6E9156]' : ''}
             >
-              🔒 {t('官方預設值（鎖定）', 'Official default (locked)')}
+              {t('官方預設值（依 CN 碼）', 'Official default (by CN code)')}
             </Button>
           </div>
           <p className="text-xs text-gray-400">
-            {t('官方預設值待驗證同步後開放；現可用實際數據計算。', 'Official defaults open after a verified sync; use actual data for now.')}
+            {t('實際數據優於官方預設值（後者含加成、通常較高）；官方預設值依你的 CN 碼回傳那一筆官方值。', 'Actual data beats the official default (the latter carries a mark-up and is usually higher); the official default returns the exact value for your CN code.')}
           </p>
         </div>
 
@@ -167,10 +193,48 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
           </div>
         )}
 
+        {usingDefault && (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">{t('你的 CN 碼', 'Your CN code')}</Label>
+            <Select value={cnCode} onValueChange={(v) => v && setCnCode(v)}>
+              <SelectTrigger className="w-full">
+                <SelectValue>
+                  {() =>
+                    cnCode === UNKNOWN_CN
+                      ? t('不確定 / 不在清單（顯示類別範圍）', 'Unsure / not listed (show category range)')
+                      : selectedCn
+                        ? `${selectedCn.cnCode} · ${shortDesc(selectedCn.description)}`
+                        : cnCode
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={UNKNOWN_CN}>{t('不確定 / 不在清單（顯示類別範圍）', 'Unsure / not listed (show category range)')}</SelectItem>
+                {cnOptions.map((o) => (
+                  <SelectItem key={o.cnCode} value={o.cnCode}>
+                    {o.cnCode} · {shortDesc(o.description)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-400">
+              {cnOptions.length > 0
+                ? t(`此類別有 ${cnOptions.length} 個官方 CN 碼；選你的那筆得精確值，不確定則顯示範圍。`, `${cnOptions.length} official CN codes in this category; pick yours for the exact value, or see the range.`)
+                : t('解鎖後將載入此類別的官方 CN 碼清單。', 'CN-code options load for this category once unlocked.')}
+            </p>
+          </div>
+        )}
+
         <div className="space-y-2">
           <Label className="text-sm font-medium">{t('當前 EU ETS 價（€/tCO₂e）', 'Current EU ETS price (€/tCO₂e)')}</Label>
           <Input type="number" value={etsPrice || ''} min={0} placeholder={t('輸入當前 ETS 價', 'enter current ETS price')} onChange={(e) => setEtsPrice(Number(e.target.value))} />
           <p className="text-xs text-gray-400">{t('條件式：暴露＝排放量 × 您輸入的 ETS 價（每日變動，無內建數值）。', 'Conditional: exposure = emissions × your ETS price (changes daily; no built-in value).')}</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">{t('預估轉嫁比例（%，選填）', 'Expected pass-through to you (%, optional)')}</Label>
+          <Input type="number" value={passThroughPct || ''} min={0} max={100} placeholder={t('例如 50', 'e.g. 50')} onChange={(e) => setPassThroughPct(Number(e.target.value))} />
+          <p className="text-xs text-gray-400">{t('進口商的 CBAM 成本你預估會被轉嫁多少回來；用來估「落到出口商」的金額（非預測）。', 'How much of the importer’s CBAM cost you expect passed back — to size the share that lands on you (not a forecast).')}</p>
         </div>
 
         <Button
@@ -184,6 +248,8 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
               emissionsSource,
               actualSpecificEmissions: specificEmissions || undefined,
               etsPrice: etsPrice || undefined,
+              cnCode: usingDefault && cnCode !== UNKNOWN_CN ? cnCode : undefined,
+              passThroughPct: passThroughPct || undefined,
             })
           }
           className="h-11 w-full bg-[#89B56C] text-base text-white hover:bg-[#6E9156]"

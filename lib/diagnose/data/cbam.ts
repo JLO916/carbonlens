@@ -129,8 +129,8 @@ export const CBAM_FACTOR_BY_YEAR: Record<number, number> = {
 /** CBAM factor for a year (share of embedded emissions actually subject to CBAM). Clamps to the
  *  2026–2034 phase-in; ≥2034 → full (1.0), <2026 → 2026 level. */
 export function cbamFactorForYear(year: number): number {
+  if (year < 2026) return 0; // transitional period — no certificates surrendered before 2026
   if (year >= 2034) return 1;
-  if (year <= 2026) return CBAM_FACTOR_BY_YEAR[2026];
   return CBAM_FACTOR_BY_YEAR[year] ?? CBAM_FACTOR_BY_YEAR[2026];
 }
 

@@ -6,13 +6,22 @@ import { useI18n } from '@/lib/i18n/context';
 import ProfileForm from '@/components/workbench/ProfileForm';
 import CarbonPnL from '@/components/workbench/CarbonPnL';
 import PriorityList from '@/components/workbench/PriorityList';
+import CbamRampChart from '@/components/workbench/CbamRampChart';
+import ReductionLens from '@/components/workbench/ReductionLens';
 import ListedResultView from '@/components/diagnose/ListedResult';
 import SupplyChainResultView from '@/components/diagnose/SupplyChainResult';
 import CbamResultView from '@/components/diagnose/CbamResult';
 import Disclaimer from '@/components/diagnose/Disclaimer';
 import { emptyProfile, type CompanyProfile } from '@/lib/workbench/profile';
 import { computeWorkbench, type WorkbenchResult } from '@/lib/workbench/aggregate';
+import { cbamRampSeries } from '@/lib/workbench/ramp';
 import type { CbamDefaultLookup } from '@/lib/diagnose/logic/cbam';
+
+interface Snapshot {
+  profile: CompanyProfile;
+  lookups: (CbamDefaultLookup | undefined)[];
+  result: WorkbenchResult;
+}
 
 const enc = encodeURIComponent;
 
@@ -37,14 +46,14 @@ async function fetchLookup(line: CompanyProfile['cbamProducts'][number], profile
 export default function WorkbenchClient() {
   const { t } = useI18n();
   const [profile, setProfile] = useState<CompanyProfile>(emptyProfile());
-  const [result, setResult] = useState<WorkbenchResult | null>(null);
+  const [snap, setSnap] = useState<Snapshot | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function compute() {
     setBusy(true);
     try {
       const lookups = await Promise.all(profile.cbamProducts.map((line) => fetchLookup(line, profile)));
-      setResult(computeWorkbench(profile, lookups));
+      setSnap({ profile, lookups, result: computeWorkbench(profile, lookups) });
     } finally {
       setBusy(false);
     }
@@ -69,27 +78,29 @@ export default function WorkbenchClient() {
         {busy ? t('計算中…', 'Computing…') : t('計算我的合規全貌', 'Compute my whole picture')}
       </Button>
 
-      {result && (
+      {snap && (
         <div className="space-y-5">
           <h2 className="text-lg font-semibold text-gray-900">{t('碳合規 P&L', 'Carbon-compliance P&L')}</h2>
-          <CarbonPnL result={result} />
-          <PriorityList result={result} />
+          <CarbonPnL result={snap.result} />
+          <PriorityList result={snap.result} />
+          <CbamRampChart ramp={cbamRampSeries(snap.profile, snap.lookups)} />
+          <ReductionLens profile={snap.profile} lookups={snap.lookups} />
 
           <details className="rounded-xl border border-gray-200 bg-white p-4">
             <summary className="cursor-pointer list-none text-sm font-medium text-gray-700">▸ {t('明細：各模組完整診斷', 'Detail: full per-module diagnosis')}</summary>
             <div className="mt-4 space-y-6">
               <section>
                 <h3 className="mb-2 text-sm font-semibold text-gray-500">{t('上市櫃揭露', 'Listed disclosure')}</h3>
-                <ListedResultView result={result.listed} />
+                <ListedResultView result={snap.result.listed} />
               </section>
               <section>
                 <h3 className="mb-2 text-sm font-semibold text-gray-500">{t('供應鏈碳要求', 'Supply-chain demands')}</h3>
-                <SupplyChainResultView result={result.supplyChain} />
+                <SupplyChainResultView result={snap.result.supplyChain} />
               </section>
               <section>
                 <h3 className="mb-2 text-sm font-semibold text-gray-500">{t('CBAM 暴露（逐品項）', 'CBAM exposure (per line)')}</h3>
                 <div className="space-y-5">
-                  {result.cbam.lines.map(({ line, result: r }) => (
+                  {snap.result.cbam.lines.map(({ line, result: r }) => (
                     <div key={line.id}>
                       <p className="mb-1 text-xs font-medium text-gray-600">{line.label}</p>
                       <CbamResultView result={r} />

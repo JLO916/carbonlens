@@ -4,7 +4,8 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { CountryCode } from '@/lib/types';
-import { CARBON_PRICE_PROJECTIONS, CBAM_EFFECTIVE_RATE } from '@/lib/calculators/scenario';
+import { CARBON_PRICE_PROJECTIONS } from '@/lib/calculators/scenario';
+import { cbamFactorForYear } from '@/lib/diagnose/data/cbam';
 import { COUNTRIES } from '@/lib/data/countries';
 import { useI18n } from '@/lib/i18n/context';
 import { useCurrency } from '@/lib/currency/context';
@@ -25,7 +26,7 @@ export default function ScenarioChart({ countryCode, annualEmissions }: Props) {
       const year = Number(yearStr);
       const domesticLocal = annualEmissions * localRate;
       const domesticConverted = convert(domesticLocal, country.currency);
-      const cbamRate = CBAM_EFFECTIVE_RATE[year] ?? 0;
+      const cbamRate = cbamFactorForYear(year);
       const cbamEUR = annualEmissions * 80 * cbamRate;
       const cbamConverted = convert(cbamEUR, 'EUR');
       return {

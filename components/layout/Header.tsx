@@ -25,7 +25,8 @@ export default function Header() {
           {/* Desktop nav */}
           <nav className="hidden sm:flex items-center gap-3 lg:gap-4">
             <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">{t('首頁', 'Home')}</Link>
-            <Link href="/diagnose" className="text-sm font-medium text-[#5d7d44] hover:text-[#89B56C]">{t('合規診斷', 'Diagnose')}</Link>
+            <Link href="/workbench" className="text-sm font-semibold text-[#5d7d44] hover:text-[#89B56C]">{t('工作台', 'Workbench')}</Link>
+            <Link href="/diagnose" className="text-sm text-gray-600 hover:text-gray-900">{t('合規診斷', 'Diagnose')}</Link>
             <Link href="/tw" className="text-sm text-gray-600 hover:text-gray-900">{t('碳費試算', 'Calculator')}</Link>
             <Link href="/cbam" className="text-sm text-gray-600 hover:text-gray-900">CBAM</Link>
             <Link href="/compare" className="text-sm text-gray-600 hover:text-gray-900">{t('跨國比較', 'Compare')}</Link>
@@ -64,7 +65,8 @@ export default function Header() {
       {menuOpen && (
         <div className="sm:hidden border-t bg-white px-4 py-3 space-y-2">
           <Link href="/" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-gray-700">{t('首頁', 'Home')}</Link>
-          <Link href="/diagnose" onClick={() => setMenuOpen(false)} className="block py-2 text-sm font-medium text-[#5d7d44]">{t('合規診斷', 'Diagnose')}</Link>
+          <Link href="/workbench" onClick={() => setMenuOpen(false)} className="block py-2 text-sm font-semibold text-[#5d7d44]">{t('工作台', 'Workbench')}</Link>
+          <Link href="/diagnose" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-gray-700">{t('合規診斷', 'Diagnose')}</Link>
           <Link href="/tw" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-gray-700">{t('碳費試算', 'Calculator')}</Link>
           <Link href="/cbam" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-gray-700">CBAM</Link>
           <Link href="/compare" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-gray-700">{t('跨國比較', 'Compare')}</Link>

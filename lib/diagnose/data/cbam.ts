@@ -136,15 +136,15 @@ export function cbamFactorForYear(year: number): number {
 
 export const CITATION_CBAM_FACTOR: Citation = {
   source: {
-    zhTW: 'ICAP、carboneer、CBAM Guide（定義期相位導入，2025/12）',
-    en: 'ICAP; carboneer; CBAM Guide (definitive-period phase-in, Dec 2025)',
+    zhTW: 'Regulation (EU) 2023/956 第 31 條（CBAM 因子＝1−免費配額比例）、Directive 2003/87/EC 第 10a 條;EUR-Lex 一手',
+    en: 'Regulation (EU) 2023/956 Art. 31 (CBAM factor = 1 − free-allocation share); Directive 2003/87/EC Art. 10a; EUR-Lex (primary)',
   },
   officialDocVersion: {
-    zhTW: 'Directive 2003/87/EC 第 10a(1a) 條（免費配額退場 = CBAM 因子排程）',
-    en: 'Directive 2003/87/EC Art. 10a(1a) (free-allocation phase-out = CBAM factor schedule)',
+    zhTW: '免費配額退場排程 = CBAM 因子(2026 約 2.5% → 2034 100%);ICAP／carboneer 數值交叉核對',
+    en: 'Free-allocation phase-out schedule = CBAM factor (≈2.5% in 2026 → 100% in 2034); cross-checked vs ICAP/carboneer',
   },
   asOfDate: '2026-06',
-  url: 'https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism_en',
+  url: 'https://eur-lex.europa.eu/eli/reg/2023/956/oj/eng',
 };
 
 export const CBAM_FACTOR_NOTE: BilingualText = {

@@ -9,20 +9,20 @@ import type { BilingualText, Citation } from '@/lib/diagnose/types';
 
 export const CITATION_TW_CARBON_FEE: Citation = {
   source: {
-    zhTW: '環境部氣候變遷署 碳費三子法(2024/8/29);中央社、CSRone 彙整',
-    en: 'MOENV Climate Change Administration — carbon-fee three sub-laws (29 Aug 2024); CNA, CSRone',
+    zhTW: '氣候變遷因應法 第29條（優惠費率＋自主減量計畫之法源）;碳費收費辦法、自主減量計畫管理辦法、碳費徵收對象溫室氣體減量指定目標（環境部令，113/8/29）',
+    en: 'Climate Change Response Act Art. 29 (legal basis for preferential rate + reduction plan); Carbon Fee Collection Regulations; Voluntary Reduction Plan Management Regulations; designated reduction targets (MOENV, 29 Aug 2024)',
   },
   officialDocVersion: {
-    zhTW: '碳費收費辦法、自主減量計畫管理辦法、碳費徵收對象溫室氣體減量指定目標',
-    en: 'Carbon Fee Collection Regulations; Voluntary Reduction Plan Management Regulations; designated reduction targets',
+    zhTW: '全國法規資料庫「碳費收費辦法」O0020139（一手法條）;優惠費率須依指定目標附表一/二減量並經核定自主減量計畫',
+    en: 'Laws & Regulations Database — Carbon Fee Collection Regulations, code O0020139 (primary law); preferential rates require an approved voluntary reduction plan per the designated-target schedules',
   },
   asOfDate: '2026-06',
-  url: 'https://www.cca.gov.tw/affairs/carbon-fee-fund/2301.html',
+  url: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=O0020139',
 };
 
 export const TW_FEE_GATING_NOTE: BilingualText = {
-  zhTW: '優惠費率（NT$50／100）與碳洩漏風險係數（0.2／0.4／0.6）須先提出並經環境部核定「自主減量計畫」（達 2030 指定削減率，如鋼鐵 25.2%、水泥 22.3%、一般行業 42%）方可適用；未核定者以一般費率 NT$300、扣除 2.5 萬噸起徵額計算（高碳洩漏風險者不享起徵額）。',
-  en: 'Preferential rates (NT$50/100) and the carbon-leakage coefficient (0.2/0.4/0.6) apply only with an MOENV-approved voluntary reduction plan meeting the 2030 targets (e.g. steel 25.2%, cement 22.3%, general 42%). Without approval the general NT$300 rate applies on emissions minus the 25,000 t threshold (high-leakage firms forgo that threshold).',
+  zhTW: '依氣候變遷因應法第 29 條,優惠費率（NT$50／100）與碳洩漏風險係數（0.2／0.4／0.6）須先提出並經環境部核定「自主減量計畫」（達 2030 指定削減率，如鋼鐵 25.2%、水泥 22.3%、一般行業 42%）方可適用；未核定者以一般費率 NT$300、扣除 2.5 萬噸起徵額計算（高碳洩漏風險者不享起徵額）。',
+  en: 'Under the Climate Change Response Act Art. 29, preferential rates (NT$50/100) and the carbon-leakage coefficient (0.2/0.4/0.6) apply only with an MOENV-approved voluntary reduction plan meeting the 2030 targets (e.g. steel 25.2%, cement 22.3%, general 42%). Without approval the general NT$300 rate applies on emissions minus the 25,000 t threshold (high-leakage firms forgo that threshold).',
 };
 
 // ---- CBAM scope by product (A2) ----
@@ -32,19 +32,19 @@ export const TW_FEE_GATING_NOTE: BilingualText = {
 
 export const CITATION_CBAM_SCOPE: Citation = {
   source: {
-    zhTW: '歐盟執委會 taxation-customs;CBAM Guide、oneclicklca（2026 定義期）',
-    en: 'European Commission taxation-customs; CBAM Guide, oneclicklca (2026 definitive period)',
+    zhTW: 'Regulation (EU) 2023/956（CBAM 規則）附件二、附件四;EUR-Lex 一手',
+    en: 'Regulation (EU) 2023/956 (CBAM) Annex II & Annex IV; EUR-Lex (primary)',
   },
   officialDocVersion: {
-    zhTW: 'CBAM 內含排放範圍:鋼/鋁/氫/電力僅直接;水泥/肥料含間接',
-    en: 'CBAM embedded-emissions scope: steel/aluminium/hydrogen/electricity direct-only; cement/fertilizer incl. indirect',
+    zhTW: '附件二列舉「僅計直接排放」之貨品（鋼鐵、鋁、氫）;未列者（水泥、肥料）計直接＋間接。方法學見附件四',
+    en: 'Annex II lists goods counting DIRECT emissions only (iron/steel, aluminium, hydrogen); goods not listed (cement, fertilizers) count direct + indirect. Methodology in Annex IV',
   },
   asOfDate: '2026-06',
-  url: 'https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism_en',
+  url: 'https://eur-lex.europa.eu/eli/reg/2023/956/oj/eng',
 };
 
 export const CBAM_SCOPE_NOTE: BilingualText = {
-  zhTW: '依 CBAM 規則,鋼／鋁／氫／電力的內含排放只計「直接排放」——換綠電（降 Scope 2）不會降低這些品項的 CBAM；只有製程／燃料等直接減排才會。水泥與肥料則含間接排放。',
+  zhTW: '依 CBAM 規則 (EU) 2023/956 附件二,鋼／鋁／氫的內含排放只計「直接排放」——換綠電（降 Scope 2）不會降低這些品項的 CBAM；只有製程／燃料等直接減排才會。未列於附件二者（水泥、肥料）則含間接排放。',
   en: 'Under CBAM, embedded emissions for steel/aluminium/hydrogen/electricity count DIRECT only — switching to green power (Scope 2) does not lower their CBAM; only direct (process/fuel) cuts do. Cement & fertilizers include indirect.',
 };
 

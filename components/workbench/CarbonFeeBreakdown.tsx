@@ -1,0 +1,45 @@
+'use client';
+
+import { useI18n } from '@/lib/i18n/context';
+import { feeBreakdown } from '@/lib/workbench/fee-breakdown';
+import { TW_FEE_GATING_NOTE, CITATION_TW_CARBON_FEE } from '@/lib/workbench/data';
+import { feeGated } from '@/lib/workbench/derive';
+import CitationTag from '@/components/diagnose/CitationTag';
+import type { WorkbenchResult } from '@/lib/workbench/aggregate';
+import type { CompanyProfile } from '@/lib/workbench/profile';
+
+/** "Show your work" on the headline carbon fee — the calculation steps a user can defend (V6 ②). */
+export default function CarbonFeeBreakdown({ result, profile }: { result: WorkbenchResult; profile: CompanyProfile }) {
+  const { t, tObj } = useI18n();
+  const anyGated = profile.facilities.some(feeGated);
+
+  return (
+    <details className="rounded-xl border border-gray-200 bg-white p-4">
+      <summary className="cursor-pointer list-none text-sm font-medium text-gray-700">
+        ▸ {t('碳費計算過程（可給 CFO／查核員）', 'Carbon fee — show your work (for CFO/auditor)')}
+      </summary>
+      <div className="mt-3 space-y-4">
+        {result.domestic.facilities.map(({ facility, result: r }) => {
+          const { steps } = feeBreakdown(facility, profile, r);
+          return (
+            <div key={facility.id} className="rounded-lg border border-gray-100 bg-gray-50/60 p-3">
+              <p className="mb-2 text-xs font-semibold text-gray-700">{facility.label}（{facility.countryCode.toUpperCase()}）</p>
+              <table className="w-full text-xs">
+                <tbody>
+                  {steps.map((s, i) => (
+                    <tr key={i} className={i === steps.length - 1 ? 'border-t border-gray-200 font-semibold text-gray-900' : 'text-gray-600'}>
+                      <td className="py-1 pr-3">{tObj(s.label)}</td>
+                      <td className="py-1 text-right font-mono">{s.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+        {anyGated && <p className="rounded-lg bg-amber-50 p-2.5 text-[11px] leading-relaxed text-amber-800">⚠️ {tObj(TW_FEE_GATING_NOTE)}</p>}
+        <CitationTag citation={CITATION_TW_CARBON_FEE} />
+      </div>
+    </details>
+  );
+}

@@ -106,8 +106,8 @@ export const CBAM_MARKUP_BY_PRODUCT_YEAR: Record<string, Record<number, number>>
 };
 
 export const CBAM_MARKUP_NOTE: BilingualText = {
-  zhTW: '加成僅適用「官方預設值」路徑：鋁／水泥／鋼鐵 2026 +10%、2027 +20%、2028 +30%；肥料 +1%。使用實際排放數據則不套加成。',
-  en: 'Mark-up applies only to the “official default” path: aluminium/cement/steel +10% (2026), +20% (2027), +30% (2028); fertilizer +1%. Using actual emissions data, no mark-up applies.',
+  zhTW: '加成僅適用「官方預設值」路徑；本工具直接採官方 Excel 已含加成之值（各品項不同：鋼鐵／鋁／水泥約 2026 +10%→2028 +30%、肥料約 +1%，以官方值為準，本工具標示由該筆官方值反推的加成%）。使用實際排放數據則不套加成。',
+  en: 'Mark-up applies only to the “official default” path; the tool uses the official Excel’s already-marked-up values (per product: steel/aluminium/cement ≈ +10% in 2026 → +30% in 2028, fertilizer ≈ +1% — official values govern; the tool shows the mark-up % implied by that official value). Using actual emissions data, no mark-up applies.',
 };
 
 // ---- 常見實務坑(critique #12)。出口商角度,已查證來源 ----
@@ -122,7 +122,6 @@ export const CITATION_CBAM_PRACTICE: Citation = {
     en: 'CBAM transitional/definitive reporting practice (law-firm & ICAP guidance, 2024–2026)',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 export const CBAM_PITFALLS: BilingualText[] = [

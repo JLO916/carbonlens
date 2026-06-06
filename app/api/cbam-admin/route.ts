@@ -1,19 +1,19 @@
 // Admin: review staged CBAM defaults, promote to live (human baseline), or re-lock.
-// Requires `Authorization: Bearer <ADMIN_TOKEN>`. Promotion is the §7.3 human-baseline step.
+// Requires `Authorization: Bearer <ADMIN_TOKEN>`. Promotion is the §7.3 human-baseline step —
+// it writes only an unlock flag; per-CN values are read from the repo JSON on lookup.
 
-import { promoteCbamBaseline, revertCbamLive, getCbamLiveStatus, computeBaselineFromStaging } from '@/lib/diagnose/cbam-live-store';
-import { STAGED_COUNT, STAGED_AS_OF } from '@/lib/diagnose/data/cbam-staging';
+import { promoteCbamBaseline, revertCbamLive, getCbamLiveStatus, stagingSummary } from '@/lib/diagnose/cbam-live-store';
 import { checkAdmin } from '@/lib/diagnose/admin-auth';
 
 export async function GET(req: Request): Promise<Response> {
   const denied = checkAdmin(req);
   if (denied) return denied;
   const live = await getCbamLiveStatus();
-  const { count: baselineGroups } = computeBaselineFromStaging();
+  const sum = stagingSummary();
   return Response.json({
     ok: true,
     live,
-    staged: { rows: STAGED_COUNT, asOf: STAGED_AS_OF, baselineGroups },
+    staged: { rows: sum.rows, categories: sum.categories, countries: sum.countries, asOf: sum.asOf },
   });
 }
 

@@ -12,10 +12,10 @@ export interface Citation {
   source: BilingualText;
   /** Official document / version this value was synced from. */
   officialDocVersion: BilingualText;
-  /** Sync / verification date, ISO-ish (YYYY-MM or YYYY-MM-DD). */
+  /** Data snapshot date, ISO-ish (YYYY-MM or YYYY-MM-DD). Honest framing: this is when the
+   *  value was captured — not a promise of future maintenance. Always pair with the source URL
+   *  + "以主管機關最新公告為準" (verify against the authority's latest notice). */
   asOfDate: string;
-  /** Target next-review date (maintenance cadence) — surfaces freshness so a stale date isn't mistaken for current. */
-  nextReview?: string;
   /** Optional canonical URL. */
   url?: string;
 }
@@ -106,6 +106,10 @@ export interface ListedResult {
 export type FrameworkKey = 're100' | 'sbti' | 'cdp' | 'unsure';
 export type EmployeeBand = 'under250' | 'from250to999' | 'over1000';
 export type PressureLevel = 'low' | 'medium' | 'high';
+/** Where the company sits in its customers' value chain — drives which Scope 3 categories are
+ *  material (GHG Protocol boundary logic). The key Taiwan distinction: a 代工 (contract maker)
+ *  rarely owns Category 11 (use of sold products); a brand owner does. */
+export type BusinessModel = 'brand' | 'odm_oem' | 'component';
 
 export interface SupplyChainInput {
   /** Which public commitments the key BRAND CUSTOMERS have made (user attests from public lists). */
@@ -113,6 +117,7 @@ export interface SupplyChainInput {
   industry: string;
   exportSupplyChain: boolean; // 是否供應出口供應鏈
   employeeBand: EmployeeBand; // 員工規模 — CSRD value-chain cap threshold (<1,000)
+  businessModel: BusinessModel; // 商業模式 — Scope 3 boundary (品牌商 / ODM·OEM 代工 / 零組件供應商)
 }
 
 export interface FrameworkExpectation {
@@ -151,6 +156,10 @@ export interface CbamInput {
   emissionsSource: EmissionsSource;
   actualSpecificEmissions?: number; // tCO₂e per tonne (actual-data path)
   etsPrice?: number; // EUR per tCO₂e — user-set, conditional (§3B)
+  /** Official-default path: the exact CN code (8/10-digit). Empty → "unknown CN" → honest range. */
+  cnCode?: string;
+  /** Exporter commercial framing (§2): expected share of the importer's CBAM cost passed back. 0–100. */
+  passThroughPct?: number;
 }
 
 export interface CbamExposure {
@@ -163,11 +172,22 @@ export interface CbamExposure {
   indicativeExposureEUR?: number; // emissions(incl. mark-up) × ETS price
   // Official-default path (unlocked after human baseline confirmation):
   fromOfficialDefault?: boolean;
-  defaultPerTonne?: number; // marked-up median emission factor (tCO₂e/t)
-  defaultN?: number; // sample size behind the median
+  /** 'cn' = exact official value for the user's CN code; 'range' = honest category min–max (CN unknown). */
+  defaultMode?: 'cn' | 'range';
+  defaultCnCode?: string;
+  defaultDescription?: string; // official CN nomenclature (English)
+  defaultPerTonne?: number; // cn mode: exact marked-up emission factor (tCO₂e/t)
+  defaultBase?: number; // cn mode: official embedded total before mark-up
+  defaultMarkupPct?: number; // cn mode: implied mark-up % from the official data
+  defaultN?: number; // range mode: number of CN codes in the category
   defaultAsOf?: string;
-  exposureMinEUR?: number; // category min–max spread → exposure range
+  exposureMinEUR?: number; // range mode (cn mode collapses to the point value)
   exposureMaxEUR?: number;
+  // §2 exporter commercial framing — the share of the importer's CBAM cost passed back to you.
+  passThroughPct?: number;
+  exporterShareEUR?: number;
+  exporterShareMinEUR?: number;
+  exporterShareMaxEUR?: number;
 }
 
 export interface CbamResult {

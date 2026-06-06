@@ -93,7 +93,7 @@ export default function SupplyChainResultView({ result }: { result: SupplyChainR
           {result.scope3.industryNote && (
             <p className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">{tObj(result.scope3.industryNote)}</p>
           )}
-          <Scope3Focus industry={result.input.industry} />
+          <Scope3Focus industry={result.input.industry} businessModel={result.input.businessModel} />
           <CitationTag citation={result.scope3.citation} className="mt-2" />
         </CardContent>
       </Card>

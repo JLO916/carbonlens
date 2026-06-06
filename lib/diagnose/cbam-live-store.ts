@@ -1,121 +1,183 @@
-// CBAM live default cache + human-baseline promotion (Brief §7 last mile). SERVER-ONLY
+// CBAM live default lookup + human-baseline promotion (Brief §7 last mile). SERVER-ONLY
 // (imports the 691KB staged JSON + uses KV) — never import from a client component.
 //
-// Computes a per-(country, product-category) representative marked-up default emission factor
-// = MEDIAN of that category's official CN-code values (derived from the official Excel),
-// plus the min–max spread. These are NOT live until a human explicitly confirms the baseline
-// (promoteCbamBaseline); until then getCbamDefault() returns null → the official-default path
-// stays locked and shows no number (Brief §7.2/§7.3). Method is transparent + labelled in UI.
+// V2 (CN-code level): instead of a per-category MEDIAN (statistical noise), we return the
+// EXACT official default value for the user's CN code. Promotion writes only a small "unlock
+// flag" to KV; the per-CN values are read from the repo JSON (server-side) gated by that flag.
+// Until a human confirms the baseline (promoteCbamBaseline), every lookup returns null → the
+// official-default path stays locked and shows no number (Brief §7.2/§7.3).
 
 import { kvCommand, leadStoreConfigured } from './lead-store';
 import staging from './data/cbam-staging-values.json';
 
 const LIVE_KEY = 'recc:cbam:live';
 
-export interface CbamLiveDefault {
-  m2026: number; m2027: number; m2028: number; // marked-up emission factor median (tCO₂e/t)
-  min2026: number; max2026: number;
-  min2027: number; max2027: number;
-  min2028: number; max2028: number;
-  n: number; // sample size (CN codes in the category)
+interface StagedRow {
+  country: string;
+  product: string | null;
+  cnCode: string;
+  description: string;
+  // A few rows give a `direct` value only (no marked-up total) → these fields can be null.
+  direct: number | null;
+  indirect: number | null;
+  total: number | null;
+  m2026: number | null;
+  m2027: number | null;
+  m2028: number | null;
 }
-export type CbamBaseline = Record<string, CbamLiveDefault>; // key `${country}|${product}`
+const ROWS = staging.values as StagedRow[];
+
+/** Marked-up emission factor field for the CBAM definitive-period year. */
+function yearField(year: number): 'm2026' | 'm2027' | 'm2028' {
+  if (year >= 2028) return 'm2028';
+  if (year === 2027) return 'm2027';
+  return 'm2026';
+}
+const num = (x: number | null | undefined): number | null => (typeof x === 'number' ? x : null);
+/** A row is priceable only if it has at least one marked-up value (some give `direct` only). */
+const isPriceable = (r: StagedRow) => num(r.m2026) !== null || num(r.m2027) !== null || num(r.m2028) !== null;
+const round = (x: number) => Math.round(x * 1000) / 1000;
+/** Implied mark-up % from the official data itself (value/base − 1), so the label always
+ *  matches the number regardless of any hardcoded schedule. */
+const impliedMarkupPct = (value: number, base: number) => (base > 0 ? Math.round((value / base - 1) * 100) : 0);
+
+// ---- Promotion flag (KV) ----
 
 export interface CbamLivePayload {
   status: 'live';
   asOf: string;
   syncedAt: string;
   source: string;
-  baseline: CbamBaseline;
+  cnCount: number;
+  categoryCount: number;
 }
 
-function stats(xs: number[]): { med: number; min: number; max: number } {
-  const s = [...xs].sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  const med = s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-  return { med: round(med), min: round(s[0]), max: round(s[s.length - 1]) };
-}
-const round = (x: number) => Math.round(x * 1000) / 1000;
-
-/** Compute per-(country,product) representative defaults from the staged official values. */
-export function computeBaselineFromStaging(): { baseline: CbamBaseline; count: number } {
-  const groups: Record<string, { y26: number[]; y27: number[]; y28: number[] }> = {};
-  for (const v of staging.values as Array<Record<string, unknown>>) {
-    const product = v.product as string | null;
-    const country = v.country as string;
-    if (!product) continue;
-    const g = (groups[`${country}|${product}`] ??= { y26: [], y27: [], y28: [] });
-    if (typeof v.m2026 === 'number') g.y26.push(v.m2026);
-    if (typeof v.m2027 === 'number') g.y27.push(v.m2027);
-    if (typeof v.m2028 === 'number') g.y28.push(v.m2028);
+/** Distinct (country|product) categories and total CN rows in the staged official data. */
+export function stagingSummary(): { rows: number; categories: number; countries: number; asOf: string; source: string } {
+  const cats = new Set<string>();
+  const countries = new Set<string>();
+  for (const r of ROWS) {
+    if (r.product) cats.add(`${r.country}|${r.product}`);
+    countries.add(r.country);
   }
-  const baseline: CbamBaseline = {};
-  for (const [key, g] of Object.entries(groups)) {
-    if (g.y26.length === 0) continue;
-    const a = stats(g.y26);
-    const b = g.y27.length ? stats(g.y27) : a;
-    const c = g.y28.length ? stats(g.y28) : a;
-    baseline[key] = {
-      m2026: a.med, m2027: b.med, m2028: c.med,
-      min2026: a.min, max2026: a.max,
-      min2027: b.min, max2027: b.max,
-      min2028: c.min, max2028: c.max,
-      n: g.y26.length,
-    };
-  }
-  return { baseline, count: Object.keys(baseline).length };
+  return {
+    rows: ROWS.length,
+    categories: cats.size,
+    countries: countries.size,
+    asOf: String(staging.asOfDate),
+    source: String(staging.source),
+  };
 }
 
-/** Promote the computed baseline to the live KV cache. `syncedAt` injected for determinism. */
+/** Promote: write the unlock flag. The per-CN values live in the repo JSON (read on lookup);
+ *  KV only records that a human confirmed the baseline + when. `syncedAt` injected for determinism. */
 export async function promoteCbamBaseline(syncedAt: string): Promise<number> {
-  const { baseline, count } = computeBaselineFromStaging();
+  const sum = stagingSummary();
   const payload: CbamLivePayload = {
     status: 'live',
-    asOf: String(staging.asOfDate),
+    asOf: sum.asOf,
     syncedAt,
-    source: String(staging.source),
-    baseline,
+    source: sum.source,
+    cnCount: sum.rows,
+    categoryCount: sum.categories,
   };
   await kvCommand(['SET', LIVE_KEY, JSON.stringify(payload)]);
-  return count;
+  return sum.rows;
 }
 
-/** Re-lock: remove the live cache (returns to placeholder). */
+/** Re-lock: remove the unlock flag (returns to placeholder). */
 export async function revertCbamLive(): Promise<void> {
   await kvCommand(['DEL', LIVE_KEY]);
 }
 
-export async function getCbamLive(): Promise<CbamLivePayload | null> {
+/** Read the unlock flag. Tolerates the legacy payload shape (which also had status:'live'). */
+export async function getCbamLive(): Promise<{ status: 'live'; asOf: string; syncedAt?: string } | null> {
   if (!leadStoreConfigured()) return null;
   try {
     const raw = (await kvCommand(['GET', LIVE_KEY])) as string | null;
-    return raw ? (JSON.parse(raw) as CbamLivePayload) : null;
+    if (!raw) return null;
+    const p = JSON.parse(raw) as { status?: string; asOf?: string; syncedAt?: string };
+    if (p.status !== 'live') return null;
+    return { status: 'live', asOf: String(p.asOf ?? staging.asOfDate), syncedAt: p.syncedAt };
   } catch {
     return null;
   }
 }
 
-export interface CbamDefaultLookup {
-  value: number; // marked-up emission factor (tCO₂e/t) for the year
-  min: number;
-  max: number;
-  n: number;
+export async function getCbamLiveStatus(): Promise<{ status: 'live' | 'locked'; asOf?: string; syncedAt?: string }> {
+  const live = await getCbamLive();
+  if (!live) return { status: 'locked' };
+  return { status: 'live', asOf: live.asOf, syncedAt: live.syncedAt };
+}
+
+// ---- Public lookups (gated by the unlock flag) ----
+
+/** CN-code options for a (country, product) category — public nomenclature, no emission value.
+ *  Returned regardless of unlock state so the form can offer choices (values stay gated). */
+export function getCnOptions(country: string, product: string): { cnCode: string; description: string }[] {
+  const seen = new Set<string>();
+  const out: { cnCode: string; description: string }[] = [];
+  for (const r of ROWS) {
+    if (r.country !== country || r.product !== product) continue;
+    if (!isPriceable(r)) continue; // hide CN codes with no official marked-up value (can't price them)
+    if (seen.has(r.cnCode)) continue;
+    seen.add(r.cnCode);
+    out.push({ cnCode: r.cnCode, description: r.description });
+  }
+  return out.sort((a, b) => a.cnCode.localeCompare(b.cnCode));
+}
+
+export interface CbamCnLookup {
+  mode: 'cn';
+  cnCode: string;
+  description: string;
+  value: number; // marked-up official default (tCO₂e/t) for the year
+  base: number; // official embedded total before mark-up
+  markupPct: number;
   asOf: string;
 }
 
-/** Look up the live default for (country, product, year). null = locked / not found. */
-export async function getCbamDefault(country: string, product: string, year: number): Promise<CbamDefaultLookup | null> {
+/** Exact official default for (country, CN code, year). null = locked / not found. */
+export async function getCbamDefaultByCn(country: string, cnCode: string, year: number): Promise<CbamCnLookup | null> {
   const live = await getCbamLive();
   if (!live) return null;
-  const d = live.baseline[`${country}|${product}`];
-  if (!d) return null;
-  if (year >= 2028) return { value: d.m2028, min: d.min2028, max: d.max2028, n: d.n, asOf: live.asOf };
-  if (year === 2027) return { value: d.m2027, min: d.min2027, max: d.max2027, n: d.n, asOf: live.asOf };
-  return { value: d.m2026, min: d.min2026, max: d.max2026, n: d.n, asOf: live.asOf };
+  const f = yearField(year);
+  const row = ROWS.find((r) => r.country === country && r.cnCode === cnCode);
+  if (!row) return null;
+  const raw = num(row[f]);
+  if (raw === null) return null; // no official marked-up value for this CN/year → stay locked
+  const base = num(row.total);
+  return {
+    mode: 'cn',
+    cnCode: row.cnCode,
+    description: row.description,
+    value: round(raw),
+    base: base !== null ? round(base) : round(raw),
+    markupPct: base !== null ? impliedMarkupPct(raw, base) : 0,
+    asOf: live.asOf,
+  };
 }
 
-export async function getCbamLiveStatus(): Promise<{ status: 'live' | 'locked'; asOf?: string; syncedAt?: string; count?: number }> {
+export interface CbamRangeLookup {
+  mode: 'range';
+  min: number;
+  max: number;
+  n: number; // CN codes in the category
+  asOf: string;
+}
+
+/** Honest category range (min–max of the marked-up official values) for when the user does
+ *  NOT know their CN code — no point estimate. null = locked / empty. */
+export async function getCbamCategoryRange(country: string, product: string, year: number): Promise<CbamRangeLookup | null> {
   const live = await getCbamLive();
-  if (!live) return { status: 'locked' };
-  return { status: 'live', asOf: live.asOf, syncedAt: live.syncedAt, count: Object.keys(live.baseline).length };
+  if (!live) return null;
+  const f = yearField(year);
+  const xs: number[] = [];
+  for (const r of ROWS) {
+    if (r.country !== country || r.product !== product) continue;
+    const v = num(r[f]);
+    if (v !== null) xs.push(v); // skip rows with no marked-up value (else null→0 poisons the min)
+  }
+  if (xs.length === 0) return null;
+  return { mode: 'range', min: round(Math.min(...xs)), max: round(Math.max(...xs)), n: xs.length, asOf: live.asOf };
 }

@@ -18,7 +18,6 @@ export const CITATION_FRAMEWORKS: Citation = {
     en: 'RE100 / SBTi / CDP public framework documents',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 export const CITATION_SCOPE3: Citation = {
@@ -31,7 +30,6 @@ export const CITATION_SCOPE3: Citation = {
     en: 'CDP / Normative Scope 3 scale statistics',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 export const CITATION_TRANSMISSION: Citation = {
@@ -44,7 +42,6 @@ export const CITATION_TRANSMISSION: Citation = {
     en: 'Supply-chain transmission of brand net-zero / SBTi commitments',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 export const CITATION_CSRD: Citation = {
@@ -54,7 +51,6 @@ export const CITATION_CSRD: Citation = {
     en: 'CSRD (post-Omnibus) value-chain cap / VSME voluntary SME standard',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 // ---- 三大公開框架（推「預期被要求」的依據，§6C） ----
@@ -151,7 +147,6 @@ export const CITATION_TAIWAN_SUPPLY: Citation = {
     en: 'RBA Code of Conduct; brands’ public sustainability commitments',
   },
   asOfDate: '2026-06',
-  nextReview: '2026-12',
 };
 
 export const TAIWAN_SUPPLY_NOTES: Record<string, BilingualText> = {

@@ -1,5 +1,5 @@
 import { diagnoseCbam } from '@/lib/diagnose/logic/cbam';
-import { computeBaselineFromStaging } from '@/lib/diagnose/cbam-live-store';
+import { getCnOptions, stagingSummary, getCbamDefaultByCn, getCbamCategoryRange } from '@/lib/diagnose/cbam-live-store';
 import { runAnomalyChecks, promoteIfPassed } from '@/lib/diagnose/logic/cbam-sync';
 import { CBAM_LIVE_CACHE } from '@/lib/diagnose/data/cbam-cache';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
@@ -114,30 +114,66 @@ describe('promoteIfPassed (Brief §7.2)', () => {
   });
 });
 
-describe('CBAM baseline + unlock (P2-11)', () => {
-  it('computeBaselineFromStaging yields per-(country,product) medians with a valid spread', () => {
-    const { baseline, count } = computeBaselineFromStaging();
-    expect(count).toBeGreaterThan(20);
-    const tw = baseline['tw|steel'];
-    expect(tw).toBeDefined();
-    expect(tw.m2026).toBeGreaterThan(0);
-    expect(tw.min2026).toBeLessThanOrEqual(tw.m2026);
-    expect(tw.max2026).toBeGreaterThanOrEqual(tw.m2026);
-    expect(tw.m2028).toBeGreaterThanOrEqual(tw.m2026); // mark-up rises 2026→2028
+describe('CBAM CN-level staging (V2-①)', () => {
+  it('stagingSummary reports rows + categories from the official Excel', () => {
+    const s = stagingSummary();
+    expect(s.rows).toBeGreaterThan(1900);
+    expect(s.categories).toBeGreaterThan(20);
+    expect(s.countries).toBeGreaterThanOrEqual(8);
   });
 
-  it('diagnoseCbam unlocks exposure (+range) when a default lookup is supplied', () => {
+  it('getCnOptions returns unique, priceable CN codes (with descriptions) for tw|steel', () => {
+    const opts = getCnOptions('tw', 'steel');
+    expect(opts.length).toBeGreaterThan(20);
+    expect(opts[0].cnCode).toBeTruthy();
+    expect(typeof opts[0].description).toBe('string');
+    expect(new Set(opts.map((o) => o.cnCode)).size).toBe(opts.length); // unique
+    // CN 7218 (stainless ingot) has only a `direct` value, no marked-up total → excluded so it
+    // can never produce a bogus €0 (regression: null was coercing the category min to 0).
+    expect(opts.find((o) => o.cnCode === '7218')).toBeUndefined();
+  });
+
+  it('lookups stay LOCKED (null) until a human promotes the KV flag (§7.3)', async () => {
+    const cn = getCnOptions('tw', 'steel')[0].cnCode;
+    expect(await getCbamDefaultByCn('tw', cn, 2026)).toBeNull();
+    expect(await getCbamCategoryRange('tw', 'steel', 2026)).toBeNull();
+  });
+});
+
+describe('diagnoseCbam — official-default cn/range modes + pass-through (V2-①/②)', () => {
+  it('cn mode → EXACT exposure for the CN code (no median, no fake range)', () => {
     const r = diagnoseCbam(
-      base({ emissionsSource: 'official_default', annualVolumeTonnes: 5000, etsPrice: 80, actualSpecificEmissions: undefined }),
-      { value: 2.0, min: 1.5, max: 2.5, n: 10, asOf: '2026-02-04' },
+      base({ emissionsSource: 'official_default', cnCode: '7208', annualVolumeTonnes: 5000, etsPrice: 80, actualSpecificEmissions: undefined }),
+      { mode: 'cn', cnCode: '7208', description: 'Flat-rolled steel', value: 2.0, base: 1.82, markupPct: 10, asOf: '2026-02-04' },
     );
     expect(r.exposure.defaultsLocked).toBe(false);
     expect(r.exposure.fromOfficialDefault).toBe(true);
+    expect(r.exposure.defaultMode).toBe('cn');
+    expect(r.exposure.defaultCnCode).toBe('7208');
     expect(r.exposure.totalEmissions).toBe(10000);
     expect(r.exposure.indicativeExposureEUR).toBe(800000);
+    expect(r.exposure.exposureMinEUR).toBe(800000); // point collapses
+    expect(r.cacheStatus).toBe('live');
+  });
+
+  it('range mode (CN unknown) → min–max exposure, NO point estimate', () => {
+    const r = diagnoseCbam(
+      base({ emissionsSource: 'official_default', annualVolumeTonnes: 5000, etsPrice: 80, actualSpecificEmissions: undefined }),
+      { mode: 'range', min: 1.5, max: 2.5, n: 12, asOf: '2026-02-04' },
+    );
+    expect(r.exposure.defaultMode).toBe('range');
+    expect(r.exposure.indicativeExposureEUR).toBeUndefined();
     expect(r.exposure.exposureMinEUR).toBe(600000);
     expect(r.exposure.exposureMaxEUR).toBe(1000000);
-    expect(r.cacheStatus).toBe('live');
+    expect(r.exposure.defaultN).toBe(12);
+  });
+
+  it('pass-through % sizes the exporter share', () => {
+    const r = diagnoseCbam(
+      base({ emissionsSource: 'official_default', cnCode: '7208', passThroughPct: 50, annualVolumeTonnes: 5000, etsPrice: 80, actualSpecificEmissions: undefined }),
+      { mode: 'cn', cnCode: '7208', description: 'x', value: 2.0, base: 1.82, markupPct: 10, asOf: '2026-02-04' },
+    );
+    expect(r.exposure.exporterShareEUR).toBe(400000);
   });
 });
 

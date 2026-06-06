@@ -92,17 +92,13 @@ export default function ListedResultView({ result }: { result: ListedResult }) {
         </CardContent>
       </Card>
 
-      {/* 同業概況 — peer-benchmark lite (critique #10, honest version) */}
+      {/* 同業概況 — sourced firm-count context only (no vaporware teaser). */}
       <div className="rounded-xl border border-gray-200 bg-white p-5">
         <p className="text-sm font-medium text-gray-500">{t('同業概況', 'Peer context')}</p>
         <p className="mt-2 text-sm leading-relaxed text-gray-700">
           {t('你不孤單——你這階段同步接軌的上市櫃約有 ', 'You’re not alone — roughly ')}
           <span className="font-semibold text-gray-900">{tObj(ifrs.firmCount)}</span>
           {t('；2029 年全體約 1,938 家接軌。', ' listed firms align in your phase; ~1,938 in total by 2029.')}
-        </p>
-        <p className="mt-3 rounded-lg bg-[#89B56C]/5 p-2.5 text-xs leading-relaxed text-gray-500">
-          <span className="font-medium text-[#5d7d44]">{t('進階（規劃中）', 'Advanced (planned)')}：</span>
-          {t('你同產業的「揭露深度對標」——同業中位數揭露到第幾類 Scope 3、揭露品質分布。', 'Peer-disclosure benchmarking for your industry — median Scope 3 categories disclosed and quality distribution.')}
         </p>
         <CitationTag citation={ifrs.citation} className="mt-2" />
       </div>

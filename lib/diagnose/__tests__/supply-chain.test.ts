@@ -1,10 +1,12 @@
 import { diagnoseSupplyChain } from '@/lib/diagnose/logic/supply-chain';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
+import { materialScope3 } from '@/lib/diagnose/data/scope3-categories';
 import type { SupplyChainInput } from '@/lib/diagnose/types';
 
 const base = (over: Partial<SupplyChainInput>): SupplyChainInput => ({
   frameworks: ['sbti'],
   industry: 'electronics',
+  businessModel: 'odm_oem',
   exportSupplyChain: false,
   employeeBand: 'from250to999',
   ...over,
@@ -60,6 +62,25 @@ describe('diagnoseSupplyChain — CSRD value-chain cap (§6C)', () => {
   });
   it('≥1,000 employees are not protected', () => {
     expect(diagnoseSupplyChain(base({ employeeBand: 'over1000' })).csrdProtection.protected).toBe(false);
+  });
+});
+
+describe('materialScope3 — business-model boundary (V2-⑥, GHG Protocol)', () => {
+  it('brand keeps "use of sold products" (Cat 11)', () => {
+    const nums = materialScope3('electronics', 'brand').map((c) => c.num);
+    expect(nums).toContain(11);
+  });
+  it('ODM/OEM drops Cat 11 (it belongs to the brand) and keeps purchased+transport', () => {
+    const nums = materialScope3('electronics', 'odm_oem').map((c) => c.num);
+    expect(nums).not.toContain(11);
+    expect(nums).toContain(1);
+    expect(nums).toContain(4);
+  });
+  it('component supplier drops Cat 11 too', () => {
+    expect(materialScope3('machinery', 'component').map((c) => c.num)).not.toContain(11);
+  });
+  it('no business model → industry default (Cat 11 retained for electronics)', () => {
+    expect(materialScope3('electronics').map((c) => c.num)).toContain(11);
   });
 });
 

@@ -9,10 +9,12 @@ import { CBAM_PITFALLS, CITATION_CBAM_PRACTICE } from '@/lib/diagnose/data/cbam'
 import CitationTag from './CitationTag';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n));
+const clip = (d: string, n = 44) => (d.length > n ? `${d.slice(0, n)}…` : d);
 
 export default function CbamResultView({ result }: { result: CbamResult }) {
   const { t, tObj } = useI18n();
   const { input, exposure } = result;
+  const isRange = exposure.fromOfficialDefault && exposure.defaultMode === 'range';
 
   return (
     <div className="space-y-5">
@@ -53,6 +55,40 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
             <p className="text-xs text-gray-500">{t('改用「實際數據」即可立即估算指示性暴露。', 'Switch to “actual data” to get an indicative estimate now.')}</p>
           </CardContent>
         </Card>
+      ) : isRange && exposure.exposureMaxEUR !== undefined && exposure.exposureMinEUR !== undefined ? (
+        <Card className="border-2 border-[#89B56C]/40">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{t('你買家面臨的 CBAM 成本 — 此類別官方值範圍', 'CBAM cost your buyer faces — category range')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-500">{t(`在 ETS €${exposure.etsPrice}／噸時`, `At ETS €${exposure.etsPrice}/t`)}</p>
+              <p className="mt-1 text-4xl font-extrabold tracking-tight text-gray-900">
+                €{fmt(exposure.exposureMinEUR)} <span className="text-2xl font-bold text-gray-400">–</span> €{fmt(exposure.exposureMaxEUR)}
+              </p>
+              <p className="mt-1.5 text-xs text-gray-400">
+                {t(
+                  `你未指定 CN 碼 → 顯示該類別 ${exposure.defaultN} 個官方 CN 碼的暴露範圍（官方值，${exposure.defaultAsOf}，含加成）。選你的 CN 碼可得精確值。`,
+                  `No CN code given → range across this category’s ${exposure.defaultN} official CN codes (official values, ${exposure.defaultAsOf}, incl. mark-up). Pick your CN code for the exact figure.`,
+                )}
+              </p>
+            </div>
+            {exposure.exporterShareMinEUR !== undefined && exposure.exporterShareMaxEUR !== undefined && (
+              <div className="rounded-lg bg-[#89B56C]/5 p-2.5 text-center text-sm text-gray-700">
+                {t(
+                  `若依你預估 ${exposure.passThroughPct}% 轉嫁 → 落到出口商 ≈ €${fmt(exposure.exporterShareMinEUR)} – €${fmt(exposure.exporterShareMaxEUR)}`,
+                  `At your ${exposure.passThroughPct}% pass-through → lands on the exporter ≈ €${fmt(exposure.exporterShareMinEUR)} – €${fmt(exposure.exporterShareMaxEUR)}`,
+                )}
+              </div>
+            )}
+            <div className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">
+              {t(
+                '法律上這筆由你的歐盟「進口商」繳納——這是他的成本。對你（出口商）的衝擊是商業性的：可能被轉嫁、被壓價，或在無法提供已查證數據時被換掉供應商。',
+                'Legally this is paid by your EU importer — it’s their cost. The impact on you (the exporter) is commercial: passed back, priced down, or supplier-switched if you can’t provide verified data.',
+              )}
+            </div>
+          </CardContent>
+        </Card>
       ) : exposure.indicativeExposureEUR !== undefined ? (
         <Card className="border-2 border-[#89B56C]/40">
           <CardHeader className="pb-2">
@@ -62,22 +98,25 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
             <div className="text-center">
               <p className="text-sm text-gray-500">{t(`在 ETS €${exposure.etsPrice}／噸時`, `At ETS €${exposure.etsPrice}/t`)}</p>
               <p className="mt-1 text-5xl font-extrabold tracking-tight text-gray-900">≈ €{fmt(exposure.indicativeExposureEUR)}</p>
-              {exposure.fromOfficialDefault && exposure.exposureMinEUR !== undefined && exposure.exposureMaxEUR !== undefined && (
-                <p className="mt-1 text-sm text-gray-500">
-                  {t('區間', 'Range')} €{fmt(exposure.exposureMinEUR)} – €{fmt(exposure.exposureMaxEUR)}
-                </p>
-              )}
-              {exposure.fromOfficialDefault ? (
+              {exposure.defaultMode === 'cn' ? (
                 <p className="mt-1.5 text-xs text-gray-400">
                   {t(
-                    `依官方預設值中位數（該類別 ${exposure.defaultN} 筆官方值，${exposure.defaultAsOf}，含加成）;非實際數據,因 CN 碼與廠而異。`,
-                    `Median of official defaults (${exposure.defaultN} CN values in this category, ${exposure.defaultAsOf}, incl. mark-up); not actual data — varies by CN code and facility.`,
+                    `依官方預設值 CN ${exposure.defaultCnCode}（${clip(exposure.defaultDescription ?? '')}）：${exposure.defaultPerTonne} tCO₂e/t = 官方內含 ${exposure.defaultBase} ＋ ${exposure.defaultMarkupPct}% 加成（${exposure.defaultAsOf}）。非實際數據，因廠而異。`,
+                    `Official default CN ${exposure.defaultCnCode} (${clip(exposure.defaultDescription ?? '')}): ${exposure.defaultPerTonne} tCO₂e/t = official ${exposure.defaultBase} + ${exposure.defaultMarkupPct}% mark-up (${exposure.defaultAsOf}). Not actual data — varies by facility.`,
                   )}
                 </p>
               ) : (
                 <p className="mt-1.5 text-xs text-gray-400">{t('指示性、條件於 ETS 價，實際因廠而異', 'Indicative, conditional on ETS price; actual varies by facility')}</p>
               )}
             </div>
+            {exposure.exporterShareEUR !== undefined && (
+              <div className="rounded-lg bg-[#89B56C]/5 p-2.5 text-center text-sm text-gray-700">
+                {t(
+                  `若依你預估 ${exposure.passThroughPct}% 轉嫁 → 落到出口商 ≈ €${fmt(exposure.exporterShareEUR)}`,
+                  `At your ${exposure.passThroughPct}% pass-through → lands on the exporter ≈ €${fmt(exposure.exporterShareEUR)}`,
+                )}
+              </div>
+            )}
             <div className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">
               {t(
                 '法律上這筆由你的歐盟「進口商」繳納——這是他的成本。對你（出口商）的衝擊是商業性的：可能被轉嫁、被壓價，或在無法提供已查證數據時被換掉供應商。',
@@ -99,8 +138,8 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
       ) : (
         <Card className="border-2 border-amber-200">
           <CardContent className="p-6 text-center">
-            <p className="text-lg font-semibold text-amber-800">{t('請輸入實際單位排放與當前 ETS 價', 'Enter actual specific emissions and current ETS price')}</p>
-            <p className="mt-1 text-sm text-amber-700">{t('兩者皆填才能算出指示性暴露區間。', 'Both are needed to compute an indicative exposure range.')}</p>
+            <p className="text-lg font-semibold text-amber-800">{t('請輸入當前 ETS 價（與實際單位排放或 CN 碼）', 'Enter the current ETS price (plus actual emissions or your CN code)')}</p>
+            <p className="mt-1 text-sm text-amber-700">{t('實際數據路徑需填單位排放與 ETS 價；官方預設值路徑需 ETS 價（CN 碼可得精確值）。', 'The actual path needs specific emissions + ETS price; the official-default path needs an ETS price (a CN code gives the exact value).')}</p>
           </CardContent>
         </Card>
       )}

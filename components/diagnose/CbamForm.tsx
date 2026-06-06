@@ -56,6 +56,7 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
   const [etsPrice, setEtsPrice] = useState(0);
   const [cnCode, setCnCode] = useState<string>(UNKNOWN_CN);
   const [cnOptions, setCnOptions] = useState<{ cnCode: string; description: string }[]>([]);
+  const [cnQuery, setCnQuery] = useState('');
   const [passThroughPct, setPassThroughPct] = useState(0);
 
   const productLabel = CBAM_PRODUCTS.find((p) => p.key === product)?.label;
@@ -68,6 +69,7 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
     let alive = true;
     setCnCode(UNKNOWN_CN);
     setCnOptions([]);
+    setCnQuery('');
     fetch(`/api/cbam-cn?country=${encodeURIComponent(originCountry)}&product=${encodeURIComponent(product)}`)
       .then((r) => r.json())
       .then((d) => {
@@ -80,6 +82,13 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
   }, [usingDefault, originCountry, product]);
 
   const selectedCn = cnOptions.find((o) => o.cnCode === cnCode);
+  const q = cnQuery.trim().toLowerCase();
+  const qDigits = q.replace(/\s/g, '');
+  const filteredCn = q
+    ? cnOptions.filter(
+        (o) => o.cnCode.replace(/\s/g, '').toLowerCase().includes(qDigits) || o.description.toLowerCase().includes(q),
+      )
+    : cnOptions;
 
   return (
     <Card>
@@ -196,31 +205,39 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
         {usingDefault && (
           <div className="space-y-2">
             <Label className="text-sm font-medium">{t('你的 CN 碼', 'Your CN code')}</Label>
-            <Select value={cnCode} onValueChange={(v) => v && setCnCode(v)}>
-              <SelectTrigger className="w-full">
-                <SelectValue>
-                  {() =>
-                    cnCode === UNKNOWN_CN
-                      ? t('不確定 / 不在清單（顯示類別範圍）', 'Unsure / not listed (show category range)')
-                      : selectedCn
-                        ? `${selectedCn.cnCode} · ${shortDesc(selectedCn.description)}`
-                        : cnCode
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={UNKNOWN_CN}>{t('不確定 / 不在清單（顯示類別範圍）', 'Unsure / not listed (show category range)')}</SelectItem>
-                {cnOptions.map((o) => (
-                  <SelectItem key={o.cnCode} value={o.cnCode}>
-                    {o.cnCode} · {shortDesc(o.description)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              value={cnQuery}
+              placeholder={t('搜尋 CN 碼或品名，如 7208 / wire / fitting', 'Search CN code or description, e.g. 7208 / wire / fitting')}
+              onChange={(e) => setCnQuery(e.target.value)}
+            />
+            <div className="max-h-52 overflow-y-auto rounded-lg border border-gray-200">
+              <button
+                type="button"
+                onClick={() => { setCnCode(UNKNOWN_CN); setCnQuery(''); }}
+                className={`block w-full px-3 py-2 text-left text-xs ${cnCode === UNKNOWN_CN ? 'bg-[#89B56C]/10 font-medium text-[#5d7d44]' : 'text-gray-500 hover:bg-gray-50'}`}
+              >
+                {t('不確定 / 不在清單（顯示類別範圍）', 'Unsure / not listed (show category range)')}
+              </button>
+              {filteredCn.map((o) => (
+                <button
+                  key={o.cnCode}
+                  type="button"
+                  onClick={() => { setCnCode(o.cnCode); setCnQuery(''); }}
+                  className={`block w-full border-t border-gray-50 px-3 py-2 text-left text-xs ${cnCode === o.cnCode ? 'bg-[#89B56C]/10' : 'hover:bg-gray-50'}`}
+                >
+                  <span className="font-medium text-gray-800">{o.cnCode}</span> <span className="text-gray-500">· {shortDesc(o.description)}</span>
+                </button>
+              ))}
+              {cnOptions.length > 0 && filteredCn.length === 0 && (
+                <p className="px-3 py-2 text-xs text-gray-400">{t('查無符合的 CN 碼，可用「不確定」看類別範圍。', 'No matching CN code — use “Unsure” for the category range.')}</p>
+              )}
+            </div>
             <p className="text-xs text-gray-400">
-              {cnOptions.length > 0
-                ? t(`此類別有 ${cnOptions.length} 個官方 CN 碼；選你的那筆得精確值，不確定則顯示範圍。`, `${cnOptions.length} official CN codes in this category; pick yours for the exact value, or see the range.`)
-                : t('解鎖後將載入此類別的官方 CN 碼清單。', 'CN-code options load for this category once unlocked.')}
+              {selectedCn
+                ? t(`已選 CN ${selectedCn.cnCode}：${shortDesc(selectedCn.description)}`, `Selected CN ${selectedCn.cnCode}: ${shortDesc(selectedCn.description)}`)
+                : cnOptions.length > 0
+                  ? t(`此類別有 ${cnOptions.length} 個官方 CN 碼；選錯碼會得到精確但錯的數字，不確定就用「不確定」看範圍。`, `${cnOptions.length} official CN codes here; the wrong code gives a precise-but-wrong number — if unsure, use “Unsure” for the range.`)
+                  : t('解鎖後將載入此類別的官方 CN 碼清單。', 'CN-code options load for this category once unlocked.')}
             </p>
           </div>
         )}
@@ -232,9 +249,9 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t('預估轉嫁比例（%，選填）', 'Expected pass-through to you (%, optional)')}</Label>
-          <Input type="number" value={passThroughPct || ''} min={0} max={100} placeholder={t('例如 50', 'e.g. 50')} onChange={(e) => setPassThroughPct(Number(e.target.value))} />
-          <p className="text-xs text-gray-400">{t('進口商的 CBAM 成本你預估會被轉嫁多少回來；用來估「落到出口商」的金額（非預測）。', 'How much of the importer’s CBAM cost you expect passed back — to size the share that lands on you (not a forecast).')}</p>
+          <Label className="text-sm font-medium">{t('轉嫁情境假設（%，選填，非預測）', 'Pass-through scenario (%, optional, not a forecast)')}</Label>
+          <Input type="number" value={passThroughPct || ''} min={0} max={100} placeholder={t('試 0 / 50 / 100 感受量級', 'try 0 / 50 / 100')} onChange={(e) => setPassThroughPct(Number(e.target.value))} />
+          <p className="text-xs text-gray-400">{t('CBAM 成本由進口商承擔；轉嫁多少由你與買家的合約決定，業界無公定值。這是你設的 what-if，用來感受量級，非工具預測。', 'The CBAM cost sits with the importer; how much is passed back is set by your contract — there’s no industry benchmark. This is your what-if to gauge magnitude, not a tool forecast.')}</p>
         </div>
 
         <Button

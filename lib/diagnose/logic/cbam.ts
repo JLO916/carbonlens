@@ -16,6 +16,8 @@ import {
   CBAM_MARKUP_NOTE,
   CITATION_CBAM_LEGAL,
   CITATION_CBAM_DEFAULTS,
+  CITATION_CBAM_FACTOR,
+  cbamFactorForYear,
 } from '@/lib/diagnose/data/cbam';
 import { CBAM_LIVE_CACHE } from '@/lib/diagnose/data/cbam-cache';
 
@@ -38,6 +40,12 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
   const etsPrice = input.etsPrice && input.etsPrice > 0 ? input.etsPrice : undefined;
   const vol = input.annualVolumeTonnes;
 
+  // CBAM factor (free-allocation phase-out): in 2026 only ~2.5% of embedded emissions are
+  // actually owed, rising to 100% by 2034. The obligation = emissions × ETS price × factor.
+  const factor = cbamFactorForYear(input.year);
+  const factorPct = Math.round(factor * 1000) / 10; // e.g. 2.5
+  const owed = (grossEUR?: number) => (grossEUR !== undefined ? Math.round(grossEUR * factor) : undefined);
+
   let exposure: CbamExposure = { deMinimisExempt, defaultsLocked };
 
   if (!deMinimisExempt) {
@@ -46,19 +54,23 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
       if (spec && spec > 0) {
         // Actual-data path: emissions = volume × specific. No mark-up.
         const totalEmissions = vol * spec;
+        const gross = etsPrice ? totalEmissions * etsPrice : undefined;
         exposure = {
           deMinimisExempt: false,
           defaultsLocked: false,
           totalEmissions,
           markupApplied: 0,
           etsPrice,
-          indicativeExposureEUR: etsPrice ? totalEmissions * etsPrice : undefined,
+          indicativeExposureEUR: owed(gross),
+          grossExposureEUR: gross,
+          cbamFactorPct: factorPct,
         };
       }
     } else if (usingDefault && defaultLookup?.mode === 'cn') {
       // Exact official default for the user's CN code (incl. mark-up). One number, sourced.
       const totalEmissions = vol * defaultLookup.value;
-      const indicative = etsPrice ? totalEmissions * etsPrice : undefined;
+      const gross = etsPrice ? totalEmissions * etsPrice : undefined;
+      const indicative = owed(gross);
       exposure = {
         deMinimisExempt: false,
         defaultsLocked: false,
@@ -67,6 +79,8 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
         indicativeExposureEUR: indicative,
         exposureMinEUR: indicative,
         exposureMaxEUR: indicative,
+        grossExposureEUR: gross,
+        cbamFactorPct: factorPct,
         fromOfficialDefault: true,
         defaultMode: 'cn',
         defaultCnCode: defaultLookup.cnCode,
@@ -83,8 +97,9 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
         defaultsLocked: false,
         etsPrice,
         indicativeExposureEUR: undefined,
-        exposureMinEUR: etsPrice ? vol * defaultLookup.min * etsPrice : undefined,
-        exposureMaxEUR: etsPrice ? vol * defaultLookup.max * etsPrice : undefined,
+        exposureMinEUR: owed(etsPrice ? vol * defaultLookup.min * etsPrice : undefined),
+        exposureMaxEUR: owed(etsPrice ? vol * defaultLookup.max * etsPrice : undefined),
+        cbamFactorPct: factorPct,
         fromOfficialDefault: true,
         defaultMode: 'range',
         defaultN: defaultLookup.n,
@@ -107,8 +122,8 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
   const etsLabel = etsPrice ? String(etsPrice) : '—';
   const disclosures: BilingualText[] = [
     {
-      zhTW: '本工具簡化為「排放量 × ETS 價＝指示性暴露區間」，實際因廠而異，並標此免責。',
-      en: 'Simplified as “emissions × ETS price = indicative exposure range”; actual varies by facility (disclaimer noted).',
+      zhTW: `本工具暴露＝排放量 × ETS 價 × 當年 CBAM 因子（${input.year} 年約 ${factorPct}%，免費配額逐年退場至 2034 年 100%）；為「當年義務」、非全額，實際因廠而異。`,
+      en: `Exposure = emissions × ETS price × the year’s CBAM factor (~${factorPct}% in ${input.year}; free allocation phases out to 100% by 2034). This is the year’s obligation, not the full amount; actual varies by facility.`,
     },
     {
       zhTW: `在您輸入的 ETS 價（€${etsLabel}／噸）下計算；ETS 價每日變動。`,
@@ -132,7 +147,7 @@ export function diagnoseCbam(input: CbamInput, defaultLookup?: CbamDefaultLookup
     deMinimisNote: CBAM_DE_MINIMIS_NOTE,
     markupNote: CBAM_MARKUP_NOTE,
     disclosures,
-    citations: [CITATION_CBAM_LEGAL, CITATION_CBAM_DEFAULTS],
+    citations: [CITATION_CBAM_LEGAL, CITATION_CBAM_DEFAULTS, CITATION_CBAM_FACTOR],
     cacheStatus: defaultLookup ? 'live' : CBAM_LIVE_CACHE.status,
   };
 }

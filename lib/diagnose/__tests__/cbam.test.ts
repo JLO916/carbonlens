@@ -18,16 +18,27 @@ const base = (over: Partial<CbamInput>): CbamInput => ({
 });
 
 describe('diagnoseCbam — actual-data conditional exposure (Brief §3B)', () => {
-  it('exposure = volume × specific × ETS, no mark-up on the actual path', () => {
-    const r = diagnoseCbam(base({}));
+  it('exposure = volume × specific × ETS × CBAM factor; gross is the pre-factor full amount', () => {
+    const r = diagnoseCbam(base({})); // year 2026 → factor 2.5%
     expect(r.exposure.totalEmissions).toBe(5000 * 2.1);
     expect(r.exposure.markupApplied).toBe(0);
-    expect(r.exposure.indicativeExposureEUR).toBe(5000 * 2.1 * 80);
+    expect(r.exposure.grossExposureEUR).toBe(5000 * 2.1 * 80); // full (2034-level)
+    expect(r.exposure.cbamFactorPct).toBe(2.5);
+    expect(r.exposure.indicativeExposureEUR).toBe(Math.round(5000 * 2.1 * 80 * 0.025)); // 2026 obligation
+  });
+
+  it('CBAM factor rises by year (V3-1): 2028 owes 10%, far above 2026’s 2.5%', () => {
+    const y26 = diagnoseCbam(base({})).exposure.indicativeExposureEUR!;
+    const y28 = diagnoseCbam(base({ year: 2028 })).exposure.indicativeExposureEUR!;
+    expect(diagnoseCbam(base({ year: 2028 })).exposure.cbamFactorPct).toBe(10);
+    expect(y28).toBe(Math.round(5000 * 2.1 * 80 * 0.1));
+    expect(y28).toBeCloseTo(y26 * 4, 0); // 10% / 2.5% = 4×
   });
 
   it('no ETS price → no exposure number (still no estimate)', () => {
     const r = diagnoseCbam(base({ etsPrice: undefined }));
     expect(r.exposure.indicativeExposureEUR).toBeUndefined();
+    expect(r.exposure.grossExposureEUR).toBeUndefined();
   });
 });
 
@@ -151,8 +162,10 @@ describe('diagnoseCbam — official-default cn/range modes + pass-through (V2-�
     expect(r.exposure.defaultMode).toBe('cn');
     expect(r.exposure.defaultCnCode).toBe('7208');
     expect(r.exposure.totalEmissions).toBe(10000);
-    expect(r.exposure.indicativeExposureEUR).toBe(800000);
-    expect(r.exposure.exposureMinEUR).toBe(800000); // point collapses
+    expect(r.exposure.grossExposureEUR).toBe(800000); // pre-factor full
+    expect(r.exposure.cbamFactorPct).toBe(2.5);
+    expect(r.exposure.indicativeExposureEUR).toBe(20000); // 800000 × 2.5% (2026 obligation)
+    expect(r.exposure.exposureMinEUR).toBe(20000); // point collapses
     expect(r.cacheStatus).toBe('live');
   });
 
@@ -163,8 +176,8 @@ describe('diagnoseCbam — official-default cn/range modes + pass-through (V2-�
     );
     expect(r.exposure.defaultMode).toBe('range');
     expect(r.exposure.indicativeExposureEUR).toBeUndefined();
-    expect(r.exposure.exposureMinEUR).toBe(600000);
-    expect(r.exposure.exposureMaxEUR).toBe(1000000);
+    expect(r.exposure.exposureMinEUR).toBe(15000); // 600000 × 2.5%
+    expect(r.exposure.exposureMaxEUR).toBe(25000); // 1000000 × 2.5%
     expect(r.exposure.defaultN).toBe(12);
   });
 
@@ -173,7 +186,8 @@ describe('diagnoseCbam — official-default cn/range modes + pass-through (V2-�
       base({ emissionsSource: 'official_default', cnCode: '7208', passThroughPct: 50, annualVolumeTonnes: 5000, etsPrice: 80, actualSpecificEmissions: undefined }),
       { mode: 'cn', cnCode: '7208', description: 'x', value: 2.0, base: 1.82, markupPct: 10, asOf: '2026-02-04' },
     );
-    expect(r.exposure.exporterShareEUR).toBe(400000);
+    // obligation = 800000 × 2.5% = 20000; 50% pass-through → 10000 lands on the exporter
+    expect(r.exposure.exporterShareEUR).toBe(10000);
   });
 });
 

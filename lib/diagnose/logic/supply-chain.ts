@@ -7,6 +7,7 @@ import type {
   FrameworkExpectation,
   PressureLevel,
   BilingualText,
+  BusinessModel,
   FrameworkKey,
 } from '@/lib/diagnose/types';
 import {
@@ -24,13 +25,24 @@ import {
 import { scope3ProfileOf } from '@/lib/diagnose/data/industries';
 
 // ⚠️ TOOL-DEFINED, ADJUSTABLE qualitative rubric (not an official figure). Pressure =
-// number of frameworks the brand customers have publicly committed to, nudged up if the
-// company supplies an export supply chain. Employee size feeds the CSRD note, not this.
-function pressureFrom(concreteCount: number, exportSupplyChain: boolean): PressureLevel {
-  const base: PressureLevel = concreteCount >= 2 ? 'high' : concreteCount === 1 ? 'medium' : 'low';
-  if (!exportSupplyChain || base === 'high') return base;
-  return base === 'low' ? 'medium' : 'high';
+// number of frameworks the brand customers have publicly committed to, nudged up for an export
+// supply chain, and adjusted by business model: a component/代工 supplier is the one most
+// directly (and by many customers) asked for data → +1; a brand owner is usually the requester,
+// not the requestee → −1. (ODM/OEM stays neutral.) Employee size feeds the CSRD note, not this.
+const LEVELS: PressureLevel[] = ['low', 'medium', 'high'];
+function pressureFrom(concreteCount: number, exportSupplyChain: boolean, businessModel: BusinessModel): PressureLevel {
+  let i = concreteCount >= 2 ? 2 : concreteCount === 1 ? 1 : 0;
+  if (exportSupplyChain && i < 2) i += 1;
+  if (businessModel === 'component' && i < 2) i += 1;
+  if (businessModel === 'brand' && i > 0) i -= 1;
+  return LEVELS[Math.max(0, Math.min(2, i))];
 }
+
+const MODEL_PRESSURE_NOTE: Record<BusinessModel, BilingualText> = {
+  brand: { zhTW: '（品牌商：你多半是發問方而非被問方，故下修）', en: ' (brand owner: usually the requester, not the requestee — adjusted down)' },
+  odm_oem: { zhTW: '', en: '' },
+  component: { zhTW: '（零組件供應商：你最常被多家下游客戶直接要數據，故上修）', en: ' (component supplier: most directly asked by many downstream customers — adjusted up)' },
+};
 
 const LEVEL_LABEL: Record<PressureLevel, BilingualText> = {
   low: { zhTW: '低', en: 'Low' },
@@ -46,8 +58,9 @@ export function diagnoseSupplyChain(input: SupplyChainInput): SupplyChainResult 
     .filter((f): f is (typeof FRAMEWORKS)[number] => Boolean(f))
     .map((f) => ({ key: f.key, name: f.name, commitment: f.commitment, expectedAsk: f.expectedAsk }));
 
-  const pressureLevel = pressureFrom(expectations.length, input.exportSupplyChain);
+  const pressureLevel = pressureFrom(expectations.length, input.exportSupplyChain, input.businessModel);
   const level = LEVEL_LABEL[pressureLevel];
+  const modelNote = MODEL_PRESSURE_NOTE[input.businessModel];
 
   const names = expectations.map((e) => e.name);
   const namesZh = names.map((n) => n.zhTW).join('、');
@@ -55,12 +68,12 @@ export function diagnoseSupplyChain(input: SupplyChainInput): SupplyChainResult 
 
   const pressureRationale: BilingualText = expectations.length
     ? {
-        zhTW: `主要品牌客戶已公開承諾 ${expectations.length} 項框架（${namesZh}）${input.exportSupplyChain ? '，且您供應出口供應鏈' : ''} → 預期壓力：${level.zhTW}`,
-        en: `Key brand customers have publicly committed to ${expectations.length} framework(s) (${namesEn})${input.exportSupplyChain ? ', and you supply an export supply chain' : ''} → expected pressure: ${level.en}`,
+        zhTW: `主要品牌客戶已公開承諾 ${expectations.length} 項框架（${namesZh}）${input.exportSupplyChain ? '，且您供應出口供應鏈' : ''} → 預期壓力：${level.zhTW}${modelNote.zhTW}`,
+        en: `Key brand customers have publicly committed to ${expectations.length} framework(s) (${namesEn})${input.exportSupplyChain ? ', and you supply an export supply chain' : ''} → expected pressure: ${level.en}${modelNote.en}`,
       }
     : {
-        zhTW: `主要客戶的框架尚未確認${input.exportSupplyChain ? '，但您供應出口供應鏈' : ''} → 預期壓力：${level.zhTW}`,
-        en: `Key customers’ frameworks are unconfirmed${input.exportSupplyChain ? ', but you supply an export supply chain' : ''} → expected pressure: ${level.en}`,
+        zhTW: `主要客戶的框架尚未確認${input.exportSupplyChain ? '，但您供應出口供應鏈' : ''} → 預期壓力：${level.zhTW}${modelNote.zhTW}`,
+        en: `Key customers’ frameworks are unconfirmed${input.exportSupplyChain ? ', but you supply an export supply chain' : ''} → expected pressure: ${level.en}${modelNote.en}`,
       };
 
   const pressureNote: BilingualText = {

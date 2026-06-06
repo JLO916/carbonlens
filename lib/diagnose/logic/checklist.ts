@@ -86,8 +86,23 @@ export function buildChecklist(result: ListedResult, lang: Lang): string {
   h('');
   // ---- Deliverable mapping (critique #8) ----
   h(L ? '## 對齊你的交付物（可直接落地）' : '## Map to your deliverables (ready to use)');
-  h(L ? '### IFRS S1/S2 四大支柱（揭露骨架）' : '### IFRS S1/S2 four pillars (disclosure skeleton)');
-  ifrsPillars(L).forEach((p, i) => h(`${i + 1}. ${p}`));
+  h(
+    L
+      ? `### IFRS S1/S2 四大支柱（依你第 ${ifrs.phase} 階段；編製 ${s(ifrs.compileFY)}、${s(ifrs.fileLabel)}）`
+      : `### IFRS S1/S2 four pillars (your Phase ${ifrs.phase}; prepare ${s(ifrs.compileFY)}, ${s(ifrs.fileLabel)})`,
+  );
+  const pillars = ifrsPillars(L);
+  if (cats.length) {
+    pillars[3] += L
+      ? `——你的重點 Scope 3：${cats.map((c) => `類別${c.num}`).join('、')}（先盤這幾類）`
+      : ` — your material Scope 3: ${cats.map((c) => `Cat ${c.num}`).join(', ')} (start here)`;
+  }
+  pillars.forEach((p, i) => h(`${i + 1}. ${p}`));
+  h(
+    L
+      ? '> 首年實作提示：策略（情境分析）首年可先質性、逐年量化；指標先鎖 Scope 1/2（必揭），Scope 3 從上面幾類起；治理／風險管理可沿用既有 ERM 流程銜接。'
+      : '> Year-1 tip: Strategy (scenario analysis) can start qualitative and deepen yearly; lock Scope 1/2 first (required), start Scope 3 from the categories above; Governance/Risk Management can build on your existing ERM.',
+  );
   h('');
   h(L ? '### 永續報告書（氣候相關專章）' : '### Sustainability report (climate chapter)');
   h(
@@ -171,6 +186,13 @@ export function buildCbamChecklist(result: CbamResult, lang: Lang): string {
   h(L ? '# 碳合規暴露 — CBAM 暴露評估' : '# Carbon Compliance Exposure — CBAM Assessment');
   h('');
   h(`${L ? '暴露摘要' : 'Exposure summary'}: ${summary}`);
+  if (exposure.cbamFactorPct !== undefined) {
+    h(
+      L
+        ? `（已套 ${input.year} 年 CBAM 因子 ${exposure.cbamFactorPct}%：定義期義務逐年相位導入，2026 約 2.5% → 2034 年 100%${exposure.grossExposureEUR !== undefined ? `；2034 全額約 €${Math.round(exposure.grossExposureEUR).toLocaleString('en-US')}` : ''}。）`
+        : `(CBAM factor ${exposure.cbamFactorPct}% applied for ${input.year}: the obligation phases in, ~2.5% in 2026 → 100% by 2034${exposure.grossExposureEUR !== undefined ? `; full by 2034 ≈ €${Math.round(exposure.grossExposureEUR).toLocaleString('en-US')}` : ''}.)`,
+    );
+  }
   h('');
   // ---- CN-level official default used (critique #1/#8) ----
   if (exposure.defaultMode === 'cn' && exposure.defaultCnCode) {

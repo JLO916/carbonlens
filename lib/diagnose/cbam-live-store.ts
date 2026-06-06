@@ -17,12 +17,13 @@ interface StagedRow {
   product: string | null;
   cnCode: string;
   description: string;
-  direct: number;
-  indirect: number;
-  total: number;
-  m2026: number;
-  m2027: number;
-  m2028: number;
+  // A few rows give a `direct` value only (no marked-up total) → these fields can be null.
+  direct: number | null;
+  indirect: number | null;
+  total: number | null;
+  m2026: number | null;
+  m2027: number | null;
+  m2028: number | null;
 }
 const ROWS = staging.values as StagedRow[];
 
@@ -32,6 +33,9 @@ function yearField(year: number): 'm2026' | 'm2027' | 'm2028' {
   if (year === 2027) return 'm2027';
   return 'm2026';
 }
+const num = (x: number | null | undefined): number | null => (typeof x === 'number' ? x : null);
+/** A row is priceable only if it has at least one marked-up value (some give `direct` only). */
+const isPriceable = (r: StagedRow) => num(r.m2026) !== null || num(r.m2027) !== null || num(r.m2028) !== null;
 const round = (x: number) => Math.round(x * 1000) / 1000;
 /** Implied mark-up % from the official data itself (value/base − 1), so the label always
  *  matches the number regardless of any hardcoded schedule. */
@@ -115,6 +119,7 @@ export function getCnOptions(country: string, product: string): { cnCode: string
   const out: { cnCode: string; description: string }[] = [];
   for (const r of ROWS) {
     if (r.country !== country || r.product !== product) continue;
+    if (!isPriceable(r)) continue; // hide CN codes with no official marked-up value (can't price them)
     if (seen.has(r.cnCode)) continue;
     seen.add(r.cnCode);
     out.push({ cnCode: r.cnCode, description: r.description });
@@ -139,14 +144,16 @@ export async function getCbamDefaultByCn(country: string, cnCode: string, year: 
   const f = yearField(year);
   const row = ROWS.find((r) => r.country === country && r.cnCode === cnCode);
   if (!row) return null;
-  const value = round(row[f]);
+  const raw = num(row[f]);
+  if (raw === null) return null; // no official marked-up value for this CN/year → stay locked
+  const base = num(row.total);
   return {
     mode: 'cn',
     cnCode: row.cnCode,
     description: row.description,
-    value,
-    base: round(row.total),
-    markupPct: impliedMarkupPct(row[f], row.total),
+    value: round(raw),
+    base: base !== null ? round(base) : round(raw),
+    markupPct: base !== null ? impliedMarkupPct(raw, base) : 0,
     asOf: live.asOf,
   };
 }
@@ -166,7 +173,11 @@ export async function getCbamCategoryRange(country: string, product: string, yea
   if (!live) return null;
   const f = yearField(year);
   const xs: number[] = [];
-  for (const r of ROWS) if (r.country === country && r.product === product) xs.push(r[f]);
+  for (const r of ROWS) {
+    if (r.country !== country || r.product !== product) continue;
+    const v = num(r[f]);
+    if (v !== null) xs.push(v); // skip rows with no marked-up value (else null→0 poisons the min)
+  }
   if (xs.length === 0) return null;
   return { mode: 'range', min: round(Math.min(...xs)), max: round(Math.max(...xs)), n: xs.length, asOf: live.asOf };
 }

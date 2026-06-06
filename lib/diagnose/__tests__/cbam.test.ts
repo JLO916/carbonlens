@@ -122,12 +122,15 @@ describe('CBAM CN-level staging (V2-①)', () => {
     expect(s.countries).toBeGreaterThanOrEqual(8);
   });
 
-  it('getCnOptions returns unique CN codes (with descriptions) for tw|steel', () => {
+  it('getCnOptions returns unique, priceable CN codes (with descriptions) for tw|steel', () => {
     const opts = getCnOptions('tw', 'steel');
     expect(opts.length).toBeGreaterThan(20);
     expect(opts[0].cnCode).toBeTruthy();
     expect(typeof opts[0].description).toBe('string');
     expect(new Set(opts.map((o) => o.cnCode)).size).toBe(opts.length); // unique
+    // CN 7218 (stainless ingot) has only a `direct` value, no marked-up total → excluded so it
+    // can never produce a bogus €0 (regression: null was coercing the category min to 0).
+    expect(opts.find((o) => o.cnCode === '7218')).toBeUndefined();
   });
 
   it('lookups stay LOCKED (null) until a human promotes the KV flag (§7.3)', async () => {

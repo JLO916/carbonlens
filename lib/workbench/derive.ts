@@ -4,6 +4,7 @@
 
 import type { CompanyProfile, FacilityLine } from './profile';
 import { taiwanPeriodForYear } from './profile';
+import { facilityEmissionsTonnes } from './inventory';
 import type { ListedInput, SupplyChainInput, CbamInput } from '@/lib/diagnose/types';
 import type { DomesticInput } from '@/lib/calculators/domestic/types';
 
@@ -48,7 +49,7 @@ export function toCbamInputs(p: CompanyProfile): CbamInput[] {
 export function toDomesticInput(facility: FacilityLine, p: CompanyProfile): DomesticInput {
   const gated = !facility.hasApprovedReductionPlan;
   return {
-    annualEmissions: facility.annualEmissionsTonnes,
+    annualEmissions: facilityEmissionsTonnes(facility),
     industryType: p.industry,
     year: p.year,
     countrySpecific: {

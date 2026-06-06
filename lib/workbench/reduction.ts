@@ -28,7 +28,12 @@ export function applyReduction(profile: CompanyProfile, pct: number, type: Reduc
   if (k === 0) return profile;
   return {
     ...profile,
-    facilities: profile.facilities.map((f) => ({ ...f, annualEmissionsTonnes: Math.round(f.annualEmissionsTonnes * (1 - k)) })),
+    facilities: profile.facilities.map((f) => ({
+      ...f,
+      annualEmissionsTonnes: Math.round(f.annualEmissionsTonnes * (1 - k)),
+      // inventory facilities reduce their activity amounts so the computed total drops too
+      activities: f.activities?.map((a) => ({ ...a, amount: round(a.amount * (1 - k)) })),
+    })),
     cbamProducts: profile.cbamProducts.map((c) => {
       if (c.emissionsSource !== 'actual' || !c.actualSpecificEmissions) return c;
       const cbamAffected = type === 'scope1' || countsIndirect(c.product);

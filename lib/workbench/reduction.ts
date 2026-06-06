@@ -6,22 +6,34 @@
 // reductions — you must provide ACTUAL data to benefit.
 
 import type { CompanyProfile } from './profile';
-import type { BilingualText } from '@/lib/diagnose/types';
+import type { BilingualText, CbamProductKey } from '@/lib/diagnose/types';
 
 const round = (x: number) => Math.round(x * 1000) / 1000;
 
-/** Apply a target reduction % to emissions everywhere the real engines consume them. No cost fields. */
-export function applyReduction(profile: CompanyProfile, pct: number): CompanyProfile {
+/** Reduction type — drives CBAM scope correctness (A2). Scope-2 (green power) cuts the carbon fee
+ *  but, per CBAM rules, does NOT lower steel/aluminium/etc. embedded emissions (direct-only). */
+export type ReductionType = 'scope1' | 'scope2';
+
+/** CBAM embedded emissions include INDIRECT (Scope 2) only for cement & fertilizers. */
+export function countsIndirect(product: CbamProductKey): boolean {
+  return product === 'cement' || product === 'fertilizer';
+}
+
+/** Apply a target reduction % through the real engines. No cost fields.
+ *  - Carbon fee (Taiwan Scope 1+2): always reduced (both scopes count).
+ *  - CBAM actual SEE: scope-1 reductions cut every line; scope-2 (green power) cuts ONLY the
+ *    products whose CBAM counts indirect (cement/fertilizer) — steel/aluminium stay (direct-only). */
+export function applyReduction(profile: CompanyProfile, pct: number, type: ReductionType = 'scope1'): CompanyProfile {
   const k = Math.max(0, Math.min(100, pct)) / 100;
   if (k === 0) return profile;
   return {
     ...profile,
     facilities: profile.facilities.map((f) => ({ ...f, annualEmissionsTonnes: Math.round(f.annualEmissionsTonnes * (1 - k)) })),
-    cbamProducts: profile.cbamProducts.map((c) =>
-      c.emissionsSource === 'actual' && c.actualSpecificEmissions
-        ? { ...c, actualSpecificEmissions: round(c.actualSpecificEmissions * (1 - k)) }
-        : c,
-    ),
+    cbamProducts: profile.cbamProducts.map((c) => {
+      if (c.emissionsSource !== 'actual' || !c.actualSpecificEmissions) return c;
+      const cbamAffected = type === 'scope1' || countsIndirect(c.product);
+      return cbamAffected ? { ...c, actualSpecificEmissions: round(c.actualSpecificEmissions * (1 - k)) } : c;
+    }),
   };
 }
 

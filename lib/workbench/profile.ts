@@ -24,6 +24,9 @@ export interface FacilityLine {
   highCarbonLeakage: boolean;
   rateType: 'general' | 'preferA' | 'preferB';
   carbonCreditOffset: number; // tCO₂e offset
+  /** Preferential rate + leakage coefficient legally require an MOENV-approved voluntary reduction
+   *  plan (A1). When false, the workbench forces the general rate — no 優惠/CL applied. */
+  hasApprovedReductionPlan: boolean;
 }
 
 /** One CBAM export line — feeds diagnoseCbam. A real manufacturer has several (multi-CN/product). */
@@ -57,7 +60,9 @@ export interface CompanyProfile {
   facilities: FacilityLine[];
   cbamProducts: CbamProductLine[];
   // Shared CBAM assumptions:
-  etsPrice?: number;
+  etsPrice?: number; // central ETS price
+  etsPriceLow?: number; // A3 — sensitivity band (defaults to central if unset)
+  etsPriceHigh?: number;
   passThroughPct?: number;
   // Reduction lever (V4.3):
   targetReductionPct?: number;
@@ -94,6 +99,7 @@ export function emptyProfile(): CompanyProfile {
         highCarbonLeakage: false,
         rateType: 'general',
         carbonCreditOffset: 0,
+        hasApprovedReductionPlan: false,
       },
     ],
     cbamProducts: [

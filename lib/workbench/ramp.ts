@@ -18,7 +18,9 @@ export interface CbamRamp {
   points: RampPoint[];
   lockedLines: number;
   hasCentral: boolean;
-  etsPrice?: number;
+  etsPrice?: number; // central
+  etsLow?: number;
+  etsHigh?: number;
 }
 
 const RAMP_YEARS = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034];
@@ -40,6 +42,10 @@ function lineEmissionBand(
 export function cbamRampSeries(profile: CompanyProfile, lookups: (CbamDefaultLookup | undefined)[] = []): CbamRamp {
   const ets = profile.etsPrice;
   if (!ets || ets <= 0 || !profile.exportsToEU) return { points: [], lockedLines: 0, hasCentral: false, etsPrice: ets };
+  // A3 — ETS sensitivity: the band combines emissions spread AND the ETS price range (the biggest
+  // CBAM driver). Low/high default to central if unset.
+  const etsLow = profile.etsPriceLow && profile.etsPriceLow > 0 ? profile.etsPriceLow : ets;
+  const etsHigh = profile.etsPriceHigh && profile.etsPriceHigh > 0 ? profile.etsPriceHigh : ets;
 
   const bands = profile.cbamProducts.map((line, i) => ({ line, band: lineEmissionBand(line, lookups[i]) }));
   const lockedLines = bands.filter((b) => b.band === null).length;
@@ -48,11 +54,11 @@ export function cbamRampSeries(profile: CompanyProfile, lookups: (CbamDefaultLoo
 
   const points = RAMP_YEARS.map((year) => {
     const f = cbamFactorForYear(year);
-    const low = usable.reduce((a, b) => a + b.line.annualVolumeTonnes * b.band.low * f * ets, 0);
-    const high = usable.reduce((a, b) => a + b.line.annualVolumeTonnes * b.band.high * f * ets, 0);
+    const low = usable.reduce((a, b) => a + b.line.annualVolumeTonnes * b.band.low * f * etsLow, 0);
+    const high = usable.reduce((a, b) => a + b.line.annualVolumeTonnes * b.band.high * f * etsHigh, 0);
     const central = hasCentral ? usable.reduce((a, b) => a + b.line.annualVolumeTonnes * (b.band.central as number) * f * ets, 0) : undefined;
     return { year, lowEUR: Math.round(low), highEUR: Math.round(high), centralEUR: central !== undefined ? Math.round(central) : undefined };
   });
 
-  return { points, lockedLines, hasCentral, etsPrice: ets };
+  return { points, lockedLines, hasCentral, etsPrice: ets, etsLow, etsHigh };
 }

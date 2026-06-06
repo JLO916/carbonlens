@@ -5,12 +5,12 @@ import { rankObligations } from '@/lib/workbench/prioritize';
 const TODAY = new Date('2026-06-01T00:00:00Z');
 
 describe('rankObligations — do-this-first ordering', () => {
-  it('a near-deadline Phase-1 EU exporter ranks disclosure & CBAM above low-pressure supply-chain', () => {
+  it('A4: a near-deadline Phase-1 firm ranks disclosure (high effort) ABOVE the fee (high cost, low effort)', () => {
     const p: CompanyProfile = { ...emptyProfile(), capitalTier: 'over100', customerFrameworks: ['unsure'], exportSupplyChain: false };
     const items = rankObligations(computeWorkbench(p), TODAY);
     const rank = (k: string) => items.findIndex((i) => i.key === k);
+    expect(rank('disclosure')).toBeLessThan(rank('domestic')); // effort/deadline beats cash-now (A4)
     expect(rank('disclosure')).toBeLessThan(rank('supply-chain'));
-    expect(rank('cbam')).toBeLessThan(rank('supply-chain'));
     expect(items[0].score).toBeGreaterThanOrEqual(items[items.length - 1].score); // sorted desc
   });
 

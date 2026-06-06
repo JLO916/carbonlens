@@ -31,6 +31,16 @@ describe('cbamRampSeries — 2026→2034 banded ramp', () => {
     expect(y26.centralEUR).toBeUndefined();
   });
 
+  it('A3 ETS sensitivity: low/high ETS widen the band around the central line', () => {
+    const r = cbamRampSeries({ ...actualProfile(), etsPriceLow: 60, etsPriceHigh: 120 });
+    const y26 = r.points.find((p) => p.year === 2026)!;
+    expect(y26.lowEUR).toBe(Math.round(5000 * 2.1 * 0.025 * 60)); // 15750
+    expect(y26.centralEUR).toBe(Math.round(5000 * 2.1 * 0.025 * 80)); // 21000
+    expect(y26.highEUR).toBe(Math.round(5000 * 2.1 * 0.025 * 120)); // 31500
+    expect(y26.lowEUR).toBeLessThan(y26.centralEUR!);
+    expect(y26.highEUR).toBeGreaterThan(y26.centralEUR!);
+  });
+
   it('no ETS price → no ramp (still no estimate)', () => {
     expect(cbamRampSeries({ ...actualProfile(), etsPrice: undefined }).points).toHaveLength(0);
   });

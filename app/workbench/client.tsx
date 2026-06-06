@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/context';
 import ProfileForm from '@/components/workbench/ProfileForm';
@@ -8,8 +8,9 @@ import CarbonPnL from '@/components/workbench/CarbonPnL';
 import PriorityList from '@/components/workbench/PriorityList';
 import CbamRampChart from '@/components/workbench/CbamRampChart';
 import ReductionLens from '@/components/workbench/ReductionLens';
+import AssuranceGuide from '@/components/workbench/AssuranceGuide';
 import SnapshotHistory from '@/components/workbench/SnapshotHistory';
-import { loadProfile, saveProfile } from '@/lib/workbench/storage';
+import { loadProfile, saveProfile, exportProfileJson, parseProfile } from '@/lib/workbench/storage';
 import { snapshotOf, appendSnapshot, loadSnapshots, type Snapshot } from '@/lib/workbench/snapshots';
 import ListedResultView from '@/components/diagnose/ListedResult';
 import SupplyChainResultView from '@/components/diagnose/SupplyChainResult';
@@ -76,6 +77,34 @@ export default function WorkbenchClient() {
     setHistory(appendSnapshot(snapshotOf(snap.result, new Date().toISOString())));
   }
 
+  function exportProfile() {
+    const blob = new Blob([exportProfileJson(profile)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'carbon-workbench-profile.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function importProfile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    file.text().then((text) => {
+      const p = parseProfile(text);
+      if (p) {
+        setProfile(p);
+        saveProfile(p);
+        setSnap(null);
+      } else {
+        alert(t('匯入失敗:檔案格式不符或版本不對。', 'Import failed: bad format or wrong version.'));
+      }
+    });
+  }
+
   return (
     <div className="space-y-6">
       <header>
@@ -95,6 +124,17 @@ export default function WorkbenchClient() {
         {busy ? t('計算中…', 'Computing…') : t('計算我的合規全貌', 'Compute my whole picture')}
       </Button>
 
+      <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
+        <button type="button" onClick={exportProfile} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('匯出側寫(JSON 檔)', 'Export profile (JSON)')}</button>
+        <span className="text-gray-300">·</span>
+        <label className="cursor-pointer text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">
+          ⬆ {t('匯入側寫', 'Import profile')}
+          <input type="file" accept="application/json,.json" onChange={importProfile} className="hidden" />
+        </label>
+        <span className="text-gray-300">·</span>
+        <span className="text-gray-400">{t('檔案可攜:換電腦/多 CN 不必重打', 'Portable file: no re-typing on a new laptop')}</span>
+      </div>
+
       {snap && (
         <div className="space-y-5">
           <h2 className="text-lg font-semibold text-gray-900">{t('碳合規 P&L', 'Carbon-compliance P&L')}</h2>
@@ -102,6 +142,8 @@ export default function WorkbenchClient() {
           <PriorityList result={snap.result} />
           <CbamRampChart ramp={cbamRampSeries(snap.profile, snap.lookups)} />
           <ReductionLens profile={snap.profile} lookups={snap.lookups} />
+
+          <AssuranceGuide />
 
           <Button variant="outline" onClick={takeSnapshot} className="w-full">
             📸 {t('拍下這次快照（存到瀏覽器,追蹤變化）', 'Take a snapshot (saved in your browser to track change)')}

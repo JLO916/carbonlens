@@ -14,8 +14,8 @@ export interface PriorityItem {
 }
 
 export const PRIORITY_METHODOLOGY: BilingualText = {
-  zhTW: '排序為本工具的「可調輔助規則」,依死線遠近、你現在實付的碳費、CBAM 相位導入時程、供應鏈壓力綜合,非官方優先序——請依你的資源與風險自行判斷。',
-  en: 'This ranking is the tool’s adjustable helper rubric — combining deadline proximity, the carbon fee you pay now, CBAM phase-in timing and supply-chain pressure. It is not an official priority order; weigh it against your own resources and risk.',
+  zhTW: '排序為本工具的「可調輔助規則」,排的是「工作量與前置時間」而非單純金額大小——繳碳費是一筆匯款(高成本、低工作量),IFRS 揭露/CBAM 數據是好幾個月的工(高工作量、硬死線)。非官方優先序,請依你的資源與風險自行判斷。',
+  en: 'This ranking is the tool’s adjustable helper rubric — it ranks WORK & lead-time, not just cost. Paying the carbon fee is a wire transfer (high cost, low effort); IFRS disclosure / CBAM data is months of work (high effort, hard deadline). Not an official order; weigh it against your resources and risk.',
 };
 
 const clamp = (x: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, x));
@@ -42,10 +42,11 @@ export function rankObligations(r: WorkbenchResult, today: Date = new Date()): P
   items.push({
     key: 'domestic',
     title: { zhTW: '國內碳費', en: 'Domestic carbon fee' },
-    score: feeNow ? clamp(72 + Math.min(18, r.domestic.totalFeeUSD / 5000)) : 12,
+    // High cost but LOW effort (a payment, not a project) → visible but not the time-sink.
+    score: feeNow ? clamp(48 + Math.min(14, r.domestic.totalFeeUSD / 8000)) : 10,
     rationale: feeNow
-      ? { zhTW: `你現在就在繳:約 NT$${Math.round(r.domestic.totalFeeTWD).toLocaleString('en-US')}/年——實付現金,優先處理與減量。`, en: `You pay this now: ~NT$${Math.round(r.domestic.totalFeeTWD).toLocaleString('en-US')}/yr — real cash, prioritise paying & reducing.` }
-      : { zhTW: '目前在起徵門檻(K 值)以下或無收費排放,暫無碳費現金支出。', en: 'Below the K-value threshold or no chargeable emissions — no carbon-fee cash outlay yet.' },
+      ? { zhTW: `約 NT$${Math.round(r.domestic.totalFeeTWD).toLocaleString('en-US')}/年——高成本、低工作量:該繳並啟動減量,但它是一筆匯款,不是你最花時間的工(那是揭露與 CBAM 數據)。`, en: `~NT$${Math.round(r.domestic.totalFeeTWD).toLocaleString('en-US')}/yr — high cost, LOW effort: pay it & start reducing, but it’s a wire transfer, not your time sink (that’s disclosure & CBAM data).` }
+      : { zhTW: '目前在起徵門檻(2.5 萬噸)以下或無收費排放,暫無碳費現金支出。', en: 'Below the 25,000 t threshold or no chargeable emissions — no carbon-fee cash outlay yet.' },
   });
 
   // IFRS disclosure — hard statutory deadline.
@@ -57,8 +58,8 @@ export function rankObligations(r: WorkbenchResult, today: Date = new Date()): P
     title: { zhTW: 'IFRS S1/S2 + 永續報告書', en: 'IFRS S1/S2 + sustainability report' },
     score: clamp(95 - dMonths * 1.8),
     rationale: {
-      zhTW: `第 ${ifrs.phase} 階段首次申報 ${ifrs.fileYear}(${fmtMonths(dMonths).zhTW});Scope 3 最費時,宜最早啟動。`,
-      en: `Phase ${ifrs.phase} first filing ${ifrs.fileYear} (${fmtMonths(dMonths).en}); Scope 3 takes longest — start earliest.`,
+      zhTW: `第 ${ifrs.phase} 階段首次申報 ${ifrs.fileYear}(${fmtMonths(dMonths).zhTW});高工作量、硬死線——Scope 3 + 第三方確信是好幾個月的工,宜最早啟動。`,
+      en: `Phase ${ifrs.phase} first filing ${ifrs.fileYear} (${fmtMonths(dMonths).en}); high effort, hard deadline — Scope 3 + assurance is months of work, start earliest.`,
     },
   });
 

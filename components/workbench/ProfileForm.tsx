@@ -9,6 +9,8 @@ import { useI18n } from '@/lib/i18n/context';
 import { INDUSTRIES } from '@/lib/diagnose/data/industries';
 import { CBAM_PRODUCTS, CBAM_ORIGIN_COUNTRIES } from '@/lib/diagnose/data/cbam';
 import { ifrsPhaseFromCapital, FRAMEWORK_LOOKUP_HINT } from '@/lib/workbench/classify';
+import { feeGated } from '@/lib/workbench/derive';
+import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
 import type { CompanyProfile, FacilityLine, CbamProductLine } from '@/lib/workbench/profile';
 import type {
   BilingualText,
@@ -82,7 +84,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
   const set = (patch: Partial<CompanyProfile>) => onChange({ ...profile, ...patch });
 
   const setFacility = (id: string, patch: Partial<FacilityLine>) => set({ facilities: profile.facilities.map((f) => (f.id === id ? { ...f, ...patch } : f)) });
-  const addFacility = () => set({ facilities: [...profile.facilities, { id: crypto.randomUUID(), label: `廠區 ${profile.facilities.length + 1}`, countryCode: 'tw', annualEmissionsTonnes: 25000, highCarbonLeakage: false, rateType: 'general', carbonCreditOffset: 0 }] });
+  const addFacility = () => set({ facilities: [...profile.facilities, { id: crypto.randomUUID(), label: `廠區 ${profile.facilities.length + 1}`, countryCode: 'tw', annualEmissionsTonnes: 25000, highCarbonLeakage: false, rateType: 'general', carbonCreditOffset: 0, hasApprovedReductionPlan: false }] });
   const delFacility = (id: string) => set({ facilities: profile.facilities.filter((f) => f.id !== id) });
 
   const setCbam = (id: string, patch: Partial<CbamProductLine>) => set({ cbamProducts: profile.cbamProducts.map((c) => (c.id === id ? { ...c, ...patch } : c)) });
@@ -145,10 +147,17 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
       {/* Export & assumptions */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-base">{t('④ 出口與假設', '④ Export & assumptions')}</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="space-y-1.5"><Label className="text-sm">{t('出口歐盟？', 'Export to EU?')}</Label><Toggle value={profile.exportsToEU} onChange={(v) => set({ exportsToEU: v })} options={YES_NO} /></div>
-          <div className="space-y-1.5"><Label className="text-sm">{t('EU ETS 價（€/t）', 'EU ETS price (€/t)')}</Label><Input type="number" value={profile.etsPrice || ''} placeholder={t('如 80', 'e.g. 80')} onChange={(e) => set({ etsPrice: Number(e.target.value) || undefined })} /></div>
-          <div className="space-y-1.5"><Label className="text-sm">{t('轉嫁情境（%，選填）', 'Pass-through (%, opt)')}</Label><Input type="number" value={profile.passThroughPct || ''} placeholder={t('如 50', 'e.g. 50')} onChange={(e) => set({ passThroughPct: Number(e.target.value) || undefined })} /></div>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5"><Label className="text-sm">{t('出口歐盟？', 'Export to EU?')}</Label><Toggle value={profile.exportsToEU} onChange={(v) => set({ exportsToEU: v })} options={YES_NO} /></div>
+            <div className="space-y-1.5"><Label className="text-sm">{t('EU ETS 價·中（€/t）', 'EU ETS price·central (€/t)')}</Label><Input type="number" value={profile.etsPrice || ''} placeholder={t('如 80', 'e.g. 80')} onChange={(e) => set({ etsPrice: Number(e.target.value) || undefined })} /></div>
+            <div className="space-y-1.5"><Label className="text-sm">{t('轉嫁情境（%，選填）', 'Pass-through (%, opt)')}</Label><Input type="number" value={profile.passThroughPct || ''} placeholder={t('如 50', 'e.g. 50')} onChange={(e) => set({ passThroughPct: Number(e.target.value) || undefined })} /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5"><Label className="text-sm">{t('ETS 低（選填,敏感度）', 'ETS low (opt)')}</Label><Input type="number" value={profile.etsPriceLow || ''} placeholder={t('如 60', 'e.g. 60')} onChange={(e) => set({ etsPriceLow: Number(e.target.value) || undefined })} /></div>
+            <div className="space-y-1.5"><Label className="text-sm">{t('ETS 高（選填,敏感度）', 'ETS high (opt)')}</Label><Input type="number" value={profile.etsPriceHigh || ''} placeholder={t('如 120', 'e.g. 120')} onChange={(e) => set({ etsPriceHigh: Number(e.target.value) || undefined })} /></div>
+          </div>
+          <p className="text-xs text-gray-400">{t('ETS 價是 CBAM 最會動的變數;填低/高即可在 ramp 圖看到「進董事會」的暴露區間。', 'ETS price is CBAM’s biggest swing factor; set low/high to see a board-ready exposure band on the ramp chart.')}</p>
         </CardContent>
       </Card>
 
@@ -164,8 +173,10 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 <div className="space-y-1"><Label className="text-xs">{t('費率', 'Rate')}</Label><Picker value={f.rateType} onChange={(v) => setFacility(f.id, { rateType: v })} options={RATE_TYPES} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('高碳洩漏？', 'High leakage?')}</Label><Toggle value={f.highCarbonLeakage} onChange={(v) => setFacility(f.id, { highCarbonLeakage: v })} options={YES_NO} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('碳權扣抵 t', 'Credit offset t')}</Label><Input type="number" value={f.carbonCreditOffset || ''} onChange={(e) => setFacility(f.id, { carbonCreditOffset: Number(e.target.value) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('已核定自主減量計畫?', 'Approved reduction plan?')}</Label><Toggle value={f.hasApprovedReductionPlan} onChange={(v) => setFacility(f.id, { hasApprovedReductionPlan: v })} options={YES_NO} /></div>
                 {profile.facilities.length > 1 && <div className="flex items-end"><Button size="sm" variant="outline" onClick={() => delFacility(f.id)} className="text-gray-400">🗑</Button></div>}
               </div>
+              {feeGated(f) && <p className="mt-2 rounded-lg bg-amber-50 p-2.5 text-[11px] leading-relaxed text-amber-800">⚠️ {tObj(TW_FEE_GATING_NOTE)}</p>}
             </div>
           ))}
         </CardContent>

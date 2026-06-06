@@ -169,7 +169,10 @@ export interface CbamExposure {
   totalEmissions?: number; // tCO₂e, incl. mark-up
   markupApplied?: number; // e.g. 0.10
   etsPrice?: number;
-  indicativeExposureEUR?: number; // emissions(incl. mark-up) × ETS price
+  indicativeExposureEUR?: number; // emissions(incl. mark-up) × ETS price × CBAM factor (year obligation)
+  // CBAM factor (free-allocation phase-out): the year's obligation share + the full (2034) amount.
+  cbamFactorPct?: number; // e.g. 2.5 (2026)
+  grossExposureEUR?: number; // before the factor — the eventual full-allocation-removed (2034) amount
   // Official-default path (unlocked after human baseline confirmation):
   fromOfficialDefault?: boolean;
   /** 'cn' = exact official value for the user's CN code; 'range' = honest category min–max (CN unknown). */

@@ -5,7 +5,7 @@ import { useI18n } from '@/lib/i18n/context';
 import type { CbamResult } from '@/lib/diagnose/types';
 import { CBAM_LIVE_CACHE } from '@/lib/diagnose/data/cbam-cache';
 import { STAGED_COUNT, STAGED_COUNTRIES, STAGED_AS_OF, STAGED_SOURCE } from '@/lib/diagnose/data/cbam-staging';
-import { CBAM_PITFALLS, CITATION_CBAM_PRACTICE } from '@/lib/diagnose/data/cbam';
+import { CBAM_PITFALLS, CITATION_CBAM_PRACTICE, CBAM_ACTUAL_DATA_HELP, CITATION_CBAM_TEMPLATE } from '@/lib/diagnose/data/cbam';
 import CitationTag from './CitationTag';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n));
@@ -66,6 +66,11 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
               <p className="mt-1 text-4xl font-extrabold tracking-tight text-gray-900">
                 €{fmt(exposure.exposureMinEUR)} <span className="text-2xl font-bold text-gray-400">–</span> €{fmt(exposure.exposureMaxEUR)}
               </p>
+              {exposure.cbamFactorPct !== undefined && (
+                <p className="mt-1 text-sm font-medium text-[#5d7d44]">
+                  {t(`${input.year} 年義務（已套 CBAM 因子 ${exposure.cbamFactorPct}%）`, `${input.year} obligation (CBAM factor ${exposure.cbamFactorPct}% applied)`)}
+                </p>
+              )}
               <p className="mt-1.5 text-xs text-gray-400">
                 {t(
                   `你未指定 CN 碼 → 顯示該類別 ${exposure.defaultN} 個官方 CN 碼的暴露範圍（官方值，${exposure.defaultAsOf}，含加成）。選你的 CN 碼可得精確值。`,
@@ -76,8 +81,8 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
             {exposure.exporterShareMinEUR !== undefined && exposure.exporterShareMaxEUR !== undefined && (
               <div className="rounded-lg bg-[#89B56C]/5 p-2.5 text-center text-sm text-gray-700">
                 {t(
-                  `若依你預估 ${exposure.passThroughPct}% 轉嫁 → 落到出口商 ≈ €${fmt(exposure.exporterShareMinEUR)} – €${fmt(exposure.exporterShareMaxEUR)}`,
-                  `At your ${exposure.passThroughPct}% pass-through → lands on the exporter ≈ €${fmt(exposure.exporterShareMinEUR)} – €${fmt(exposure.exporterShareMaxEUR)}`,
+                  `你的情境假設（${exposure.passThroughPct}% 轉嫁，非預測）→ 落到出口商 ≈ €${fmt(exposure.exporterShareMinEUR)} – €${fmt(exposure.exporterShareMaxEUR)}`,
+                  `Your scenario (${exposure.passThroughPct}% pass-through, not a forecast) → lands on the exporter ≈ €${fmt(exposure.exporterShareMinEUR)} – €${fmt(exposure.exporterShareMaxEUR)}`,
                 )}
               </div>
             )}
@@ -98,6 +103,16 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
             <div className="text-center">
               <p className="text-sm text-gray-500">{t(`在 ETS €${exposure.etsPrice}／噸時`, `At ETS €${exposure.etsPrice}/t`)}</p>
               <p className="mt-1 text-5xl font-extrabold tracking-tight text-gray-900">≈ €{fmt(exposure.indicativeExposureEUR)}</p>
+              {exposure.cbamFactorPct !== undefined && (
+                <p className="mt-1 text-sm font-medium text-[#5d7d44]">
+                  {t(`${input.year} 年義務（已套 CBAM 因子 ${exposure.cbamFactorPct}%）`, `${input.year} obligation (CBAM factor ${exposure.cbamFactorPct}% applied)`)}
+                  {exposure.grossExposureEUR !== undefined && (
+                    <span className="font-normal text-gray-400">
+                      {t(` · 2034 全額約 €${fmt(exposure.grossExposureEUR)}`, ` · full by 2034 ≈ €${fmt(exposure.grossExposureEUR)}`)}
+                    </span>
+                  )}
+                </p>
+              )}
               {exposure.defaultMode === 'cn' ? (
                 <p className="mt-1.5 text-xs text-gray-400">
                   {t(
@@ -112,8 +127,8 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
             {exposure.exporterShareEUR !== undefined && (
               <div className="rounded-lg bg-[#89B56C]/5 p-2.5 text-center text-sm text-gray-700">
                 {t(
-                  `若依你預估 ${exposure.passThroughPct}% 轉嫁 → 落到出口商 ≈ €${fmt(exposure.exporterShareEUR)}`,
-                  `At your ${exposure.passThroughPct}% pass-through → lands on the exporter ≈ €${fmt(exposure.exporterShareEUR)}`,
+                  `你的情境假設（${exposure.passThroughPct}% 轉嫁，非預測）→ 落到出口商 ≈ €${fmt(exposure.exporterShareEUR)}`,
+                  `Your scenario (${exposure.passThroughPct}% pass-through, not a forecast) → lands on the exporter ≈ €${fmt(exposure.exporterShareEUR)}`,
                 )}
               </div>
             )}
@@ -142,6 +157,15 @@ export default function CbamResultView({ result }: { result: CbamResult }) {
             <p className="mt-1 text-sm text-amber-700">{t('實際數據路徑需填單位排放與 ETS 價；官方預設值路徑需 ETS 價（CN 碼可得精確值）。', 'The actual path needs specific emissions + ETS price; the official-default path needs an ETS price (a CN code gives the exact value).')}</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Actual-data bridge — how to replace the default with real SEE (critique V3-7) */}
+      {input.exportsToEU && !exposure.deMinimisExempt && (
+        <div className="rounded-xl border border-[#89B56C]/30 bg-[#89B56C]/5 p-4">
+          <p className="text-sm font-semibold text-[#5d7d44]">{t('下一步：用實際數據壓低這個數字', 'Next: lower this number with actual data')}</p>
+          <p className="mt-1.5 text-xs leading-relaxed text-gray-600">{tObj(CBAM_ACTUAL_DATA_HELP)}</p>
+          <CitationTag citation={CITATION_CBAM_TEMPLATE} className="mt-2" />
+        </div>
       )}
 
       {/* Timeline */}

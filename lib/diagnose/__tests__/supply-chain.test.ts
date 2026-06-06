@@ -31,6 +31,15 @@ describe('diagnoseSupplyChain — pressure level (qualitative, adjustable rubric
   it('"unsure" + export → medium', () => {
     expect(diagnoseSupplyChain(base({ frameworks: ['unsure'], exportSupplyChain: true })).pressureLevel).toBe('medium');
   });
+
+  it('business model adjusts pressure (V3-4): component bumps up, brand bumps down', () => {
+    // one framework, no export: odm_oem=medium, component=high (most directly asked), brand=low (the requester)
+    expect(diagnoseSupplyChain(base({ frameworks: ['sbti'], businessModel: 'odm_oem' })).pressureLevel).toBe('medium');
+    expect(diagnoseSupplyChain(base({ frameworks: ['sbti'], businessModel: 'component' })).pressureLevel).toBe('high');
+    expect(diagnoseSupplyChain(base({ frameworks: ['sbti'], businessModel: 'brand' })).pressureLevel).toBe('low');
+    // two frameworks: brand bumps high→medium
+    expect(diagnoseSupplyChain(base({ frameworks: ['sbti', 'cdp'], businessModel: 'brand' })).pressureLevel).toBe('medium');
+  });
 });
 
 describe('diagnoseSupplyChain — expectations map to selected frameworks (§6C)', () => {

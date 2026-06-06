@@ -1,7 +1,18 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { Citation } from '@/lib/diagnose/types';
 import { useI18n } from '@/lib/i18n/context';
+
+/** Whole months between a snapshot date (YYYY-MM or YYYY-MM-DD) and now. null if unparseable. */
+function monthsSince(asOf: string): number | null {
+  const m = /^(\d{4})-(\d{2})/.exec(asOf);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const now = new Date();
+  return (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - mo);
+}
 
 /** Honest-disclosure source badge: 來源 + 官方文件版本 + 資料快照日 (Brief §5).
  *  We show a "snapshot" date + "verify against the authority's latest notice" instead of a
@@ -14,6 +25,10 @@ export default function CitationTag({
   className?: string;
 }) {
   const { t, tObj } = useI18n();
+  // Compute snapshot age client-side only (avoids SSR/CSR hydration mismatch on the date).
+  const [aged, setAged] = useState<number | null>(null);
+  useEffect(() => setAged(monthsSince(citation.asOfDate)), [citation.asOfDate]);
+  const stale = aged !== null && aged >= 9;
   return (
     <div
       className={`flex items-start gap-1.5 rounded-md bg-[#89B56C]/[0.06] px-2.5 py-1.5 text-[11px] leading-relaxed text-gray-500 ring-1 ring-[#89B56C]/15 ${className}`}
@@ -46,6 +61,16 @@ export default function CitationTag({
         )}
         <span className="text-gray-300"> · </span>
         <span className="text-gray-400">{t('以主管機關最新公告為準', 'verify against the latest official notice')}</span>
+        {aged !== null && aged >= 1 && (
+          <>
+            <span className="text-gray-300"> · </span>
+            <span className={stale ? 'font-medium text-amber-600' : 'text-gray-400'}>
+              {stale
+                ? t(`快照已 ${aged} 個月，建議重新查證`, `snapshot is ${aged} mo old — re-verify`)
+                : t(`${aged} 個月前`, `${aged} mo ago`)}
+            </span>
+          </>
+        )}
       </span>
     </div>
   );

@@ -110,6 +110,68 @@ export const CBAM_MARKUP_NOTE: BilingualText = {
   en: 'Mark-up applies only to the “official default” path; the tool uses the official Excel’s already-marked-up values (per product: steel/aluminium/cement ≈ +10% in 2026 → +30% in 2028, fertilizer ≈ +1% — official values govern; the tool shows the mark-up % implied by that official value). Using actual emissions data, no mark-up applies.',
 };
 
+// ---- CBAM 因子（免費配額遞減）— 定義期義務逐年相位導入（V3-1）。 ----
+// CBAM 進口商每年只需為「內含排放 × CBAM 因子」繳交憑證；因子＝EU ETS 免費配額被削減的比例，
+// 自 2026 年 2.5% 升至 2034 年 100%（鏡像歐盟產業免費配額退場）。忽略此因子會把近年暴露高估數十倍。
+// 來源：Directive 2003/87/EC 第 10a(1a) 條（經修正）；ICAP、carboneer、CBAM Guide（2025/12 定義期）一致。
+export const CBAM_FACTOR_BY_YEAR: Record<number, number> = {
+  2026: 0.025,
+  2027: 0.05,
+  2028: 0.1,
+  2029: 0.225,
+  2030: 0.485,
+  2031: 0.61,
+  2032: 0.735,
+  2033: 0.86,
+  2034: 1.0,
+};
+
+/** CBAM factor for a year (share of embedded emissions actually subject to CBAM). Clamps to the
+ *  2026–2034 phase-in; ≥2034 → full (1.0), <2026 → 2026 level. */
+export function cbamFactorForYear(year: number): number {
+  if (year >= 2034) return 1;
+  if (year <= 2026) return CBAM_FACTOR_BY_YEAR[2026];
+  return CBAM_FACTOR_BY_YEAR[year] ?? CBAM_FACTOR_BY_YEAR[2026];
+}
+
+export const CITATION_CBAM_FACTOR: Citation = {
+  source: {
+    zhTW: 'ICAP、carboneer、CBAM Guide（定義期相位導入，2025/12）',
+    en: 'ICAP; carboneer; CBAM Guide (definitive-period phase-in, Dec 2025)',
+  },
+  officialDocVersion: {
+    zhTW: 'Directive 2003/87/EC 第 10a(1a) 條（免費配額退場 = CBAM 因子排程）',
+    en: 'Directive 2003/87/EC Art. 10a(1a) (free-allocation phase-out = CBAM factor schedule)',
+  },
+  asOfDate: '2026-06',
+  url: 'https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism_en',
+};
+
+export const CBAM_FACTOR_NOTE: BilingualText = {
+  zhTW: 'CBAM 因子（免費配額遞減）：定義期義務逐年相位導入——2026 僅約 2.5% 內含排放需繳費、2027 約 5%、2028 約 10%，至 2034 年 100%。本工具暴露已套當年因子，故為「當年義務」、非全額。',
+  en: 'CBAM factor (free-allocation phase-out): the obligation phases in — ~2.5% of embedded emissions in 2026, ~5% in 2027, ~10% in 2028, reaching 100% by 2034. The tool applies the year’s factor, so figures are the year’s obligation, not the full amount.',
+};
+
+// ---- 實際數據銜接（V3-7）：怎麼把「官方預設值」換成「實際內含排放」 ----
+
+export const CBAM_ACTUAL_DATA_HELP: BilingualText = {
+  zhTW: '想要比官方預設值更低的數字？用「實際內含排放」。歐盟執委會提供官方「設施溝通範本（Communication template for installations）」，讓你的生產設施計算單位內含排放（SEE）並交給歐盟進口商——這是把預設值換成實際值、降低買家 CBAM 成本與你被換供應商風險的關鍵一步。需要時宜預留查證時間。',
+  en: 'Want a number lower than the official default? Use actual embedded emissions. The European Commission publishes an official “Communication template for installations” so your facility can compute specific embedded emissions (SEE) and hand them to your EU importer — the key step to replace defaults with actual data, cut your buyer’s CBAM cost, and reduce supplier-switching risk. Reserve lead time for verification.',
+};
+
+export const CITATION_CBAM_TEMPLATE: Citation = {
+  source: {
+    zhTW: '歐盟執委會 CBAM「設施溝通範本」與營運者指引',
+    en: 'European Commission CBAM “Communication template for installations” & operator guidance',
+  },
+  officialDocVersion: {
+    zhTW: 'CBAM 營運者實際內含排放（SEE）計算與溝通範本',
+    en: 'CBAM operator SEE calculation & communication template',
+  },
+  asOfDate: '2026-06',
+  url: 'https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism/cbam-legislation-and-guidance_en',
+};
+
 // ---- 常見實務坑(critique #12)。出口商角度,已查證來源 ----
 
 export const CITATION_CBAM_PRACTICE: Citation = {

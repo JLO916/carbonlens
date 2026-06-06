@@ -5,6 +5,7 @@
 
 import type { CompanyProfile, FacilityLine } from './profile';
 import { taiwanPeriodForYear } from './profile';
+import { facilityEmissionsTonnes } from './inventory';
 import type { BilingualText } from '@/lib/diagnose/types';
 import type { DomesticResult } from '@/lib/calculators/domestic/types';
 
@@ -31,11 +32,12 @@ export function feeBreakdown(facility: FacilityLine, profile: CompanyProfile, re
   const k = leakage ? 0 : 25000;
   const cl = leakage ? CL[taiwanPeriodForYear(profile.year)] : 1.0;
   const rate = RATE[rateType] ?? 300;
-  const afterK = Math.max(0, facility.annualEmissionsTonnes - k);
+  const emissions = facilityEmissionsTonnes(facility);
+  const afterK = Math.max(0, emissions - k);
   const afterCL = afterK * cl;
 
   const steps: FeeStep[] = [
-    { label: { zhTW: '年排放量（Scope 1+2）', en: 'Annual emissions (Scope 1+2)' }, value: `${fmt(facility.annualEmissionsTonnes)} tCO₂e` },
+    { label: { zhTW: '年排放量（Scope 1+2）', en: 'Annual emissions (Scope 1+2)' }, value: `${fmt(emissions)} tCO₂e${facility.useInventory ? '（盤查）' : ''}` },
     { label: { zhTW: leakage ? '− 起徵額 K（高碳洩漏=0）' : '− 起徵額 K（2.5 萬噸）', en: leakage ? '− threshold K (high-leakage = 0)' : '− threshold K (25,000 t)' }, value: `${fmt(afterK)} tCO₂e` },
     { label: { zhTW: `× 碳洩漏係數 CL（${cl}）`, en: `× leakage coefficient CL (${cl})` }, value: `${fmt(afterCL)} tCO₂e` },
     ...(facility.carbonCreditOffset > 0

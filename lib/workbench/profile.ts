@@ -4,6 +4,7 @@
 // Portfolio-ready from day one: facilities[] (domestic carbon fee) + cbamProducts[] (CBAM lines).
 
 import type { CountryCode } from '@/lib/types';
+import type { ActivityLine } from './inventory';
 import type {
   ListingType,
   CapitalTier,
@@ -19,7 +20,11 @@ export interface FacilityLine {
   id: string;
   label: string;
   countryCode: CountryCode;
-  annualEmissionsTonnes: number; // Scope 1+2
+  annualEmissionsTonnes: number; // Scope 1+2 — used when not building from activity data
+  // V8: GHG-inventory build-up from activity data (electricity, fuels…). When useInventory is on,
+  // the facility's emissions are computed from `activities` instead of the typed total.
+  useInventory?: boolean;
+  activities?: ActivityLine[];
   // Taiwan carbon-fee params (countrySpecific for taiwanCalculator):
   highCarbonLeakage: boolean;
   rateType: 'general' | 'preferA' | 'preferB';

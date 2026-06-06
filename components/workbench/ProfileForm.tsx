@@ -10,7 +10,9 @@ import { INDUSTRIES } from '@/lib/diagnose/data/industries';
 import { CBAM_PRODUCTS, CBAM_ORIGIN_COUNTRIES } from '@/lib/diagnose/data/cbam';
 import { ifrsPhaseFromCapital, FRAMEWORK_LOOKUP_HINT } from '@/lib/workbench/classify';
 import { feeGated } from '@/lib/workbench/derive';
+import { facilityEmissionsTonnes } from '@/lib/workbench/inventory';
 import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
+import InventoryBuilder from './InventoryBuilder';
 import type { CompanyProfile, FacilityLine, CbamProductLine } from '@/lib/workbench/profile';
 import type {
   BilingualText,
@@ -170,13 +172,36 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
             <div key={f.id} className="rounded-lg border border-gray-200 p-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="col-span-2 space-y-1"><Label className="text-xs">{t('名稱', 'Name')}</Label><Input value={f.label} onChange={(e) => setFacility(f.id, { label: e.target.value })} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('年排放 tCO₂e（S1+2）', 'Annual tCO₂e (S1+2)')}</Label><Input type="number" value={f.annualEmissionsTonnes || ''} onChange={(e) => setFacility(f.id, { annualEmissionsTonnes: nn(e.target.value) })} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('費率', 'Rate')}</Label><Picker value={f.rateType} onChange={(v) => setFacility(f.id, { rateType: v })} options={RATE_TYPES} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('高碳洩漏？', 'High leakage?')}</Label><Toggle value={f.highCarbonLeakage} onChange={(v) => setFacility(f.id, { highCarbonLeakage: v })} options={YES_NO} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('碳權扣抵 t', 'Credit offset t')}</Label><Input type="number" value={f.carbonCreditOffset || ''} onChange={(e) => setFacility(f.id, { carbonCreditOffset: nn(e.target.value) })} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('已核定自主減量計畫?', 'Approved reduction plan?')}</Label><Toggle value={f.hasApprovedReductionPlan} onChange={(v) => setFacility(f.id, { hasApprovedReductionPlan: v })} options={YES_NO} /></div>
                 {profile.facilities.length > 1 && <div className="flex items-end"><Button size="sm" variant="outline" onClick={() => delFacility(f.id)} className="text-gray-400">🗑</Button></div>}
               </div>
+
+              {/* Emissions: build from activity data, or type a total */}
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <Label className="text-sm font-medium">{t('年排放量（Scope 1+2）', 'Annual emissions (Scope 1+2)')}</Label>
+                  <Toggle
+                    value={!!f.useInventory}
+                    onChange={(v) => setFacility(f.id, { useInventory: v, activities: v && (!f.activities || f.activities.length === 0) ? [{ id: crypto.randomUUID(), factorKey: 'electricity', amount: 0 }] : f.activities })}
+                    options={[{ value: false, label: { zhTW: '直接填總數', en: 'Type total' } }, { value: true, label: { zhTW: '從活動數據建模（盤查）', en: 'Build from activity data' } }]}
+                  />
+                </div>
+                {f.useInventory ? (
+                  <>
+                    <InventoryBuilder activities={f.activities ?? []} onChange={(a) => setFacility(f.id, { activities: a })} />
+                    <p className="mt-2 text-sm font-medium text-[#5d7d44]">→ {t('本廠盤查合計', 'Facility total')} {facilityEmissionsTonnes(f).toLocaleString('en-US', { maximumFractionDigits: 2 })} tCO₂e</p>
+                  </>
+                ) : (
+                  <div className="max-w-xs">
+                    <Input type="number" value={f.annualEmissionsTonnes || ''} placeholder={t('如 50000', 'e.g. 50000')} onChange={(e) => setFacility(f.id, { annualEmissionsTonnes: nn(e.target.value) })} />
+                    <p className="mt-1 text-[11px] text-gray-400">{t('已有盤查總數可直接填;想用活動數據逐項算出可查證的值,切換到「盤查」。', 'Type your inventory total, or switch to “activity data” to build an auditable number line by line.')}</p>
+                  </div>
+                )}
+              </div>
+
               {feeGated(f) && <p className="mt-2 rounded-lg bg-amber-50 p-2.5 text-[11px] leading-relaxed text-amber-800">⚠️ {tObj(TW_FEE_GATING_NOTE)}</p>}
             </div>
           ))}

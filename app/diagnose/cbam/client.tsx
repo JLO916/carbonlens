@@ -8,6 +8,7 @@ import CbamResultView from '@/components/diagnose/CbamResult';
 import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
+import WorkbenchBridge from '@/components/WorkbenchBridge';
 import { diagnoseCbam, type CbamDefaultLookup } from '@/lib/diagnose/logic/cbam';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildCbamChecklist } from '@/lib/diagnose/logic/checklist';
@@ -95,6 +96,8 @@ export default function CbamDiagnoseClient() {
           </div>
 
           <CbamResultView result={result} />
+
+          <WorkbenchBridge from={t('CBAM 暴露', 'CBAM exposure')} />
 
           {!routing ? (
             <LeadCaptureForm

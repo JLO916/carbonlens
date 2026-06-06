@@ -119,6 +119,13 @@ export default function WorkbenchClient() {
         </p>
       </header>
 
+      {!snap && (
+        <div className="rounded-xl border border-[#89B56C]/30 bg-[#89B56C]/5 p-3 text-sm leading-relaxed text-gray-700">
+          <span className="font-medium text-[#5d7d44]">{t('已幫你預填一組範例 ', 'A sample is pre-filled ')}</span>
+          {t('——直接按下方「計算我的合規全貌」即可看結果,再依你的實際數據逐欄調整。約 1 分鐘。', '— just hit “Compute” below to see results, then adjust each field to your real data. ~1 minute.')}
+        </div>
+      )}
+
       <ProfileForm profile={profile} onChange={(p) => setProfile(p)} />
 
       <Button onClick={compute} disabled={busy} className="h-11 w-full bg-[#89B56C] text-base text-white hover:bg-[#6E9156]">

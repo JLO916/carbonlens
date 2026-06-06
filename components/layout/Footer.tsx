@@ -18,6 +18,12 @@ export default function Footer() {
             <Link href="/about" className="text-xs text-gray-400 hover:text-gray-600 ml-2">
               {t('關於', 'About')}
             </Link>
+            <Link href="/methodology" className="text-xs text-gray-400 hover:text-gray-600">
+              {t('方法論與來源', 'Methodology & sources')}
+            </Link>
+            <Link href="/guide" className="text-xs text-gray-400 hover:text-gray-600">
+              {t('指南', 'Guide')}
+            </Link>
           </div>
           <p className="text-xs text-gray-400 max-w-2xl sm:text-right leading-relaxed">
             {t('CarbonLens 由', 'CarbonLens is built and maintained by')}{' '}

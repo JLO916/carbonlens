@@ -8,6 +8,7 @@ import SupplyChainResultView from '@/components/diagnose/SupplyChainResult';
 import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
+import WorkbenchBridge from '@/components/WorkbenchBridge';
 import { diagnoseSupplyChain } from '@/lib/diagnose/logic/supply-chain';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildSupplyChainChecklist } from '@/lib/diagnose/logic/checklist';
@@ -77,6 +78,8 @@ export default function SupplyChainDiagnoseClient() {
           </div>
 
           <SupplyChainResultView result={result} />
+
+          <WorkbenchBridge from={t('供應鏈壓力', 'Supply-chain pressure')} />
 
           {!routing ? (
             <LeadCaptureForm

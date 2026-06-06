@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useI18n } from '@/lib/i18n/context';
 import ModuleCard, { type ModuleCardProps } from '@/components/diagnose/ModuleCard';
 import Disclaimer from '@/components/diagnose/Disclaimer';
@@ -55,6 +56,16 @@ export default function DiagnoseLandingClient() {
           )}
         </p>
       </header>
+
+      <Link href="/workbench" className="block rounded-xl border-2 border-[#89B56C]/30 bg-[#89B56C]/5 p-4 transition-colors hover:bg-[#89B56C]/10">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm leading-relaxed text-gray-700">
+            <span className="font-semibold text-[#5d7d44]">{t('想一次看全貌？', 'Want the whole picture?')}</span>{' '}
+            {t('工作台填一次側寫,同時算碳費＋CBAM＋揭露＋供應鏈,並給「先做哪件」。', 'The workbench computes carbon fee + CBAM + disclosure + supply chain from one profile, with a “do this first”.')}
+          </p>
+          <span className="shrink-0 text-sm font-medium text-[#5d7d44]">{t('前往工作台 →', 'Go →')}</span>
+        </div>
+      </Link>
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
         {MODULES.map((m) => (

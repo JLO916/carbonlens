@@ -1,4 +1,4 @@
-import { targetTrajectory, SBTI_NEARTERM_ANNUAL_PCT } from '@/lib/workbench/target';
+import { targetTrajectory, allTargetTrajectories, SBTI_NEARTERM_ANNUAL_PCT } from '@/lib/workbench/target';
 import { emptyProfile } from '@/lib/workbench/profile';
 
 function targeted() {
@@ -57,5 +57,49 @@ describe('C1 — target trajectory (managed target)', () => {
     const s123 = targetTrajectory({ ...p, targetScope: 'scope123' })!;
     expect(s123.scope).toBe('scope123');
     expect(s123.actual).toBe(150000);
+  });
+});
+
+describe('E1 — multiple targets (a set of SBTi commitments)', () => {
+  it('returns the primary (legacy fields) plus each extra target, each on its OWN boundary', () => {
+    const p = targeted(); // primary: Scope 1+2, base 60k, −30% by 2030; actual S1+2 = 50,000
+    p.scope3 = [{ id: 's', category: 1, label: 'materials', method: 'manual', tonnesDirect: 200000 }];
+    p.extraTargets = [
+      { id: 't-s3', label: '近期 Scope 3', scope: 'scope3', baseYear: 2024, baseEmissionsTonnes: 250000, targetYear: 2030, targetReductionPct: 25 },
+      { id: 't-nz', label: '2050 淨零', scope: 'scope123', baseYear: 2024, baseEmissionsTonnes: 260000, targetYear: 2050, targetReductionPct: 90 },
+    ];
+    const all = allTargetTrajectories(p);
+    expect(all.length).toBe(3);
+    // primary first, on Scope 1+2
+    expect(all[0].id).toBe('primary');
+    expect(all[0].scope).toBe('scope12');
+    expect(all[0].actual).toBe(50000);
+    // Scope 3 target → actual is the Scope 3 slice, not the whole footprint
+    const s3 = all.find((t) => t.id === 't-s3')!;
+    expect(s3.scope).toBe('scope3');
+    expect(s3.actual).toBe(200000);
+    expect(s3.label).toBe('近期 Scope 3');
+    // net-zero (scope123) → actual is the whole footprint = 50,000 + 200,000
+    const nz = all.find((t) => t.id === 't-nz')!;
+    expect(nz.actual).toBe(250000);
+    expect(nz.targetEmissions).toBe(26000); // 260,000 × (1 − 0.90)
+  });
+
+  it('skips an incoherent extra target without dropping the coherent ones', () => {
+    const p = targeted();
+    p.extraTargets = [
+      { id: 'bad', scope: 'scope3', baseYear: 2030, targetYear: 2024, targetReductionPct: 25 }, // target before base
+      { id: 'ok', scope: 'scope3', baseYear: 2024, baseEmissionsTonnes: 100000, targetYear: 2030, targetReductionPct: 25 },
+    ];
+    expect(allTargetTrajectories(p).map((t) => t.id).sort()).toEqual(['ok', 'primary']);
+  });
+
+  it('returns the extras even when the primary (legacy fields) is blank', () => {
+    const p = emptyProfile();
+    p.extraTargets = [{ id: 'x', scope: 'scope12', baseYear: 2024, baseEmissionsTonnes: 50000, targetYear: 2030, targetReductionPct: 42 }];
+    const all = allTargetTrajectories(p);
+    expect(all.length).toBe(1);
+    expect(all[0].id).toBe('x');
+    expect(all[0].sbtiAligned).toBe(true); // 42%/6yr = 7%/yr ≥ 4.2
   });
 });

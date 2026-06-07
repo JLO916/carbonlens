@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useI18n } from '@/lib/i18n/context';
-import { computeInventory, DATA_QUALITY_LABEL, type ActivityLine, type DataQuality } from '@/lib/workbench/inventory';
+import { computeInventory, DATA_QUALITY_LABEL, UNCERTAINTY_NOTE, type ActivityLine, type DataQuality } from '@/lib/workbench/inventory';
 import { EMISSION_FACTORS, FACTOR_BY_KEY, FACTOR_CATEGORY_LABEL, CITATION_EMISSION_FACTORS, GWP_NOTE, type FactorCategory } from '@/lib/workbench/emission-factors';
 
 const FACTOR_CATEGORY_ORDER: FactorCategory[] = ['electricity', 'steam', 'fuel', 'fugitive', 'process'];
@@ -119,6 +119,27 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
           <InfoHint termKey="locationVsMarket" label={t('市場基礎 Scope 2', 'Market-based Scope 2')} />（RE100 {fmt(inv.renewablePct)}%）：<span className="font-semibold">{fmt(inv.scope2MarketTonnes)}</span> tCO₂e
           <span className="text-gray-500"> · {t('市場基礎合計', 'market-based total')} {fmt(inv.totalMarketTonnes)} tCO₂e · {t('簡化:綠電佔比歸零該份額;嚴格應採殘差電力係數', 'simplified: renewables zero their share; strict uses a residual-mix factor')}</span>
         </p>
+      )}
+
+      {inv.totalTonnes > 0 && (
+        <div className="space-y-1.5 rounded-lg border border-gray-200 bg-gray-50/60 p-2.5 text-[11px]">
+          <p className="font-medium text-gray-700">📋 {t('查證就緒度（彙總）', 'Assurance readiness (rollup)')}</p>
+          {inv.uncertainty ? (
+            <p className="text-gray-600">{t('整體不確定性', 'Overall uncertainty')}: <span className="font-mono font-semibold">±{inv.uncertainty.pct}%</span> <span className="text-gray-400">({t('涵蓋', 'covers')} {Math.round(inv.uncertainty.coveragePct)}% {t('排放量', 'of emissions')})</span></p>
+          ) : (
+            <p className="text-gray-400">{t('整體不確定性:尚未在任何排放源填「± 不確定性」,無法彙總。', 'Overall uncertainty: no source carries a ±% yet — nothing to combine.')}</p>
+          )}
+          <div>
+            <div className="flex h-2 w-full overflow-hidden rounded-full bg-gray-100">
+              {inv.dataQualityMix.measured > 0 && <div style={{ width: `${inv.dataQualityMix.measured}%` }} className="bg-[#6E9156]" title={`${t('實測', 'Measured')} ${Math.round(inv.dataQualityMix.measured)}%`} />}
+              {inv.dataQualityMix.invoice > 0 && <div style={{ width: `${inv.dataQualityMix.invoice}%` }} className="bg-[#89B56C]" title={`${t('發票', 'Invoice')} ${Math.round(inv.dataQualityMix.invoice)}%`} />}
+              {inv.dataQualityMix.estimate > 0 && <div style={{ width: `${inv.dataQualityMix.estimate}%` }} className="bg-amber-300" title={`${t('估算', 'Estimate')} ${Math.round(inv.dataQualityMix.estimate)}%`} />}
+              {inv.dataQualityMix.unspecified > 0 && <div style={{ width: `${inv.dataQualityMix.unspecified}%` }} className="bg-gray-300" title={`${t('未標', 'Unspecified')} ${Math.round(inv.dataQualityMix.unspecified)}%`} />}
+            </div>
+            <p className="mt-1 text-gray-500">{t('數據品質', 'Data quality')}(%{t('排放', 'of emissions')}): {t('實測', 'Measured')} {Math.round(inv.dataQualityMix.measured)} · {t('發票', 'Invoice')} {Math.round(inv.dataQualityMix.invoice)} · {t('估算', 'Estimate')} {Math.round(inv.dataQualityMix.estimate)} · {t('未標', 'Unspec.')} {Math.round(inv.dataQualityMix.unspecified)}</p>
+          </div>
+          <p className="text-gray-400">{tObj(UNCERTAINTY_NOTE)}</p>
+        </div>
       )}
 
       <p className="text-[11px] leading-relaxed text-gray-400">{tObj(GWP_NOTE)}</p>

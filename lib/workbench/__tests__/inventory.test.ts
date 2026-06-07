@@ -98,3 +98,32 @@ describe('computeInventory — activity data → emissions with lineage', () => 
     expect(complete.feeBasisTonnes).toBeCloseTo(581.83, 1);
   });
 });
+
+describe('E2 — assurance rollups (uncertainty + data-quality mix)', () => {
+  it('combines per-line ±% in quadrature over the quantified portion', () => {
+    // ELEC 568.8 t ±5%, DIESEL 13.032 t ±30% → sqrt((568.8×.05)²+(13.032×.30)²)/581.832×100 ≈ 4.93%
+    const r = computeInventory([{ ...ELEC, uncertaintyPct: 5 }, { ...DIESEL, uncertaintyPct: 30 }]);
+    expect(r.uncertainty!.pct).toBeCloseTo(4.93, 1);
+    expect(r.uncertainty!.coveragePct).toBeCloseTo(100, 0);
+  });
+
+  it('coverage reflects only the lines that carry a ±% (diesel left blank)', () => {
+    const r = computeInventory([{ ...ELEC, uncertaintyPct: 5 }, DIESEL]);
+    expect(r.uncertainty!.pct).toBeCloseTo(5, 1); // only electricity contributes
+    expect(r.uncertainty!.coveragePct).toBeCloseTo(97.76, 1); // 568.8 / 581.832
+  });
+
+  it('uncertainty is undefined when no line carries a ±%', () => {
+    expect(computeInventory([ELEC, DIESEL]).uncertainty).toBeUndefined();
+  });
+
+  it('data-quality mix = share of emissions by tier; untagged lines fall to unspecified', () => {
+    const r = computeInventory([{ ...ELEC, dataQuality: 'invoice' }, { ...DIESEL, dataQuality: 'estimate' }]);
+    expect(r.dataQualityMix.invoice).toBeCloseTo(97.76, 1);
+    expect(r.dataQualityMix.estimate).toBeCloseTo(2.24, 1);
+    expect(r.dataQualityMix.measured).toBe(0);
+    expect(r.dataQualityMix.unspecified).toBe(0);
+    // a line with no tier → unspecified
+    expect(computeInventory([ELEC]).dataQualityMix.unspecified).toBeCloseTo(100, 0);
+  });
+});

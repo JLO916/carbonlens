@@ -12,6 +12,7 @@ import type { CycleStage } from '@/lib/workbench/cycle';
 import CarbonFeeBreakdown from '@/components/workbench/CarbonFeeBreakdown';
 import PriorityList from '@/components/workbench/PriorityList';
 import CbamRampChart from '@/components/workbench/CbamRampChart';
+import CbamDeduction from '@/components/workbench/CbamDeduction';
 import ReductionLens from '@/components/workbench/ReductionLens';
 import AssuranceGuide from '@/components/workbench/AssuranceGuide';
 import SnapshotHistory from '@/components/workbench/SnapshotHistory';
@@ -206,6 +207,7 @@ export default function WorkbenchClient() {
           <CarbonFeeBreakdown result={snap.result} profile={snap.profile} />
           <PriorityList result={snap.result} />
           <CbamRampChart ramp={cbamRampSeries(snap.profile, snap.lookups)} />
+          <CbamDeduction profile={snap.profile} result={snap.result} />
           <ReductionLens profile={snap.profile} lookups={snap.lookups} />
 
           <AssuranceGuide />

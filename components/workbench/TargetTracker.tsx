@@ -29,7 +29,13 @@ export default function TargetTracker({ profile }: { profile: CompanyProfile }) 
 
   return (
     <Card className="border-[#89B56C]/30">
-      <CardHeader className="pb-3"><CardTitle className="text-base">{t('🎯 減量目標管理', '🎯 Target management')}</CardTitle></CardHeader>
+      <CardHeader className="pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-base">{t('🎯 減量目標管理', '🎯 Target management')}</CardTitle>
+          <span className="rounded-full bg-[#89B56C]/15 px-2 py-0.5 text-[11px] font-medium text-[#5d7d44]">{t('範疇', 'Scope')}:{tr.scope === 'scope123' ? 'Scope 1+2+3' : 'Scope 1+2'}</span>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{tr.scope === 'scope123' ? t('基準年、目標與實際皆以全足跡(含 Scope 3)比較。', 'Base, target and actual are all on the whole footprint (incl. Scope 3).') : t('基準年、目標與實際皆以 Scope 1+2(營運)比較;Scope 3 通常另設目標。', 'Base, target and actual are all on Scope 1+2 (operations); Scope 3 usually gets a separate target.')}</p>
+      </CardHeader>
       <CardContent className="space-y-3">
         <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
           <div className="rounded-lg bg-gray-50 p-2">

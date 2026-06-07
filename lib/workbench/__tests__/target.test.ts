@@ -43,6 +43,19 @@ describe('C1 — target trajectory (managed target)', () => {
     p.baseYearEmissionsTonnes = undefined;
     const tr = targetTrajectory(p)!;
     expect(tr.baseAssumed).toBe(true);
-    expect(tr.baseEmissions).toBe(50000); // = current footprint
+    expect(tr.baseEmissions).toBe(50000); // = current Scope 1+2 (default scope12)
+  });
+
+  it('D1: actual is measured on the TARGET SCOPE — base (Scope 1+2) vs whole footprint is apples-to-oranges', () => {
+    const p = targeted(); // typed facility = 50,000 t Scope 1+2
+    p.scope3 = [{ id: 's', category: 11, label: 'use', method: 'manual', tonnesDirect: 100000 }]; // total footprint = 150,000
+    // default scope12 → actual is Scope 1+2 only (50,000), NOT the 150,000 whole footprint
+    const s12 = targetTrajectory(p)!;
+    expect(s12.scope).toBe('scope12');
+    expect(s12.actual).toBe(50000);
+    // explicit scope123 → actual is the whole footprint
+    const s123 = targetTrajectory({ ...p, targetScope: 'scope123' })!;
+    expect(s123.scope).toBe('scope123');
+    expect(s123.actual).toBe(150000);
   });
 });

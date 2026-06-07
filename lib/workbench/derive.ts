@@ -6,8 +6,9 @@ import type { CompanyProfile, FacilityLine } from './profile';
 import { taiwanPeriodForYear } from './profile';
 import { facilityEmissionsTonnes } from './inventory';
 import { getCalculator } from '@/lib/calculators/domestic';
+import { allocatedCbamSEE } from './cbam-allocation';
 import type { CountryCode } from '@/lib/types';
-import type { ListedInput, SupplyChainInput, CbamInput } from '@/lib/diagnose/types';
+import type { ListedInput, SupplyChainInput, CbamInput, EmissionsSource } from '@/lib/diagnose/types';
 import type { DomesticInput } from '@/lib/calculators/domestic/types';
 
 export function toListedInput(p: CompanyProfile): ListedInput {
@@ -31,18 +32,27 @@ export function toSupplyChainInput(p: CompanyProfile): SupplyChainInput {
 
 /** One CbamInput per export line, injecting the shared year / ETS price / pass-through / EU flag. */
 export function toCbamInputs(p: CompanyProfile): CbamInput[] {
-  return p.cbamProducts.map((line) => ({
-    exportsToEU: p.exportsToEU,
-    product: line.product,
-    originCountry: line.originCountry,
-    annualVolumeTonnes: line.annualVolumeTonnes,
-    year: p.year,
-    emissionsSource: line.emissionsSource,
-    actualSpecificEmissions: line.actualSpecificEmissions,
-    etsPrice: p.etsPrice,
-    cnCode: line.cnCode,
-    passThroughPct: p.passThroughPct,
-  }));
+  return p.cbamProducts.map((line) => {
+    let emissionsSource: EmissionsSource = line.emissionsSource === 'allocated' ? 'official_default' : line.emissionsSource;
+    let actualSpecificEmissions = line.actualSpecificEmissions;
+    // D3: derive SEE from the linked facility's inventory; if it can't be derived, fall back to default.
+    if (line.emissionsSource === 'allocated') {
+      const see = allocatedCbamSEE(p, line);
+      if (see != null) { emissionsSource = 'actual'; actualSpecificEmissions = see; }
+    }
+    return {
+      exportsToEU: p.exportsToEU,
+      product: line.product,
+      originCountry: line.originCountry,
+      annualVolumeTonnes: line.annualVolumeTonnes,
+      year: p.year,
+      emissionsSource,
+      actualSpecificEmissions,
+      etsPrice: p.etsPrice,
+      cnCode: line.cnCode,
+      passThroughPct: p.passThroughPct,
+    };
+  });
 }
 
 /** One DomesticInput per facility for the country's carbon-pricing engine (taiwanCalculator etc.).

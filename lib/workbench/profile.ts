@@ -46,8 +46,10 @@ export interface CbamProductLine {
   originCountry: string;
   cnCode?: string;
   annualVolumeTonnes: number;
-  emissionsSource: EmissionsSource;
+  // 'allocated' (D3) derives the SEE from a linked facility's inventory, allocated by volume.
+  emissionsSource: EmissionsSource | 'allocated';
   actualSpecificEmissions?: number; // tCO₂e/t (actual path)
+  facilityId?: string; // which facility produces this good (for inventory allocation)
 }
 
 export interface CompanyProfile {
@@ -80,8 +82,9 @@ export interface CompanyProfile {
   // Base year for reduction targets / SBTi (P1c) — the reference year cuts are measured against:
   baseYear?: number;
   // C1 — target management: base-year footprint + target year drive the SBTi-style trajectory.
-  baseYearEmissionsTonnes?: number; // total footprint in the base year (if blank, current is assumed)
+  baseYearEmissionsTonnes?: number; // base-year emissions ON the target scope (if blank, current assumed)
   targetYear?: number; // the year the reduction target is to be met (SBTi near-term ≈ 2030)
+  targetScope?: 'scope12' | 'scope123'; // which boundary the target covers (default scope12 = SBTi near-term)
   // G3 — Scope 3 quantification + product carbon footprint:
   scope3?: Scope3Line[];
   annualUnitsSold?: number; // units/yr (e.g. servers) for the per-unit PCF allocation

@@ -10,7 +10,7 @@ import { INDUSTRIES } from '@/lib/diagnose/data/industries';
 import { CBAM_PRODUCTS, CBAM_ORIGIN_COUNTRIES } from '@/lib/diagnose/data/cbam';
 import { ifrsPhaseFromCapital, FRAMEWORK_LOOKUP_HINT } from '@/lib/workbench/classify';
 import { feeGated } from '@/lib/workbench/derive';
-import { facilityEmissionsTonnes } from '@/lib/workbench/inventory';
+import { facilityEmissionsStatus } from '@/lib/workbench/inventory';
 import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
 import InventoryBuilder from './InventoryBuilder';
 import type { CompanyProfile, FacilityLine, CbamProductLine } from '@/lib/workbench/profile';
@@ -192,7 +192,17 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 {f.useInventory ? (
                   <>
                     <InventoryBuilder activities={f.activities ?? []} onChange={(a) => setFacility(f.id, { activities: a })} />
-                    <p className="mt-2 text-sm font-medium text-[#5d7d44]">→ {t('本廠盤查合計', 'Facility total')} {facilityEmissionsTonnes(f).toLocaleString('en-US', { maximumFractionDigits: 2 })} tCO₂e</p>
+                    {(() => {
+                      const st = facilityEmissionsStatus(f);
+                      const typed = st.typedTotalTonnes.toLocaleString('en-US');
+                      return st.inventoryIncomplete ? (
+                        <p className="mt-2 rounded-lg bg-amber-50 p-2.5 text-[11px] leading-relaxed text-amber-800">
+                          ⚠️ {t(`盤查合計目前為 0 tCO₂e(尚未填活動量)。為避免碳費被誤歸零,目前暫以你原填的 ${typed} t 計算——請填入活動數據完成盤查,或切回「直接填總數」。`, `Inventory total is 0 tCO₂e (no activity data yet). To avoid silently zeroing the fee, it currently falls back to your typed ${typed} t — add activity data to complete the inventory, or switch back to “type total”.`)}
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-sm font-medium text-[#5d7d44]">→ {t('本廠盤查合計', 'Facility total')} {st.inventoryTotalTonnes.toLocaleString('en-US', { maximumFractionDigits: 2 })} tCO₂e</p>
+                      );
+                    })()}
                   </>
                 ) : (
                   <div className="max-w-xs">

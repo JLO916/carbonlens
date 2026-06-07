@@ -5,10 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useI18n } from '@/lib/i18n/context';
-import { computeInventory, DATA_QUALITY_LABEL, UNCERTAINTY_NOTE, type ActivityLine, type DataQuality } from '@/lib/workbench/inventory';
+import { computeInventory, DATA_QUALITY_LABEL, UNCERTAINTY_NOTE, ABATEMENT_NOTE, type ActivityLine, type DataQuality } from '@/lib/workbench/inventory';
 import { EMISSION_FACTORS, FACTOR_BY_KEY, FACTOR_CATEGORY_LABEL, CITATION_EMISSION_FACTORS, GWP_NOTE, type FactorCategory } from '@/lib/workbench/emission-factors';
 
-const FACTOR_CATEGORY_ORDER: FactorCategory[] = ['electricity', 'steam', 'fuel', 'fugitive', 'process'];
+const FACTOR_CATEGORY_ORDER: FactorCategory[] = ['electricity', 'steam', 'fuel', 'fugitive', 'fgas', 'process'];
 import CitationTag from '@/components/diagnose/CitationTag';
 import InfoHint from '@/components/ui/InfoHint';
 import type { CountryCode } from '@/lib/types';
@@ -34,6 +34,9 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
           // back to the raw library factor for safety.
           const f = res?.factor ?? FACTOR_BY_KEY[a.factorKey];
           const factorVal = a.customFactor ?? f?.kgco2ePerUnit ?? 0;
+          // F2 — abatement (DRE) only makes sense for vented/combusted streams (F-gases, refrigerants,
+          // process, fuel flaring), not purchased electricity/steam.
+          const abatable = !!f && ['fgas', 'fugitive', 'process', 'fuel'].includes(f.category);
           return (
             <div key={a.id} className="rounded-lg border border-gray-200 p-2.5">
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-12">
@@ -74,7 +77,11 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
               <p className="mt-1.5 text-[11px] leading-relaxed text-gray-400">
                 {f && (
                   <>
-                    {fmt(a.amount || 0)} {tObj(f.unit)} × {factorVal} = {fmt(res?.tonnes ?? 0)} t · {t('Scope', 'Scope')} {res?.scope} · {t('來源', 'Source')} {tObj(f.source)}
+                    {fmt(a.amount || 0)} {tObj(f.unit)} × {factorVal}
+                    {res && res.abatementPct > 0
+                      ? <> = {t('毛', 'gross')} {fmt(res.grossTonnes)} t ×（1−{res.abatementPct}%）= <span className="font-medium text-[#5d7d44]">{fmt(res.tonnes)} t</span></>
+                      : <> = {fmt(res?.tonnes ?? 0)} t</>}
+                    {' '}· {t('Scope', 'Scope')} {res?.scope} · {t('來源', 'Source')} {tObj(f.source)}
                     {res?.isOverride && <span className="text-amber-600"> · {t('已覆寫', 'overridden')}</span>}
                     {f.userSupplied && !(factorVal > 0) && <span className="font-medium text-amber-600"> · {t('請填入你的係數', 'enter your factor')}</span>}
                   </>
@@ -91,7 +98,7 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="sm:col-span-7">
+                <div className={abatable ? 'sm:col-span-5' : 'sm:col-span-7'}>
                   <Label className="text-[10px] text-gray-400">{t('佐證來源', 'Evidence')}</Label>
                   <Input className="h-8 text-xs" placeholder={t('如 台電電費單 2025/01–12、加油發票', 'e.g. utility bills 2025, fuel receipts')} value={a.evidenceNote ?? ''} onChange={(e) => setLine(a.id, { evidenceNote: e.target.value || undefined })} />
                 </div>
@@ -99,6 +106,12 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
                   <Label className="text-[10px] text-gray-400">{t('不確定性 ±%', 'Uncert. ±%')}</Label>
                   <Input type="number" className="h-8 text-xs" placeholder={t('選填', 'opt')} value={a.uncertaintyPct ?? ''} onChange={(e) => setLine(a.id, { uncertaintyPct: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })} />
                 </div>
+                {abatable && (
+                  <div className="sm:col-span-2">
+                    <Label className="text-[10px] text-gray-400">{t('減排 DRE %', 'Abate DRE %')}</Label>
+                    <Input type="number" className="h-8 text-xs" placeholder={t('選填', 'opt')} value={a.abatementPct ?? ''} onChange={(e) => setLine(a.id, { abatementPct: e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} />
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -142,6 +155,7 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
         </div>
       )}
 
+      {inv.lines.some((l) => l.abatementPct > 0) && <p className="rounded-lg bg-[#89B56C]/10 px-2.5 py-1.5 text-[11px] leading-relaxed text-[#5d7d44]">{tObj(ABATEMENT_NOTE)}</p>}
       <p className="text-[11px] leading-relaxed text-gray-400">{tObj(GWP_NOTE)}</p>
       <CitationTag citation={CITATION_EMISSION_FACTORS} />
     </div>

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
 import { allTargetTrajectories, SBTI_NOTE, CITATION_SBTI, type TargetTrajectory, type TargetScope } from '@/lib/workbench/target';
+import { renewableForTarget, RE100_TARGET_NOTE } from '@/lib/workbench/re100-target';
 import CitationTag from '@/components/diagnose/CitationTag';
 import InfoHint from '@/components/ui/InfoHint';
 import type { CompanyProfile } from '@/lib/workbench/profile';
@@ -81,6 +82,7 @@ function TrajectoryBlock({ tr }: { tr: TargetTrajectory }) {
 export default function TargetTracker({ profile }: { profile: CompanyProfile }) {
   const { t, tObj } = useI18n();
   const trajectories = allTargetTrajectories(profile);
+  const re = renewableForTarget(profile); // F3 — renewable % implied by the Scope 1+2 target
 
   if (trajectories.length === 0) {
     return (
@@ -104,6 +106,21 @@ export default function TargetTracker({ profile }: { profile: CompanyProfile }) 
       </CardHeader>
       <CardContent className="space-y-3">
         {trajectories.map((tr) => <TrajectoryBlock key={tr.id} tr={tr} />)}
+
+        {re && (
+          <div className="rounded-xl border border-[#89B56C]/30 bg-[#89B56C]/5 p-3 text-xs">
+            <p className="font-semibold text-[#5d7d44]">🔌 {t('RE100 ↔ Scope 1+2 目標連動', 'RE100 ↔ Scope 1+2 target')}</p>
+            {re.alreadyMeets ? (
+              <p className="mt-1 text-gray-700">{t('目前綠電', 'Current renewables')} {re.currentRenewablePct}% {t('已足以讓營運排放達成', 'already land operations at the')} {re.targetYear} {t('目標(純綠電情境)。', 'target (renewables-only).')}</p>
+            ) : re.achievableByRenewablesAlone ? (
+              <p className="mt-1 text-gray-700">{t('純靠綠電達標:', 'Renewables-only path:')} {re.targetYear} {t('綠電需達', 'renewables must reach')} <span className="font-mono font-semibold text-[#5d7d44]">{re.neededRenewablePct}%</span>（{t('目前', 'now')} {re.currentRenewablePct}% · {t('可調 Scope 2', 'addressable Scope 2')} {fmt(re.scope2LocationTonnes)} t）</p>
+            ) : (
+              <p className="mt-1 text-amber-700">{t('光靠綠電不足:即使 100% 綠電,不可調的 Scope 1 等仍有', 'Renewables alone fall short: even 100% renewable leaves a non-addressable floor of')} {fmt(re.floorTonnes)} t &gt; {t('目標', 'target')} {fmt(re.targetEmissions)} t — {t('須同步削減 Scope 1／用電量。', 'cut Scope 1 / electricity too.')}</p>
+            )}
+            <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{tObj(RE100_TARGET_NOTE)}</p>
+          </div>
+        )}
+
         <p className="text-[11px] leading-relaxed text-gray-400">{tObj(SBTI_NOTE)}</p>
         <CitationTag citation={CITATION_SBTI} />
       </CardContent>

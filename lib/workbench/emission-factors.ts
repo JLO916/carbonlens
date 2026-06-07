@@ -19,7 +19,7 @@ import type { BilingualText, Citation } from '@/lib/diagnose/types';
 import type { CountryCode } from '@/lib/types';
 
 export type Scope = 1 | 2;
-export type FactorCategory = 'electricity' | 'fuel' | 'steam' | 'fugitive' | 'process';
+export type FactorCategory = 'electricity' | 'fuel' | 'steam' | 'fugitive' | 'fgas' | 'process';
 
 export interface EmissionFactor {
   key: string;
@@ -180,9 +180,67 @@ export const EMISSION_FACTORS: EmissionFactor[] = [
     label: { zhTW: '六氟化硫 SF₆', en: 'Sulphur hexafluoride SF₆' },
     unit: { zhTW: '公斤（kg）', en: 'kg' },
     scope: 1,
-    category: 'fugitive',
+    category: 'fgas',
     kgco2ePerUnit: 23500,
     source: { zhTW: 'IPCC AR5 GWP（環境部採用）', en: 'IPCC AR5 GWP (MOENV-adopted)' },
+  },
+  // ── Fluorinated process gases (Scope 1; semiconductor/TFT-LCD/PV etch & chamber-clean) — vented
+  //    F-gases with huge GWP. Factor = IPCC AR5 100-yr GWP (same basis as SF₆/refrigerants, MOENV
+  //    113/2/5-adopted). For abated lines, set DRE (F2) so reported = consumption × GWP × (1 − DRE).
+  //    Precise fab inventories use IPCC Tier 2b (gas utilization + byproduct) — override per gas. ──
+  {
+    key: 'nf3',
+    label: { zhTW: '三氟化氮 NF₃', en: 'Nitrogen trifluoride NF₃' },
+    unit: { zhTW: '公斤（kg）', en: 'kg' },
+    scope: 1,
+    category: 'fgas',
+    kgco2ePerUnit: 16100, // AR5 GWP100
+    source: { zhTW: 'IPCC AR5 GWP 16,100（環境部採用;腔體清潔主要氣體）', en: 'IPCC AR5 GWP 16,100 (MOENV-adopted; main chamber-clean gas)' },
+  },
+  {
+    key: 'cf4',
+    label: { zhTW: '四氟化碳 CF₄（PFC-14）', en: 'Carbon tetrafluoride CF₄ (PFC-14)' },
+    unit: { zhTW: '公斤（kg）', en: 'kg' },
+    scope: 1,
+    category: 'fgas',
+    kgco2ePerUnit: 6630,
+    source: { zhTW: 'IPCC AR5 GWP 6,630（環境部採用;蝕刻/清潔,且為副產物）', en: 'IPCC AR5 GWP 6,630 (MOENV-adopted; etch/clean & a byproduct)' },
+  },
+  {
+    key: 'c2f6',
+    label: { zhTW: '六氟乙烷 C₂F₆（PFC-116）', en: 'Hexafluoroethane C₂F₆ (PFC-116)' },
+    unit: { zhTW: '公斤（kg）', en: 'kg' },
+    scope: 1,
+    category: 'fgas',
+    kgco2ePerUnit: 11100,
+    source: { zhTW: 'IPCC AR5 GWP 11,100（環境部採用）', en: 'IPCC AR5 GWP 11,100 (MOENV-adopted)' },
+  },
+  {
+    key: 'c3f8',
+    label: { zhTW: '八氟丙烷 C₃F₈（PFC-218）', en: 'Octafluoropropane C₃F₈ (PFC-218)' },
+    unit: { zhTW: '公斤（kg）', en: 'kg' },
+    scope: 1,
+    category: 'fgas',
+    kgco2ePerUnit: 8900,
+    source: { zhTW: 'IPCC AR5 GWP 8,900（環境部採用）', en: 'IPCC AR5 GWP 8,900 (MOENV-adopted)' },
+  },
+  {
+    key: 'chf3',
+    label: { zhTW: '三氟甲烷 CHF₃（HFC-23）', en: 'Trifluoromethane CHF₃ (HFC-23)' },
+    unit: { zhTW: '公斤（kg）', en: 'kg' },
+    scope: 1,
+    category: 'fgas',
+    kgco2ePerUnit: 12400,
+    source: { zhTW: 'IPCC AR5 GWP 12,400（環境部採用;蝕刻）', en: 'IPCC AR5 GWP 12,400 (MOENV-adopted; etch)' },
+  },
+  {
+    key: 'c4f8',
+    label: { zhTW: '八氟環丁烷 c-C₄F₈（PFC-318）', en: 'Octafluorocyclobutane c-C₄F₈ (PFC-318)' },
+    unit: { zhTW: '公斤（kg）', en: 'kg' },
+    scope: 1,
+    category: 'fgas',
+    kgco2ePerUnit: 9540,
+    source: { zhTW: 'IPCC AR5 GWP 9,540（環境部採用）', en: 'IPCC AR5 GWP 9,540 (MOENV-adopted)' },
   },
   // ── Process emissions (Scope 1) — calcination releases CO₂ from carbonate chemistry, NOT from
   //    combustion, so it's invisible to fuel accounting. These are IPCC Tier-1 / stoichiometric
@@ -234,14 +292,15 @@ export const FACTOR_CATEGORY_LABEL: Record<FactorCategory, BilingualText> = {
   electricity: { zhTW: '外購電力', en: 'Purchased electricity' },
   steam: { zhTW: '外購蒸汽／熱', en: 'Purchased steam/heat' },
   fuel: { zhTW: '燃料燃燒', en: 'Fuel combustion' },
-  fugitive: { zhTW: '逸散（冷媒／SF₆）', en: 'Fugitive (refrigerants/SF₆)' },
+  fugitive: { zhTW: '冷媒逸散（HFC）', en: 'Refrigerant fugitive (HFC)' },
+  fgas: { zhTW: '製程含氟氣體（SF₆／PFC／NF₃）', en: 'Process F-gases (SF₆/PFC/NF₃)' },
   process: { zhTW: '製程排放', en: 'Process emissions' },
 };
 
 export const CITATION_EMISSION_FACTORS: Citation = {
   source: {
-    zhTW: '經濟部能源署 113 年度電力排碳係數;環境部「溫室氣體排放係數管理表 6.0.4」;逸散冷媒/SF₆ 採 IPCC AR5 GWP(環境部 113/2/5 公告採用);煙煤與製程煅燒(水泥熟料/石灰/石灰石)為 IPCC 2006 指南 Tier 1／化學計量',
-    en: 'Energy Admin. 2024 grid factor; MOENV GHG emission factor table 6.0.4; fugitive refrigerants/SF₆ use IPCC AR5 GWP (MOENV-adopted, 5 Feb 2024); coal & process calcination (clinker/lime/limestone) are IPCC 2006 GL Tier 1 / stoichiometric',
+    zhTW: '經濟部能源署 113 年度電力排碳係數;環境部「溫室氣體排放係數管理表 6.0.4」;冷媒/SF₆/含氟製程氣體(NF₃·CF₄·C₂F₆·C₃F₈·CHF₃·c-C₄F₈)採 IPCC AR5 GWP(環境部 113/2/5 公告採用);煙煤與製程煅燒(水泥熟料/石灰/石灰石)為 IPCC 2006 指南 Tier 1／化學計量',
+    en: 'Energy Admin. 2024 grid factor; MOENV GHG emission factor table 6.0.4; refrigerants/SF₆/fluorinated process gases (NF₃·CF₄·C₂F₆·C₃F₈·CHF₃·c-C₄F₈) use IPCC AR5 GWP (MOENV-adopted, 5 Feb 2024); coal & process calcination (clinker/lime/limestone) are IPCC 2006 GL Tier 1 / stoichiometric',
   },
   officialDocVersion: {
     zhTW: '電力 0.474 kgCO₂e/度(一手);燃料係數以 CO₂ 為主項、版本會更新;冷媒係數=IPCC AR5 GWP;製程煅燒為 IPCC Tier 1 預設(熟料 0.52／石灰 0.75／石灰石 0.440 tCO₂/t),須以廠端純度覆寫;外購蒸汽/其他製程無單一官方值請填查證值。一律可覆寫。',

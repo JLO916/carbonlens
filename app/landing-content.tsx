@@ -50,32 +50,32 @@ export default function LandingContent() {
       {/* Hero — the full cycle, not a single calculator */}
       <section className="bg-gradient-to-br from-[#89B56C]/10 via-white to-[#89B56C]/5 py-14 lg:py-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-          <p className="mb-3 text-sm font-medium text-[#5d7d44]">CarbonLens · RECCESSARY</p>
+          <p className="mb-3 text-sm font-medium text-[#5d7d44]">{t('CarbonLens · RECCESSARY ｜ 企業碳合規與管理工作台', 'CarbonLens · RECCESSARY · corporate carbon-management workbench')}</p>
           <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-900 lg:text-[2.75rem]">
-            {t('一個工作台,帶你走完整年碳管理週期', 'One workbench for your whole annual carbon cycle')}
+            {t('從盤查到揭露,一套可查證的企業碳管理工作台', 'From inventory to disclosure — one auditable carbon-management workbench')}
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-gray-600">
             {t(
-              '從盤查、設定目標、減量、查證、申報到對外揭露,再年對年比較——七個步驟,一個畫面。新手有白話說明、專家有一手法源與標準。資料只存在你的瀏覽器、免註冊。',
-              'From inventory, targets, reductions, assurance and filing to disclosure — then year-over-year. Seven steps, one place. Plain-language for newcomers, primary law + standards for experts. Local, no signup.',
+              '為出口歐盟、面對品牌客戶碳要求、或須依 IFRS 編製永續資訊的台灣及 APAC 製造業而設計。填一份公司側寫,即完成 Scope 1／2／3 盤查、國內碳費與 CBAM 試算、減量目標與查證管理、義務行事曆與報告匯出——每筆數字標註一手法源、可追溯查核。資料僅存於你的瀏覽器,免註冊。',
+              'Built for Taiwan & APAC manufacturers that export to the EU, face brand-customer carbon demands, or file IFRS sustainability information. One company profile completes Scope 1/2/3 inventory, domestic carbon-fee and CBAM estimates, reduction targets and assurance, an obligation calendar and report exports — every figure cites primary law and is traceable for audit. Data stays in your browser, no signup.',
             )}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link href="/workbench">
               <Button className="h-12 bg-[#89B56C] px-8 text-base text-white hover:bg-[#6E9156]">
-                {t('開始走我的週期 →', 'Start my cycle →')}
+                {t('進入工作台 →', 'Open the workbench →')}
               </Button>
             </Link>
             <a href="#one-question">
               <Button variant="outline" className="h-12 border-gray-300 px-8 text-base text-gray-600 hover:bg-gray-100">
-                {t('只想問一件事？', 'Just one question?')}
+                {t('只想算一件事？', 'Just one question?')}
               </Button>
             </a>
           </div>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500">
-            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('白話＋專業雙層說明', 'Plain + professional, both')}</span>
-            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('每筆數字標一手法源', 'Every figure cites primary law')}</span>
-            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('免費・免註冊・資料留本機', 'Free · no signup · local')}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('一份側寫・全週期到位', 'One profile · whole cycle')}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('每筆數字標一手法源、可追溯', 'Every figure cites primary law, traceable')}</span>
+            <span className="inline-flex items-center gap-1.5"><span className="text-[#89B56C]">✓</span>{t('免費・免註冊・資料僅存本機', 'Free · no signup · local only')}</span>
           </div>
         </div>
       </section>
@@ -84,7 +84,7 @@ export default function LandingContent() {
       <section className="bg-white py-14">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-center text-2xl font-bold text-gray-900">{t('你的碳管理週期,看得見', 'Your carbon-management cycle, visualized')}</h2>
-          <p className="mx-auto mt-2 mb-10 max-w-2xl text-center text-gray-500">{t('一個會循環的年度流程。每一站都告訴你「白話在做什麼」與「專業上對應什麼標準／工具」,點任一站即可開始。', 'A recurring annual flow. Each stop shows what you do in plain words and which standard/tool it maps to — click any stop to start.')}</p>
+          <p className="mx-auto mt-2 mb-10 max-w-2xl text-center text-gray-500">{t('一個會循環的年度流程。每一站都說明「實際要做什麼」並標出對應的標準與工具,點任一站即可開始。', 'A recurring annual flow. Each stop explains what to do and maps to the relevant standard and tool — click any stop to start.')}</p>
 
           <ol className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {JOURNEY.map((s) => (
@@ -136,14 +136,14 @@ export default function LandingContent() {
       {/* Dual-level glossary — newcomers and experts read the same card */}
       <section className="bg-white py-14">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-2xl font-bold text-gray-900">{t('看不懂術語？每個都有白話＋專業', 'New to the jargon? Plain + professional, every term')}</h2>
-          <p className="mx-auto mt-2 mb-8 max-w-2xl text-center text-gray-500">{t('工具全站的術語旁都有 ⓘ:先給你一句白話,再給專業定義與標準出處。', 'Across the tool, terms carry an ⓘ: a plain line first, then the precise definition + standard.')}</p>
+          <h2 className="text-center text-2xl font-bold text-gray-900">{t('術語不熟？每個都附說明與標準出處', 'New to the terms? Each one is explained, with its source')}</h2>
+          <p className="mx-auto mt-2 mb-8 max-w-2xl text-center text-gray-500">{t('工具全站的術語旁都有 ⓘ:先一句說明,再附精確定義與標準出處。', 'Across the tool, terms carry an ⓘ: a one-line explanation, then the precise definition and source.')}</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {GLOSSARY.slice(0, 8).map((g) => (
               <div key={g.key} className="rounded-xl border border-gray-200 bg-white p-4">
                 <p className="text-sm font-semibold text-gray-900">{tObj(g.term)}</p>
-                <p className="mt-1.5 flex gap-1.5 text-xs leading-relaxed text-gray-700"><span className="shrink-0 rounded bg-[#89B56C]/15 px-1 font-medium text-[#5d7d44]">{t('白話', 'Plain')}</span><span>{tObj(g.plain)}</span></p>
-                <p className="mt-1 flex gap-1.5 text-xs leading-relaxed text-gray-500"><span className="shrink-0 rounded bg-gray-100 px-1 font-medium text-gray-500">{t('專業', 'Pro')}</span><span>{tObj(g.pro)}</span></p>
+                <p className="mt-1.5 text-xs leading-relaxed text-gray-700">{tObj(g.plain)}</p>
+                <p className="mt-1 text-xs leading-relaxed text-gray-400">{tObj(g.pro)}</p>
               </div>
             ))}
           </div>
@@ -157,7 +157,7 @@ export default function LandingContent() {
       <section className="bg-gradient-to-br from-[#89B56C]/15 via-[#89B56C]/5 to-white py-16">
         <div className="mx-auto max-w-2xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">{t('從盤查到揭露,一條龍走完', 'Inventory to disclosure, end to end')}</h2>
-          <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-gray-600">{t('填一次側寫,工作台帶你走完七步週期、年年滾動——白話看得懂、專業站得住,免費、免註冊。', 'Fill one profile; the workbench walks you through all seven steps, year after year — clear for newcomers, solid for experts. Free, no signup.')}</p>
+          <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-gray-600">{t('填一份側寫,工作台帶你走完七步週期、年年滾動;說明清楚、數字有據,免費、免註冊。', 'Fill one profile; the workbench walks you through all seven steps, year after year — clearly explained, every figure sourced. Free, no signup.')}</p>
           <div className="mt-6">
             <Link href="/workbench"><Button className="h-12 bg-[#89B56C] px-8 text-base text-white hover:bg-[#6E9156]">{t('進入工作台 →', 'Open the workbench →')}</Button></Link>
           </div>

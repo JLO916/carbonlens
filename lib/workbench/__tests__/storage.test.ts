@@ -42,13 +42,16 @@ describe('workbench storage (localStorage-shaped, injectable)', () => {
 });
 
 describe('workbench snapshots', () => {
-  const snap = (at: string): Snapshot => snapshotOf(computeWorkbench(emptyProfile()), at);
+  const p = emptyProfile();
+  const snap = (at: string): Snapshot => snapshotOf(computeWorkbench(p), p, at);
 
-  it('snapshotOf slims a result to totals', () => {
+  it('snapshotOf slims a result to totals + footprint (C2)', () => {
     const s = snap('2026-06-01T00:00:00Z');
     expect(s.feeTWD).toBe(7_500_000);
     expect(s.ifrsPhase).toBe(3);
     expect(['low', 'medium', 'high']).toContain(s.pressure);
+    expect(s.footprintTonnes).toBe(50000); // Scope 1+2+3 for the default profile (typed 50,000, no Scope 3)
+    expect(s.scope3Tonnes).toBe(0);
   });
 
   it('appendSnapshot prepends (newest first) and persists', () => {

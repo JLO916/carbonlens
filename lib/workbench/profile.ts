@@ -6,6 +6,7 @@
 import type { CountryCode } from '@/lib/types';
 import type { ActivityLine } from './inventory';
 import type { Scope3Line } from './scope3';
+import type { TargetDef } from './target';
 import type {
   ListingType,
   CapitalTier,
@@ -84,7 +85,10 @@ export interface CompanyProfile {
   // C1 — target management: base-year footprint + target year drive the SBTi-style trajectory.
   baseYearEmissionsTonnes?: number; // base-year emissions ON the target scope (if blank, current assumed)
   targetYear?: number; // the year the reduction target is to be met (SBTi near-term ≈ 2030)
-  targetScope?: 'scope12' | 'scope123'; // which boundary the target covers (default scope12 = SBTi near-term)
+  targetScope?: 'scope12' | 'scope123' | 'scope3'; // which boundary the PRIMARY target covers (default scope12)
+  // E1 — a real SBTi commitment is a SET of targets (near-term Scope 1+2 + near-term Scope 3 +
+  // long-term net-zero). The legacy fields above are the primary target; these are the extras.
+  extraTargets?: TargetDef[];
   // G3 — Scope 3 quantification + product carbon footprint:
   scope3?: Scope3Line[];
   annualUnitsSold?: number; // units/yr (e.g. servers) for the per-unit PCF allocation

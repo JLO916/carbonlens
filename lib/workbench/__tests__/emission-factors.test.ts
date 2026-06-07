@@ -60,3 +60,29 @@ describe('G1 — country grid factors (Scope 2 electricity)', () => {
     expect(gridFactorFor(undefined).kgco2ePerUnit).toBe(0.474);
   });
 });
+
+describe('E3 — process calcination factors (sourced IPCC Tier-1 / stoichiometric)', () => {
+  it('cement clinker / lime / limestone carry sourced Scope-1 process defaults (overridable, not user-supplied)', () => {
+    expect(FACTOR_BY_KEY.process_cement_clinker.kgco2ePerUnit).toBe(520); // 0.52 tCO₂/t clinker
+    expect(FACTOR_BY_KEY.process_lime.kgco2ePerUnit).toBe(750); // 0.75 tCO₂/t lime
+    expect(FACTOR_BY_KEY.process_limestone.kgco2ePerUnit).toBe(440); // 0.440 tCO₂/t CaCO₃
+    for (const k of ['process_cement_clinker', 'process_lime', 'process_limestone']) {
+      expect(FACTOR_BY_KEY[k].scope).toBe(1);
+      expect(FACTOR_BY_KEY[k].category).toBe('process');
+      expect(FACTOR_BY_KEY[k].userSupplied).toBeFalsy(); // has a real sourced default
+      expect(FACTOR_BY_KEY[k].source.zhTW).toMatch(/IPCC|化學計量/);
+    }
+  });
+
+  it('computeInventory: 10,000 t clinker × 0.52 = 5,200 t process CO₂ (Scope 1, not combustion)', () => {
+    const r = computeInventory([{ id: 'cl', factorKey: 'process_cement_clinker', amount: 10000 }]);
+    expect(r.lines[0].scope).toBe(1);
+    expect(r.lines[0].tonnes).toBeCloseTo(5200, 0);
+    expect(r.scope1Tonnes).toBeCloseTo(5200, 0);
+  });
+
+  it('process_other stays a user-supplied placeholder (no fabricated default)', () => {
+    expect(FACTOR_BY_KEY.process_other.userSupplied).toBe(true);
+    expect(FACTOR_BY_KEY.process_other.kgco2ePerUnit).toBe(0);
+  });
+});

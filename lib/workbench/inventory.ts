@@ -37,6 +37,21 @@ export interface InventoryLineResult {
   tonnes: number; // amount × effectiveFactor / 1000
 }
 
+/** E2 — combined ± uncertainty over the QUANTIFIED portion of the inventory (the lines that carry a
+ *  ±%), plus how much of total emissions that portion covers. The "last mile" assurance asks for. */
+export interface InventoryUncertainty {
+  pct: number; // combined ±% of the covered emissions (quadrature, independent-sources assumption)
+  coveragePct: number; // share of total emissions that carry an uncertainty figure
+}
+
+/** E2 — share of total emissions by data-quality tier (assurance scores the data trail). */
+export interface DataQualityMix {
+  measured: number; // %
+  invoice: number;
+  estimate: number;
+  unspecified: number;
+}
+
 export interface InventoryResult {
   lines: InventoryLineResult[];
   totalTonnes: number; // location-based total (scope1 + scope2 location)
@@ -46,6 +61,9 @@ export interface InventoryResult {
   scope2MarketTonnes: number; // market-based Scope 2 (after contracted renewables)
   totalMarketTonnes: number; // scope1 + scope2Market
   renewablePct: number; // 0–100, the RE100 progress figure applied
+  // E2 — assurance rollups (collected per line in P1b, summarised here):
+  uncertainty?: InventoryUncertainty; // combined ±% over the quantified portion
+  dataQualityMix: DataQualityMix; // % of emissions by data-quality tier
 }
 
 const round = (x: number) => Math.round(x * 1000) / 1000;
@@ -72,16 +90,46 @@ export function computeInventory(activities: ActivityLine[], countryCode?: Count
   // (residual ≈ grid factor); strict accounting uses a residual-mix factor.
   const r = Math.max(0, Math.min(100, renewablePct)) / 100;
   const scope2MarketTonnes = round(scope2Tonnes * (1 - r));
+  const total = scope1Tonnes + scope2Tonnes;
+
+  // E2 — combine per-line ± uncertainty in quadrature (independent-sources assumption), expressed as
+  // ±% of the QUANTIFIED portion, plus that portion's coverage of total emissions. Lines without a
+  // ±% are excluded from the combination and surfaced via coverage (honest, not silently zeroed).
+  const withU = lines.filter((l) => typeof l.line.uncertaintyPct === 'number' && (l.line.uncertaintyPct as number) > 0 && l.tonnes > 0);
+  const coveredTonnes = withU.reduce((a, l) => a + l.tonnes, 0);
+  const absU = Math.sqrt(withU.reduce((a, l) => { const abs = l.tonnes * ((l.line.uncertaintyPct as number) / 100); return a + abs * abs; }, 0));
+  const uncertainty: InventoryUncertainty | undefined = coveredTonnes > 0
+    ? { pct: round((absU / coveredTonnes) * 100), coveragePct: total > 0 ? round((coveredTonnes / total) * 100) : 0 }
+    : undefined;
+
+  // E2 — data-quality mix: share of emissions by tier (lines without a tier → unspecified).
+  const tierTonnes = (q: DataQuality | 'unspecified') => lines.filter((l) => (l.line.dataQuality ?? 'unspecified') === q).reduce((a, l) => a + l.tonnes, 0);
+  const pctOf = (x: number) => (total > 0 ? round((x / total) * 100) : 0);
+  const dataQualityMix: DataQualityMix = {
+    measured: pctOf(tierTonnes('measured')),
+    invoice: pctOf(tierTonnes('invoice')),
+    estimate: pctOf(tierTonnes('estimate')),
+    unspecified: pctOf(tierTonnes('unspecified')),
+  };
+
   return {
     lines,
-    totalTonnes: round(scope1Tonnes + scope2Tonnes),
+    totalTonnes: round(total),
     scope1Tonnes,
     scope2Tonnes,
     scope2MarketTonnes,
     totalMarketTonnes: round(scope1Tonnes + scope2MarketTonnes),
     renewablePct: round(r * 100),
+    uncertainty,
+    dataQualityMix,
   };
 }
+
+/** E2 — methodology note for the aggregated uncertainty (so the rollup isn't a black box). */
+export const UNCERTAINTY_NOTE: BilingualText = {
+  zhTW: '整體不確定性以各活動數據的 ±% 在「平方和開根號(quadrature)」下合併,假設各排放源彼此獨立(GHG Protocol / IPCC 誤差傳遞);僅涵蓋有填 ±% 的項目,涵蓋率另列。此為指示性,非完整蒙地卡羅不確定性分析。',
+  en: 'Overall uncertainty combines each activity figure’s ±% in quadrature (root-sum-of-squares), assuming sources are independent (GHG Protocol / IPCC error propagation). It covers only lines that carry a ±%; coverage is shown separately. Indicative — not a full Monte-Carlo uncertainty assessment.',
+};
 
 /** The emissions a facility contributes — from its built inventory when present, else the typed total. */
 export function facilityEmissionsTonnes(facility: FacilityLine): number {

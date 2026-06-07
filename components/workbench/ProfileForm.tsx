@@ -20,6 +20,7 @@ import InventoryBuilder from './InventoryBuilder';
 import Scope3Builder from './Scope3Builder';
 import InfoHint from '@/components/ui/InfoHint';
 import type { CompanyProfile, FacilityLine, CbamProductLine } from '@/lib/workbench/profile';
+import type { TargetDef, TargetScope } from '@/lib/workbench/target';
 import type {
   BilingualText,
   CapitalTier,
@@ -102,6 +103,12 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
   const addCbam = () => set({ cbamProducts: [...profile.cbamProducts, { id: crypto.randomUUID(), label: `出口品項 ${profile.cbamProducts.length + 1}`, product: 'steel', originCountry: 'tw', annualVolumeTonnes: 1000, emissionsSource: 'official_default' }] });
   const delCbam = (id: string) => set({ cbamProducts: profile.cbamProducts.filter((c) => c.id !== id) });
 
+  // E1 — extra reduction targets (Scope 3, net-zero…) beyond the primary one set in ①.
+  const targets = profile.extraTargets ?? [];
+  const setTarget = (id: string, patch: Partial<TargetDef>) => set({ extraTargets: targets.map((tg) => (tg.id === id ? { ...tg, ...patch } : tg)) });
+  const addTarget = () => set({ extraTargets: [...targets, { id: crypto.randomUUID(), label: t('近期 Scope 3', 'Near-term Scope 3'), scope: 'scope3', baseYear: profile.baseYear ?? profile.year, targetYear: profile.targetYear ?? profile.year + 4, targetReductionPct: 25 }] });
+  const delTarget = (id: string) => set({ extraTargets: targets.filter((tg) => tg.id !== id) });
+
   const toggleFramework = (k: FrameworkKey) => {
     const cur = profile.customerFrameworks;
     if (k === 'unsure') return set({ customerFrameworks: cur.includes('unsure') ? cur.filter((x) => x !== 'unsure') : ['unsure'] });
@@ -124,7 +131,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
           <div className="space-y-1.5"><Label className="text-sm">{t('基準年排放 tCO₂e', 'Base-yr tCO₂e')}</Label><Input type="number" value={profile.baseYearEmissionsTonnes ?? ''} placeholder={t('空白=用今年', 'blank=use current')} onChange={(e) => set({ baseYearEmissionsTonnes: e.target.value === '' ? undefined : nn(e.target.value) })} /></div>
           <div className="space-y-1.5"><Label className="text-sm">{t('目標年', 'Target year')}</Label><Input type="number" value={profile.targetYear ?? ''} placeholder={t('如 2030', 'e.g. 2030')} onChange={(e) => set({ targetYear: e.target.value === '' ? undefined : Math.max(2000, Number(e.target.value) || 0) })} /></div>
           <div className="space-y-1.5"><Label className="text-sm">{t('目標減量 %', 'Target cut %')}</Label><Input type="number" value={profile.targetReductionPct ?? ''} placeholder={t('如 30', 'e.g. 30')} onChange={(e) => set({ targetReductionPct: e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} /></div>
-          <div className="space-y-1.5"><Label className="text-sm">{t('目標範疇', 'Target scope')}</Label><Toggle value={profile.targetScope ?? 'scope12'} onChange={(v) => set({ targetScope: v })} options={[{ value: 'scope12', label: { zhTW: 'S1+2', en: 'S1+2' } }, { value: 'scope123', label: { zhTW: 'S1+2+3', en: 'S1+2+3' } }]} /><p className="text-[10px] text-gray-400">{t('基準/目標/實際同範疇比較', 'base/target/actual same scope')}</p></div>
+          <div className="space-y-1.5"><Label className="text-sm">{t('目標範疇', 'Target scope')}</Label><Toggle value={profile.targetScope ?? 'scope12'} onChange={(v) => set({ targetScope: v })} options={[{ value: 'scope12' as TargetScope, label: { zhTW: 'S1+2', en: 'S1+2' } }, { value: 'scope123' as TargetScope, label: { zhTW: 'S1+2+3', en: 'S1+2+3' } }, { value: 'scope3' as TargetScope, label: { zhTW: 'S3', en: 'S3' } }]} /><p className="text-[10px] text-gray-400">{t('主要目標範疇;多條承諾用下方 ⑧', 'primary scope; multiple → ⑧ below')}</p></div>
         </CardContent>
       </Card>
 
@@ -284,6 +291,32 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
             <div className="space-y-1"><Label className="text-xs">{t('單位名稱', 'Unit label')}</Label><Input value={profile.unitLabel ?? ''} placeholder={t('如 台', 'e.g. server')} onChange={(e) => set({ unitLabel: e.target.value || undefined })} /></div>
             <div className="flex items-end"><p className="text-[11px] leading-relaxed text-gray-400">{t('用於「每台 PCF＝總足跡÷台數」(組織分攤,非完整 LCA)。', 'For “per-unit PCF = total footprint ÷ units” (org allocation, not full LCA).')}</p></div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ⑧ Extra reduction targets (E1) — a real SBTi commitment is a SET of targets */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑧ 額外減量目標', '⑧ Extra reduction targets')}</CardTitle><Button size="sm" variant="outline" onClick={addTarget}>＋ {t('新增目標', 'Add target')}</Button></div>
+          <p className="mt-1 text-xs leading-relaxed text-gray-500">{t('① 是你的主要目標。SBTi 承諾通常還有「近期 Scope 3」與「2050 淨零」——在此加列,各自於所屬範疇追軌(在「全貌」的減量目標管理一起顯示)。', '① is your primary target. An SBTi commitment usually also carries a near-term Scope 3 target and a 2050 net-zero target — add them here; each is tracked on its own boundary (shown together in Target management).')}</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {targets.length === 0 && <p className="rounded-lg bg-gray-50 p-2.5 text-[11px] leading-relaxed text-gray-500">{t('尚無額外目標。多數有 SBTi 承諾的製造商會再加一條 Scope 3 目標(占足跡常 80%+)與一條長期淨零目標。', 'No extra targets yet. Most manufacturers with an SBTi commitment add a Scope 3 target (often 80%+ of the footprint) and a long-term net-zero target.')}</p>}
+          {targets.map((tg) => (
+            <div key={tg.id} className="space-y-2 rounded-xl border border-gray-200 p-3">
+              <div className="flex items-center gap-2">
+                <Input className="h-8 flex-1 text-sm" value={tg.label ?? ''} placeholder={t('目標名稱,如 2050 淨零', 'Target name, e.g. 2050 net-zero')} onChange={(e) => setTarget(tg.id, { label: e.target.value })} />
+                <Button size="sm" variant="ghost" className="text-gray-400 hover:text-red-600" onClick={() => delTarget(tg.id)}>✕</Button>
+              </div>
+              <div className="space-y-1"><Label className="text-xs">{t('範疇', 'Scope')}</Label><Toggle value={tg.scope} onChange={(v) => setTarget(tg.id, { scope: v })} options={[{ value: 'scope12' as TargetScope, label: { zhTW: 'S1+2', en: 'S1+2' } }, { value: 'scope123' as TargetScope, label: { zhTW: 'S1+2+3', en: 'S1+2+3' } }, { value: 'scope3' as TargetScope, label: { zhTW: 'S3', en: 'S3' } }]} /></div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="space-y-1"><Label className="text-xs">{t('基準年', 'Base year')}</Label><Input type="number" className="h-8" value={tg.baseYear || ''} onChange={(e) => setTarget(tg.id, { baseYear: Math.max(2000, Number(e.target.value) || 0) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('基準排放 t（選填）', 'Base tCO₂e (opt)')}</Label><Input type="number" className="h-8" value={tg.baseEmissionsTonnes ?? ''} placeholder={t('空白=今年', 'blank=current')} onChange={(e) => setTarget(tg.id, { baseEmissionsTonnes: e.target.value === '' ? undefined : nn(e.target.value) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('目標年', 'Target year')}</Label><Input type="number" className="h-8" value={tg.targetYear || ''} onChange={(e) => setTarget(tg.id, { targetYear: Math.max(2000, Number(e.target.value) || 0) })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('減量 %', 'Cut %')}</Label><Input type="number" className="h-8" value={tg.targetReductionPct || ''} onChange={(e) => setTarget(tg.id, { targetReductionPct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} /></div>
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>

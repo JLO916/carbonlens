@@ -184,16 +184,46 @@ export const EMISSION_FACTORS: EmissionFactor[] = [
     kgco2ePerUnit: 23500,
     source: { zhTW: 'IPCC AR5 GWP（環境部採用）', en: 'IPCC AR5 GWP (MOENV-adopted)' },
   },
-  // ── Process emissions (Scope 1; process-specific — user-supplied) ──────────
+  // ── Process emissions (Scope 1) — calcination releases CO₂ from carbonate chemistry, NOT from
+  //    combustion, so it's invisible to fuel accounting. These are IPCC Tier-1 / stoichiometric
+  //    defaults so cement/lime/chemicals makers can pick a sourced factor instead of self-filling;
+  //    OVERRIDE with site raw-meal carbonate / clinker CaO / lime purity for assurance. ───────────
+  {
+    key: 'process_cement_clinker',
+    label: { zhTW: '水泥熟料煅燒（製程）', en: 'Cement clinker calcination (process)' },
+    unit: { zhTW: '公噸熟料', en: 't clinker' },
+    scope: 1,
+    category: 'process',
+    kgco2ePerUnit: 520, // 0.52 tCO₂/t clinker
+    source: { zhTW: 'IPCC 2006 指南 Vol.3 礦業·熟料 Tier 1 預設 0.52 tCO₂/t（依熟料 CaO 含量,可覆寫）', en: 'IPCC 2006 GL Vol.3 Mineral, clinker Tier 1 default 0.52 tCO₂/t (varies with clinker CaO; override)' },
+  },
+  {
+    key: 'process_lime',
+    label: { zhTW: '石灰（生石灰 CaO）煅燒（製程）', en: 'Lime (quicklime CaO) calcination (process)' },
+    unit: { zhTW: '公噸石灰', en: 't lime' },
+    scope: 1,
+    category: 'process',
+    kgco2ePerUnit: 750, // 0.75 tCO₂/t high-calcium lime
+    source: { zhTW: 'IPCC 2006 指南 Vol.3·高鈣石灰預設 0.75 tCO₂/t(理論化學計量上限 0.785;依純度可覆寫)', en: 'IPCC 2006 GL Vol.3 high-calcium lime default 0.75 tCO₂/t (stoichiometric max 0.785; override by purity)' },
+  },
+  {
+    key: 'process_limestone',
+    label: { zhTW: '石灰石（碳酸鈣 CaCO₃）分解（製程）', en: 'Limestone (CaCO₃) calcination (process)' },
+    unit: { zhTW: '公噸碳酸鈣', en: 't CaCO₃' },
+    scope: 1,
+    category: 'process',
+    kgco2ePerUnit: 440, // stoichiometric 44.01/100.09 = 0.440 tCO₂/t CaCO₃
+    source: { zhTW: '化學計量 CaCO₃→CaO+CO₂(44.01/100.09=0.440 tCO₂/t,純 CaCO₃;脫硫/玻璃/其他碳酸鹽消耗,可覆寫)', en: 'Stoichiometric CaCO₃→CaO+CO₂ (44.01/100.09 = 0.440 tCO₂/t pure CaCO₃; FGD/glass/other carbonate use; override)' },
+  },
   {
     key: 'process_other',
-    label: { zhTW: '製程排放（自填係數）', en: 'Process emissions (enter factor)' },
+    label: { zhTW: '其他製程排放（自填係數）', en: 'Other process emissions (enter factor)' },
     unit: { zhTW: '單位（自訂）', en: 'unit (custom)' },
     scope: 1,
     category: 'process',
     kgco2ePerUnit: 0,
     userSupplied: true,
-    source: { zhTW: '石灰煅燒/酸洗/熱處理等因製程而異——請填查證之製程排放係數', en: 'Calcination/pickling/heat-treat etc. — enter your verified process factor' },
+    source: { zhTW: '酸洗/熱處理/其他反應因製程而異——請填查證之製程排放係數', en: 'Pickling/heat-treat/other reactions vary — enter your verified process factor' },
   },
 ];
 
@@ -210,12 +240,12 @@ export const FACTOR_CATEGORY_LABEL: Record<FactorCategory, BilingualText> = {
 
 export const CITATION_EMISSION_FACTORS: Citation = {
   source: {
-    zhTW: '經濟部能源署 113 年度電力排碳係數;環境部「溫室氣體排放係數管理表 6.0.4」;逸散冷媒/SF₆ 採 IPCC AR5 GWP(環境部 113/2/5 公告採用);煙煤為 IPCC 2006 推估',
-    en: 'Energy Admin. 2024 grid factor; MOENV GHG emission factor table 6.0.4; fugitive refrigerants/SF₆ use IPCC AR5 GWP (MOENV-adopted, 5 Feb 2024); coal is IPCC-2006-derived',
+    zhTW: '經濟部能源署 113 年度電力排碳係數;環境部「溫室氣體排放係數管理表 6.0.4」;逸散冷媒/SF₆ 採 IPCC AR5 GWP(環境部 113/2/5 公告採用);煙煤與製程煅燒(水泥熟料/石灰/石灰石)為 IPCC 2006 指南 Tier 1／化學計量',
+    en: 'Energy Admin. 2024 grid factor; MOENV GHG emission factor table 6.0.4; fugitive refrigerants/SF₆ use IPCC AR5 GWP (MOENV-adopted, 5 Feb 2024); coal & process calcination (clinker/lime/limestone) are IPCC 2006 GL Tier 1 / stoichiometric',
   },
   officialDocVersion: {
-    zhTW: '電力 0.474 kgCO₂e/度(一手);燃料係數以 CO₂ 為主項、版本會更新;冷媒係數=IPCC AR5 GWP;外購蒸汽/製程/其他燃料無單一官方值,請填查證值。一律可覆寫。',
-    en: 'Electricity 0.474 (primary); fuel factors CO₂-dominant & re-versioned; refrigerant factor = IPCC AR5 GWP; steam/process/other-fuel have no single official value — enter your verified value. All overridable.',
+    zhTW: '電力 0.474 kgCO₂e/度(一手);燃料係數以 CO₂ 為主項、版本會更新;冷媒係數=IPCC AR5 GWP;製程煅燒為 IPCC Tier 1 預設(熟料 0.52／石灰 0.75／石灰石 0.440 tCO₂/t),須以廠端純度覆寫;外購蒸汽/其他製程無單一官方值請填查證值。一律可覆寫。',
+    en: 'Electricity 0.474 (primary); fuel factors CO₂-dominant & re-versioned; refrigerant factor = IPCC AR5 GWP; process calcination uses IPCC Tier-1 defaults (clinker 0.52 / lime 0.75 / limestone 0.440 tCO₂/t) — override with site purity; steam/other-process have no single official value — enter your verified value. All overridable.',
   },
   asOfDate: '2026-06',
   url: 'https://ghgregistry.moenv.gov.tw/',

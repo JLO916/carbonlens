@@ -6,12 +6,17 @@ import { useI18n } from '@/lib/i18n/context';
 import ProfileForm from '@/components/workbench/ProfileForm';
 import CarbonPnL from '@/components/workbench/CarbonPnL';
 import FootprintSummary from '@/components/workbench/FootprintSummary';
+import TargetTracker from '@/components/workbench/TargetTracker';
+import CyclePanel from '@/components/workbench/CyclePanel';
+import type { CycleStage } from '@/lib/workbench/cycle';
 import CarbonFeeBreakdown from '@/components/workbench/CarbonFeeBreakdown';
 import PriorityList from '@/components/workbench/PriorityList';
 import CbamRampChart from '@/components/workbench/CbamRampChart';
 import ReductionLens from '@/components/workbench/ReductionLens';
 import AssuranceGuide from '@/components/workbench/AssuranceGuide';
 import SnapshotHistory from '@/components/workbench/SnapshotHistory';
+import LockedVersions from '@/components/workbench/LockedVersions';
+import { loadLockedVersions, type LockedVersion } from '@/lib/workbench/locked-versions';
 import { loadProfile, saveProfile, exportProfileJson, parseProfile } from '@/lib/workbench/storage';
 import { inventorySheetCsv, disclosureReportText, cbamCommunicationCsv } from '@/lib/workbench/export-deliverables';
 import { snapshotOf, appendSnapshot, loadSnapshots, type Snapshot } from '@/lib/workbench/snapshots';
@@ -55,6 +60,7 @@ export default function WorkbenchClient() {
   const [profile, setProfile] = useState<CompanyProfile>(emptyProfile());
   const [snap, setSnap] = useState<ComputeSnapshot | null>(null);
   const [history, setHistory] = useState<Snapshot[]>([]);
+  const [locked, setLocked] = useState<LockedVersion[]>([]);
   const [busy, setBusy] = useState(false);
 
   // Hydrate from localStorage after mount (client-only → no SSR/hydration mismatch).
@@ -62,7 +68,19 @@ export default function WorkbenchClient() {
     const saved = loadProfile();
     if (saved) setProfile(saved);
     setHistory(loadSnapshots());
+    setLocked(loadLockedVersions());
   }, []);
+
+  function restoreVersion(profileJson: string) {
+    const p = parseProfile(profileJson);
+    if (p) { setProfile(p); saveProfile(p); setSnap(null); }
+  }
+
+  function setStage(stage: CycleStage) {
+    const next = { ...profile, cycleStage: stage };
+    setProfile(next);
+    saveProfile(next);
+  }
 
   async function compute() {
     setBusy(true);
@@ -77,7 +95,15 @@ export default function WorkbenchClient() {
 
   function takeSnapshot() {
     if (!snap) return;
-    setHistory(appendSnapshot(snapshotOf(snap.result, new Date().toISOString())));
+    setHistory(appendSnapshot(snapshotOf(snap.result, snap.profile, new Date().toISOString())));
+  }
+
+  // C2 — carry the profile forward to next year (keep boundaries/factors/targets; bump the year).
+  function carryForward() {
+    const next = { ...profile, year: profile.year + 1 };
+    setProfile(next);
+    saveProfile(next);
+    setSnap(null);
   }
 
   function downloadText(filename: string, text: string, mime: string) {
@@ -173,7 +199,9 @@ export default function WorkbenchClient() {
       {snap && (
         <div className="space-y-5">
           <h2 className="text-lg font-semibold text-gray-900">{t('碳合規 P&L', 'Carbon-compliance P&L')}</h2>
+          <CyclePanel profile={profile} onStageChange={setStage} />
           <FootprintSummary profile={snap.profile} />
+          <TargetTracker profile={snap.profile} />
           <CarbonPnL result={snap.result} />
           <CarbonFeeBreakdown result={snap.result} profile={snap.profile} />
           <PriorityList result={snap.result} />
@@ -181,10 +209,16 @@ export default function WorkbenchClient() {
           <ReductionLens profile={snap.profile} lookups={snap.lookups} />
 
           <AssuranceGuide />
+          <LockedVersions profile={snap.profile} versions={locked} onChange={setLocked} onRestore={restoreVersion} />
 
-          <Button variant="outline" onClick={takeSnapshot} className="w-full">
-            📸 {t('拍下這次快照（存到瀏覽器,追蹤變化）', 'Take a snapshot (saved in your browser to track change)')}
-          </Button>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button variant="outline" onClick={takeSnapshot} className="w-full">
+              📸 {t('拍下這次快照（追蹤變化）', 'Take a snapshot (track change)')}
+            </Button>
+            <Button variant="outline" onClick={carryForward} className="w-full">
+              ⏭ {t(`結轉下一年（${profile.year + 1}）`, `Carry forward to ${profile.year + 1}`)}
+            </Button>
+          </div>
 
           <details className="rounded-xl border border-gray-200 bg-white p-4">
             <summary className="cursor-pointer list-none text-sm font-medium text-gray-700">▸ {t('明細：各模組完整診斷', 'Detail: full per-module diagnosis')}</summary>

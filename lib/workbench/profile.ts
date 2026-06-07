@@ -79,10 +79,15 @@ export interface CompanyProfile {
   year: number;
   // Base year for reduction targets / SBTi (P1c) — the reference year cuts are measured against:
   baseYear?: number;
+  // C1 — target management: base-year footprint + target year drive the SBTi-style trajectory.
+  baseYearEmissionsTonnes?: number; // total footprint in the base year (if blank, current is assumed)
+  targetYear?: number; // the year the reduction target is to be met (SBTi near-term ≈ 2030)
   // G3 — Scope 3 quantification + product carbon footprint:
   scope3?: Scope3Line[];
   annualUnitsSold?: number; // units/yr (e.g. servers) for the per-unit PCF allocation
   unitLabel?: string; // what a "unit" is, e.g. 台 / server
+  // C4 — where this profile is in the annual ESG cycle:
+  cycleStage?: 'measure' | 'review' | 'assure' | 'assured' | 'filed' | 'disclosed';
 }
 
 /** Taiwan carbon-fee period band for a year (CL-coefficient schedule). */

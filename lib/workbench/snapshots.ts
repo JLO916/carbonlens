@@ -2,6 +2,8 @@
 // totals only (no per-line detail, no PII), capped, newest-first. Aging reuses lib/diagnose/aging.
 
 import type { WorkbenchResult } from './aggregate';
+import type { CompanyProfile } from './profile';
+import { footprintSummary } from './scope3';
 import type { PressureLevel } from '@/lib/diagnose/types';
 
 const KEY = 'recc:workbench:snapshots';
@@ -16,6 +18,10 @@ export interface Snapshot {
   cbamGrossEUR?: number;
   pressure: PressureLevel;
   ifrsPhase: number;
+  // C2 — whole footprint for year-over-year comparison (close the loop):
+  footprintTonnes?: number; // Scope 1+2+3
+  scope12Tonnes?: number;
+  scope3Tonnes?: number;
 }
 
 type Storageish = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -27,8 +33,9 @@ function defaultStore(): Storageish | null {
   }
 }
 
-/** Slim a full result into a storable snapshot. `at` injected (client stamps new Date().toISOString()). */
-export function snapshotOf(result: WorkbenchResult, at: string): Snapshot {
+/** Slim a full result + profile into a storable snapshot. `at` injected (client stamps it). */
+export function snapshotOf(result: WorkbenchResult, profile: CompanyProfile, at: string): Snapshot {
+  const fp = footprintSummary(profile);
   return {
     at,
     year: result.year,
@@ -38,6 +45,9 @@ export function snapshotOf(result: WorkbenchResult, at: string): Snapshot {
     cbamGrossEUR: result.cbam.totalGrossEUR,
     pressure: result.supplyChain.pressureLevel,
     ifrsPhase: result.listed.ifrs.phase,
+    footprintTonnes: fp.total,
+    scope12Tonnes: fp.scope12,
+    scope3Tonnes: fp.scope3,
   };
 }
 

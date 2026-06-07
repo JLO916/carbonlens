@@ -16,7 +16,8 @@ const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigit
  *  does not reward reductions (only actual data does). */
 export default function ReductionLens({ profile, lookups }: { profile: CompanyProfile; lookups: (CbamDefaultLookup | undefined)[] }) {
   const { t, tObj } = useI18n();
-  const [pct, setPct] = useState(0);
+  // C1 — seed the slider from the managed target (was hardcoded 0, ignoring the user's set target).
+  const [pct, setPct] = useState(profile.targetReductionPct ?? 0);
   const [type, setType] = useState<ReductionType>('scope1');
 
   const base = useMemo(() => computeWorkbench(profile, lookups), [profile, lookups]);

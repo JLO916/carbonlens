@@ -5,6 +5,7 @@
 
 import type { CountryCode } from '@/lib/types';
 import type { ActivityLine } from './inventory';
+import type { Scope3Line } from './scope3';
 import type {
   ListingType,
   CapitalTier,
@@ -25,6 +26,9 @@ export interface FacilityLine {
   // the facility's emissions are computed from `activities` instead of the typed total.
   useInventory?: boolean;
   activities?: ActivityLine[];
+  // G2: % of electricity from contracted renewables (PPA/REC/green tariff) — drives market-based
+  // Scope 2 (GHG Protocol dual reporting) and RE100 progress. 0–100.
+  renewablePct?: number;
   // Taiwan carbon-fee params (countrySpecific for taiwanCalculator):
   highCarbonLeakage: boolean;
   rateType: 'general' | 'preferA' | 'preferB';
@@ -75,6 +79,10 @@ export interface CompanyProfile {
   year: number;
   // Base year for reduction targets / SBTi (P1c) — the reference year cuts are measured against:
   baseYear?: number;
+  // G3 — Scope 3 quantification + product carbon footprint:
+  scope3?: Scope3Line[];
+  annualUnitsSold?: number; // units/yr (e.g. servers) for the per-unit PCF allocation
+  unitLabel?: string; // what a "unit" is, e.g. 台 / server
 }
 
 /** Taiwan carbon-fee period band for a year (CL-coefficient schedule). */

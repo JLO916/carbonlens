@@ -5,6 +5,7 @@
 
 import { computeInventory, facilityEmissionsTonnes, DATA_QUALITY_LABEL } from './inventory';
 import { countsIndirect } from './reduction';
+import { footprintSummary } from './scope3';
 import type { CompanyProfile } from './profile';
 import type { WorkbenchResult } from './aggregate';
 
@@ -36,7 +37,7 @@ export function inventorySheetCsv(profile: CompanyProfile, lang: Lang = 'zhTW'):
 
   for (const f of profile.facilities) {
     if (f.useInventory && f.activities && f.activities.length > 0) {
-      const inv = computeInventory(f.activities);
+      const inv = computeInventory(f.activities, f.countryCode);
       inv.lines.forEach((ln) => {
         const fac = ln.factor;
         rows.push([
@@ -113,14 +114,18 @@ export function cbamCommunicationCsv(profile: CompanyProfile, lang: Lang = 'zhTW
  *  Qualitative content is left as 〔…〕 placeholders to complete — this is a starting draft, not an
  *  assured statement. */
 export function disclosureReportText(profile: CompanyProfile, result: WorkbenchResult, lang: Lang = 'zhTW'): string {
-  let s1 = 0, s2 = 0;
+  let s1 = 0, s2 = 0, s2m = 0, elecTotal = 0, elecRenew = 0;
   for (const f of profile.facilities) {
     if (f.useInventory && f.activities && f.activities.length > 0) {
-      const inv = computeInventory(f.activities);
-      s1 += inv.scope1Tonnes; s2 += inv.scope2Tonnes;
+      const inv = computeInventory(f.activities, f.countryCode, f.renewablePct);
+      s1 += inv.scope1Tonnes; s2 += inv.scope2Tonnes; s2m += inv.scope2MarketTonnes;
+      const facS2 = inv.scope2Tonnes;
+      elecTotal += facS2; elecRenew += facS2 * (Math.max(0, Math.min(100, f.renewablePct ?? 0)) / 100);
     }
   }
+  const re100Pct = elecTotal > 0 ? Math.round((elecRenew / elecTotal) * 100) : 0;
   const total = profile.facilities.reduce((a, f) => a + facilityEmissionsTonnes(f), 0);
+  const fp = footprintSummary(profile);
   const fee = result.domestic.totalFeeTWD;
   const cbam = result.cbam.totalObligationEUR;
   const locked = result.cbam.lockedLines;
@@ -143,7 +148,10 @@ export function disclosureReportText(profile: CompanyProfile, result: WorkbenchR
       `   〔Describe how climate risks are identified, assessed and integrated into the enterprise risk process.〕`,
       '',
       '4. Metrics & targets',
-      `   Scope 1: ${s1.toLocaleString('en-US')} tCO₂e; Scope 2: ${s2.toLocaleString('en-US')} tCO₂e; total ${total.toLocaleString('en-US')} tCO₂e.`,
+      `   Scope 1: ${s1.toLocaleString('en-US')} tCO₂e; Scope 2 (location-based): ${s2.toLocaleString('en-US')} tCO₂e; operational (Scope 1+2): ${total.toLocaleString('en-US')} tCO₂e.`,
+      re100Pct > 0 ? `   Scope 2 (market-based): ${s2m.toLocaleString('en-US')} tCO₂e; renewable electricity (RE100): ${re100Pct}%.` : '   〔Report market-based Scope 2 and RE100% once renewable procurement is set.〕',
+      `   Scope 3: ${fp.scope3.toLocaleString('en-US')} tCO₂e (${fp.scope3Pct}% of the whole footprint ${fp.total.toLocaleString('en-US')} tCO₂e).`,
+      fp.pcfPerUnit !== undefined ? `   Product carbon footprint ≈ ${fp.pcfPerUnit.toLocaleString('en-US')} kgCO₂e per ${profile.unitLabel || 'unit'} (org allocation, not full LCA).` : '   〔Quantify Scope 3 (Cat 1, Cat 11 — usually dominant) and set units sold for a per-unit PCF.〕',
       `${profile.baseYear ? `   Base year: ${profile.baseYear}.` : '   〔Set a base year for targets.〕'}${profile.targetReductionPct ? ` Reduction target: ${profile.targetReductionPct}%.` : ' 〔Set a reduction target.〕'}`,
       profile.customerFrameworks.length ? `   Customer frameworks in scope: ${profile.customerFrameworks.join(', ')}.` : '',
       '',
@@ -166,7 +174,10 @@ export function disclosureReportText(profile: CompanyProfile, result: WorkbenchR
     `   〔請補述:氣候相關風險之鑑別、評估流程,以及如何整合進公司整體風險管理。〕`,
     '',
     '四、指標與目標',
-    `   Scope 1:${s1.toLocaleString('en-US')} tCO₂e;Scope 2:${s2.toLocaleString('en-US')} tCO₂e;合計 ${total.toLocaleString('en-US')} tCO₂e。`,
+    `   Scope 1:${s1.toLocaleString('en-US')} tCO₂e;Scope 2(地點基礎):${s2.toLocaleString('en-US')} tCO₂e;營運(Scope 1+2):${total.toLocaleString('en-US')} tCO₂e。`,
+    re100Pct > 0 ? `   Scope 2(市場基礎):${s2m.toLocaleString('en-US')} tCO₂e;綠電佔比(RE100):${re100Pct}%。` : '   〔設定綠電採購後,補市場基礎 Scope 2 與 RE100%。〕',
+    `   Scope 3:${fp.scope3.toLocaleString('en-US')} tCO₂e(占總足跡 ${fp.total.toLocaleString('en-US')} tCO₂e 之 ${fp.scope3Pct}%)。`,
+    fp.pcfPerUnit !== undefined ? `   每${profile.unitLabel || '單位'}產品碳足跡 ≈ ${fp.pcfPerUnit.toLocaleString('en-US')} kgCO₂e(組織分攤,非完整 LCA)。` : '   〔量化 Scope 3(類別1、類別11,通常為最大宗)並填年售出數,即得每單位 PCF。〕',
     `${profile.baseYear ? `   基準年:${profile.baseYear}。` : '   〔請設定減量目標之基準年。〕'}${profile.targetReductionPct ? ` 減量目標:${profile.targetReductionPct}%。` : ' 〔請設定減量目標。〕'}`,
     profile.customerFrameworks.length ? `   涉及之客戶框架:${profile.customerFrameworks.join('、')}。` : '',
     '',

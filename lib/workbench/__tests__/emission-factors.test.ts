@@ -1,4 +1,4 @@
-import { EMISSION_FACTORS, FACTOR_BY_KEY, FACTOR_CATEGORY_LABEL } from '@/lib/workbench/emission-factors';
+import { EMISSION_FACTORS, FACTOR_BY_KEY, FACTOR_CATEGORY_LABEL, GRID_FACTORS, gridFactorFor } from '@/lib/workbench/emission-factors';
 import { computeInventory } from '@/lib/workbench/inventory';
 
 describe('emission-factor library (P1a depth) — sourced & overridable', () => {
@@ -40,5 +40,23 @@ describe('emission-factor library (P1a depth) — sourced & overridable', () => 
     expect(r.lines[0].scope).toBe(1);
     expect(r.lines[0].tonnes).toBeCloseTo(192.4, 1);
     expect(r.scope1Tonnes).toBeCloseTo(192.4, 1);
+  });
+});
+
+describe('G1 — country grid factors (Scope 2 electricity)', () => {
+  it('covers all 6 priced countries; each value cites its national source', () => {
+    for (const cc of ['tw', 'vn', 'th', 'sg', 'kr', 'jp'] as const) {
+      expect(GRID_FACTORS[cc].kgco2ePerUnit).toBeGreaterThan(0);
+      expect(GRID_FACTORS[cc].source.zhTW).toBeTruthy();
+    }
+  });
+  it('Vietnam (0.6592) is materially higher than Taiwan (0.474) — the understatement we fixed', () => {
+    expect(GRID_FACTORS.vn.kgco2ePerUnit).toBe(0.6592);
+    expect(GRID_FACTORS.tw.kgco2ePerUnit).toBe(0.474);
+    expect(GRID_FACTORS.vn.kgco2ePerUnit / GRID_FACTORS.tw.kgco2ePerUnit).toBeGreaterThan(1.35); // ~39% higher
+  });
+  it('gridFactorFor falls back to Taiwan for unknown/undefined', () => {
+    expect(gridFactorFor('vn').kgco2ePerUnit).toBe(0.6592);
+    expect(gridFactorFor(undefined).kgco2ePerUnit).toBe(0.474);
   });
 });

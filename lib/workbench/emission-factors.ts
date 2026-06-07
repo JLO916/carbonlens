@@ -16,6 +16,7 @@
 // - GWP: 環境部 113/2/5 公告採 IPCC AR5(CH₄=28、N₂O=265)。燃料係數以 CO₂ 為主項,CH₄/N₂O 為次要。
 
 import type { BilingualText, Citation } from '@/lib/diagnose/types';
+import type { CountryCode } from '@/lib/types';
 
 export type Scope = 1 | 2;
 export type FactorCategory = 'electricity' | 'fuel' | 'steam' | 'fugitive' | 'process';
@@ -223,4 +224,39 @@ export const CITATION_EMISSION_FACTORS: Citation = {
 export const GWP_NOTE: BilingualText = {
   zhTW: '燃料係數以 CO₂ 為主項(燃燒 CO₂ 約占 99%);CH₄／N₂O 為次要,環境部採 IPCC AR5(CH₄ 28、N₂O 265)。逸散冷媒/SF₆ 之係數即 AR5 GWP(已為 CO₂e)。外購蒸汽/製程/其他燃料無單一官方值,請填你查證的係數(預設 0,需自填)。',
   en: 'Fuel factors are CO₂-dominant (≈99%); CH₄/N₂O are minor — MOENV uses IPCC AR5 (CH₄ 28, N₂O 265). Refrigerant/SF₆ factors ARE the AR5 GWP (already CO₂e). Purchased steam/process/other-fuel have no single official value — enter your verified factor (default 0, user-supplied).',
+};
+
+// ── G1: country grid emission factors (Scope 2 electricity) ───────────────────
+// The electricity factor MUST follow the facility's country — using Taiwan's 0.474 for a Vietnam
+// plant understates Scope 2 by ~39%. Every value cites the national authority + is OVERRIDABLE
+// (grids are re-published annually; confirm with the latest official figure).
+export interface GridFactor {
+  kgco2ePerUnit: number; // kgCO₂e per kWh
+  source: BilingualText;
+}
+
+export const GRID_FACTORS: Record<CountryCode, GridFactor> = {
+  tw: { kgco2ePerUnit: 0.474, source: { zhTW: '能源署 113 年度電力排碳係數', en: 'TW Energy Admin. 2024 grid EF' } },
+  vn: { kgco2ePerUnit: 0.6592, source: { zhTW: '越南 MONRE 2023 電網係數', en: 'Vietnam MONRE 2023 grid EF' } },
+  th: { kgco2ePerUnit: 0.475, source: { zhTW: '泰國 TGO 電網係數(Scope 2)', en: 'Thailand TGO grid EF' } },
+  sg: { kgco2ePerUnit: 0.402, source: { zhTW: '新加坡 EMA 2024 GEF', en: 'Singapore EMA 2024 GEF' } },
+  kr: { kgco2ePerUnit: 0.4567, source: { zhTW: '韓國 GIR/KEA(依年度,宜覆寫)', en: 'Korea GIR/KEA (override)' } },
+  jp: { kgco2ePerUnit: 0.45, source: { zhTW: '日本全國平均(電業者差異大,務必覆寫)', en: 'Japan national avg (utility-varying — override)' } },
+};
+
+export function gridFactorFor(cc: CountryCode | undefined): GridFactor {
+  return (cc && GRID_FACTORS[cc]) || GRID_FACTORS.tw;
+}
+
+export const CITATION_GRID_FACTORS: Citation = {
+  source: {
+    zhTW: '各國電網排碳係數:台灣 能源署 113 年度 0.474;越南 MONRE 2023 0.6592;泰國 TGO 0.475;新加坡 EMA 2024 0.402;韓國 GIR/KEA ~0.4567;日本全國平均 ~0.45',
+    en: 'Grid EFs: TW Energy Admin. 2024 0.474; Vietnam MONRE 2023 0.6592; Thailand TGO 0.475; Singapore EMA 2024 0.402; Korea GIR/KEA ~0.4567; Japan national avg ~0.45',
+  },
+  officialDocVersion: {
+    zhTW: '電網係數逐年公布、且日本依電業者差異大——請以各國主管機關最新值為準,可逐行覆寫',
+    en: 'Grid factors are re-published yearly (Japan varies widely by utility) — use the latest national figure; overridable per line',
+  },
+  asOfDate: '2026-06',
+  url: 'https://www.iges.or.jp/en/pub/list-grid-emission-factor/en',
 };

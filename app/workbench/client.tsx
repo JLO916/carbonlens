@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/context';
 import ProfileForm from '@/components/workbench/ProfileForm';
 import CarbonPnL from '@/components/workbench/CarbonPnL';
+import FootprintSummary from '@/components/workbench/FootprintSummary';
 import CarbonFeeBreakdown from '@/components/workbench/CarbonFeeBreakdown';
 import PriorityList from '@/components/workbench/PriorityList';
 import CbamRampChart from '@/components/workbench/CbamRampChart';
@@ -172,6 +173,7 @@ export default function WorkbenchClient() {
       {snap && (
         <div className="space-y-5">
           <h2 className="text-lg font-semibold text-gray-900">{t('碳合規 P&L', 'Carbon-compliance P&L')}</h2>
+          <FootprintSummary profile={snap.profile} />
           <CarbonPnL result={snap.result} />
           <CarbonFeeBreakdown result={snap.result} profile={snap.profile} />
           <PriorityList result={snap.result} />

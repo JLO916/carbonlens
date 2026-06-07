@@ -38,6 +38,38 @@ describe('computeInventory — activity data → emissions with lineage', () => 
     expect(facilityEmissionsTonnes({ ...f, useInventory: true, activities: [] })).toBe(50000);
   });
 
+  it('G1: electricity follows the facility country grid factor — Vietnam 0.6592, not Taiwan 0.474', () => {
+    const elec1M: ActivityLine = { id: 'e', factorKey: 'electricity', amount: 1_000_000 };
+    expect(computeInventory([elec1M], 'tw').totalTonnes).toBeCloseTo(474, 0); // 1M × 0.474
+    expect(computeInventory([elec1M], 'vn').totalTonnes).toBeCloseTo(659.2, 1); // 1M × 0.6592 (VN grid)
+    expect(computeInventory([elec1M], 'th').totalTonnes).toBeCloseTo(475, 0); // TGO 0.475
+    expect(computeInventory([elec1M]).totalTonnes).toBeCloseTo(474, 0); // no country → default TW factor
+    // the VN line's lineage shows the Vietnam source (auditable)
+    expect(computeInventory([elec1M], 'vn').lines[0].factor?.source.zhTW).toContain('越南');
+    // an explicit override still wins regardless of country
+    const overridden: ActivityLine = { id: 'e', factorKey: 'electricity', amount: 1_000_000, customFactor: 0.5 };
+    expect(computeInventory([overridden], 'vn').totalTonnes).toBeCloseTo(500, 0);
+  });
+
+  it('G2: market-based Scope 2 applies the renewable % (GHG Protocol dual reporting + RE100)', () => {
+    const elec1M: ActivityLine = { id: 'e', factorKey: 'electricity', amount: 1_000_000 };
+    const r = computeInventory([elec1M], 'tw', 40); // 40% PPA/REC
+    expect(r.scope2Tonnes).toBeCloseTo(474, 0); // location-based unchanged
+    expect(r.scope2MarketTonnes).toBeCloseTo(284.4, 1); // 474 × (1 − 0.40)
+    expect(r.totalMarketTonnes).toBeCloseTo(284.4, 1);
+    expect(r.renewablePct).toBe(40);
+    // 100% renewable → market-based Scope 2 is zero
+    expect(computeInventory([elec1M], 'tw', 100).scope2MarketTonnes).toBe(0);
+    // 0% (default) → market equals location
+    expect(computeInventory([elec1M], 'tw').scope2MarketTonnes).toBeCloseTo(474, 0);
+  });
+
+  it('G1: facilityEmissionsTonnes for an overseas facility uses that country grid factor', () => {
+    const f = emptyProfile().facilities[0];
+    const vn = { ...f, countryCode: 'vn' as const, useInventory: true, activities: [{ id: 'e', factorKey: 'electricity', amount: 1_000_000 }] };
+    expect(facilityEmissionsTonnes(vn)).toBeCloseTo(659.2, 1);
+  });
+
   it('P0 trust fix: an inventory whose lines total 0 does NOT zero the fee — it falls back to the typed total', () => {
     const f = emptyProfile().facilities[0]; // typed 50,000
     // the trap: toggled to inventory mode, one seeded zero-amount line → total 0

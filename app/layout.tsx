@@ -17,25 +17,25 @@ const notoSansTC = Noto_Sans_TC({
 });
 
 export const metadata: Metadata = {
-  title: "碳費試算與CBAM碳關稅計算器｜亞太六國碳成本分析 — CarbonLens",
+  title: "碳費試算與CBAM碳關稅計算器｜亞太六國碳成本分析 — Carbon Lens 碳排鏡菱",
   description: "免費線上碳成本分析工具。台灣碳費三種費率方案十年成本比較、歐盟CBAM碳關稅影響評估、亞太六國碳價競爭力比較。幫企業在決策前看清碳定價的長期影響。",
   keywords: [
     "碳費計算", "碳費試算", "CBAM計算器", "CBAM試算", "碳關稅計算", "碳成本計算", "台灣碳費", "碳費優惠費率", "歐盟碳邊境調整機制", "碳定價", "亞太碳價",
     "CBAM calculator", "carbon cost calculator", "carbon pricing calculator", "CBAM cost estimator", "carbon fee calculator Taiwan", "carbon tax calculator Singapore", "K-ETS calculator Korea", "APAC carbon pricing",
   ],
   openGraph: {
-    title: "碳費試算與CBAM碳關稅計算器｜亞太六國碳成本分析 — CarbonLens",
+    title: "碳費試算與CBAM碳關稅計算器｜亞太六國碳成本分析 — Carbon Lens 碳排鏡菱",
     description: "免費線上碳成本分析工具。台灣碳費三種費率方案十年成本比較、歐盟CBAM碳關稅影響評估、亞太六國碳價競爭力比較。",
     type: "website",
     locale: "zh_TW",
     alternateLocale: "en_US",
-    siteName: "CarbonLens",
+    siteName: "Carbon Lens 碳排鏡菱",
     url: "https://carbonlens.app",
-    images: [{ url: "https://carbonlens.app/og-image.png", width: 1200, height: 630, alt: "CarbonLens — Carbon Pricing & EU CBAM Calculator for Asia-Pacific Exporters" }],
+    images: [{ url: "https://carbonlens.app/og-image.png", width: 1200, height: 630, alt: "Carbon Lens 碳排鏡菱 — Carbon Pricing & EU CBAM Calculator for Asia-Pacific Exporters" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CBAM & Carbon Pricing Calculator for Asia-Pacific Exporters — CarbonLens",
+    title: "CBAM & Carbon Pricing Calculator for Asia-Pacific Exporters — Carbon Lens 碳排鏡菱",
     description: "Free tool to calculate domestic carbon costs across 6 APAC countries and EU CBAM exposure, with cross-border deduction analysis.",
     images: ["https://carbonlens.app/og-image.png"],
   },
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "CarbonLens",
+  name: "Carbon Lens 碳排鏡菱",
   alternateName: "碳成本透視鏡",
   description: "Free carbon cost analysis tool for Asia-Pacific businesses. Compare domestic carbon pricing across 6 countries and assess EU CBAM carbon border tax exposure.",
   url: "https://carbonlens.app",

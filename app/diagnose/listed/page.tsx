@@ -3,7 +3,7 @@ import Footer from '@/components/layout/Footer';
 import ListedDiagnoseClient from './client';
 
 export const metadata = {
-  title: '上市櫃永續揭露診斷｜GRI 報告書・IFRS S1/S2 接軌階段與時程 — CarbonLens',
+  title: '上市櫃永續揭露診斷｜GRI 報告書・IFRS S1/S2 接軌階段與時程 — Carbon Lens 碳排鏡菱',
   description:
     '輸入上市櫃別、實收資本額級距與是否已編報告書，即時判定永續報告書義務、IFRS S1/S2 接軌第幾階段、哪年編製與申報、Scope 1/2/3 揭露範圍與合規急迫度分數。',
 };

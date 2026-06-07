@@ -1,7 +1,7 @@
 import AdminLeadsClient from './client';
 
 export const metadata = {
-  title: '線索管理 — CarbonLens',
+  title: '線索管理 — Carbon Lens 碳排鏡菱',
   robots: { index: false, follow: false },
 };
 

@@ -5,6 +5,8 @@
 import type { CompanyProfile, FacilityLine } from './profile';
 import { taiwanPeriodForYear } from './profile';
 import { facilityEmissionsTonnes } from './inventory';
+import { getCalculator } from '@/lib/calculators/domestic';
+import type { CountryCode } from '@/lib/types';
 import type { ListedInput, SupplyChainInput, CbamInput } from '@/lib/diagnose/types';
 import type { DomesticInput } from '@/lib/calculators/domestic/types';
 
@@ -47,9 +49,21 @@ export function toCbamInputs(p: CompanyProfile): CbamInput[] {
  *  A1 gating: the preferential rate AND the carbon-leakage coefficient legally require an
  *  MOENV-approved voluntary reduction plan — without it we force the general rate (no 優惠/CL). */
 export function toDomesticInput(facility: FacilityLine, p: CompanyProfile): DomesticInput {
+  const cc = facility.countryCode as CountryCode;
+  const annualEmissions = facilityEmissionsTonnes(facility);
+  // P2c — non-Taiwan facilities run their own country's engine with that engine's default params
+  // (indicative; the Taiwan-specific A1 gating / rate / leakage do not apply abroad).
+  if (cc !== 'tw') {
+    return {
+      annualEmissions,
+      industryType: p.industry,
+      year: p.year,
+      countrySpecific: getCalculator(cc).getDefaultParams(),
+    };
+  }
   const gated = !facility.hasApprovedReductionPlan;
   return {
-    annualEmissions: facilityEmissionsTonnes(facility),
+    annualEmissions,
     industryType: p.industry,
     year: p.year,
     countrySpecific: {

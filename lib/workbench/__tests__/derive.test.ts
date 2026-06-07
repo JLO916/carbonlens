@@ -3,6 +3,7 @@ import { toListedInput, toSupplyChainInput, toCbamInputs, toDomesticInput } from
 import { diagnoseListed } from '@/lib/diagnose/logic/listed';
 import { diagnoseSupplyChain } from '@/lib/diagnose/logic/supply-chain';
 import { diagnoseCbam } from '@/lib/diagnose/logic/cbam';
+import { getCalculator } from '@/lib/calculators/domestic';
 
 describe('workbench derive — one profile → the existing *Input shapes', () => {
   const p = emptyProfile();
@@ -57,5 +58,18 @@ describe('workbench derive — one profile → the existing *Input shapes', () =
     const ok = toDomesticInput({ ...fac, hasApprovedReductionPlan: true }, p);
     expect(ok.countrySpecific.rateType).toBe('preferB'); // honoured with plan
     expect(ok.countrySpecific.highCarbonLeakage).toBe(true);
+  });
+
+  it('P2c: a non-Taiwan facility runs its own country engine with that engine\'s default params', () => {
+    const sg = { ...p.facilities[0], countryCode: 'sg' as const, annualEmissionsTonnes: 500_000, rateType: 'preferB' as const, highCarbonLeakage: true };
+    const di = toDomesticInput(sg, p);
+    expect(di.annualEmissions).toBe(500_000);
+    // Taiwan-only knobs do NOT leak into a Singapore facility's countrySpecific
+    expect(di.countrySpecific.rateType).toBeUndefined();
+    expect(di.countrySpecific.period).toBeUndefined();
+    // the Singapore engine produces a real (non-zero) carbon-tax cost from this input
+    const sgResult = getCalculator('sg').calculate(di);
+    expect(sgResult.totalCarbonCost).toBeGreaterThan(0);
+    expect(sgResult.currency).toBe('SGD');
   });
 });

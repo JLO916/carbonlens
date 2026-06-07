@@ -12,6 +12,7 @@ import ReductionLens from '@/components/workbench/ReductionLens';
 import AssuranceGuide from '@/components/workbench/AssuranceGuide';
 import SnapshotHistory from '@/components/workbench/SnapshotHistory';
 import { loadProfile, saveProfile, exportProfileJson, parseProfile } from '@/lib/workbench/storage';
+import { inventorySheetCsv, disclosureReportText, cbamCommunicationCsv } from '@/lib/workbench/export-deliverables';
 import { snapshotOf, appendSnapshot, loadSnapshots, type Snapshot } from '@/lib/workbench/snapshots';
 import ListedResultView from '@/components/diagnose/ListedResult';
 import SupplyChainResultView from '@/components/diagnose/SupplyChainResult';
@@ -49,7 +50,7 @@ async function fetchLookup(line: CompanyProfile['cbamProducts'][number], profile
 }
 
 export default function WorkbenchClient() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [profile, setProfile] = useState<CompanyProfile>(emptyProfile());
   const [snap, setSnap] = useState<ComputeSnapshot | null>(null);
   const [history, setHistory] = useState<Snapshot[]>([]);
@@ -78,16 +79,35 @@ export default function WorkbenchClient() {
     setHistory(appendSnapshot(snapshotOf(snap.result, new Date().toISOString())));
   }
 
-  function exportProfile() {
-    const blob = new Blob([exportProfileJson(profile)], { type: 'application/json' });
+  function downloadText(filename: string, text: string, mime: string) {
+    const blob = new Blob([text], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'carbon-workbench-profile.json';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  function exportProfile() {
+    downloadText('carbon-workbench-profile.json', exportProfileJson(profile), 'application/json');
+  }
+
+  // P2a deliverables — the inventory worksheet + a disclosure draft a practitioner can hand over.
+  function exportInventoryCsv() {
+    // ﻿ BOM so Excel reads the UTF-8 (Chinese) columns correctly.
+    downloadText('ghg-inventory-sheet.csv', '﻿' + inventorySheetCsv(profile, lang), 'text/csv;charset=utf-8');
+  }
+
+  function exportReport() {
+    if (!snap) return;
+    downloadText('climate-disclosure-draft.txt', disclosureReportText(profile, snap.result, lang), 'text/plain;charset=utf-8');
+  }
+
+  function exportCbamTemplate() {
+    downloadText('cbam-communication-template.csv', '﻿' + cbamCommunicationCsv(profile, lang), 'text/csv;charset=utf-8');
   }
 
   function importProfile(e: ChangeEvent<HTMLInputElement>) {
@@ -134,6 +154,12 @@ export default function WorkbenchClient() {
 
       <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
         <button type="button" onClick={exportProfile} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('匯出側寫(JSON 檔)', 'Export profile (JSON)')}</button>
+        <span className="text-gray-300">·</span>
+        <button type="button" onClick={exportInventoryCsv} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('盤查清冊(CSV)', 'Inventory sheet (CSV)')}</button>
+        <span className="text-gray-300">·</span>
+        <button type="button" onClick={exportCbamTemplate} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('CBAM 溝通範本(CSV)', 'CBAM template (CSV)')}</button>
+        {snap && <span className="text-gray-300">·</span>}
+        {snap && <button type="button" onClick={exportReport} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('揭露報告段落(草稿)', 'Disclosure draft (text)')}</button>}
         <span className="text-gray-300">·</span>
         <label className="cursor-pointer text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">
           ⬆ {t('匯入側寫', 'Import profile')}

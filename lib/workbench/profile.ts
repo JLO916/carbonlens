@@ -73,6 +73,8 @@ export interface CompanyProfile {
   targetReductionPct?: number;
   // Analysis year (drives both the carbon-fee period and the CBAM factor):
   year: number;
+  // Base year for reduction targets / SBTi (P1c) — the reference year cuts are measured against:
+  baseYear?: number;
 }
 
 /** Taiwan carbon-fee period band for a year (CL-coefficient schedule). */

@@ -4,6 +4,16 @@
 
 import { FACTOR_BY_KEY, type EmissionFactor, type Scope } from './emission-factors';
 import type { FacilityLine } from './profile';
+import type { BilingualText } from '@/lib/diagnose/types';
+
+/** Data-quality tier for an activity line (drives the assurance audit trail). */
+export type DataQuality = 'measured' | 'invoice' | 'estimate';
+
+export const DATA_QUALITY_LABEL: Record<DataQuality, BilingualText> = {
+  measured: { zhTW: '實測（計量器／CEMS）', en: 'Measured (meter/CEMS)' },
+  invoice: { zhTW: '發票／帳單', en: 'Invoice/bill' },
+  estimate: { zhTW: '估算', en: 'Estimate' },
+};
 
 /** One activity-data line (e.g. 1,200,000 kWh electricity, 5,000 L diesel). */
 export interface ActivityLine {
@@ -11,6 +21,10 @@ export interface ActivityLine {
   factorKey: string; // → EMISSION_FACTORS
   amount: number; // in the factor's activity unit
   customFactor?: number; // override kgCO₂e/unit (facility-specific or newer version)
+  // P1b — assurance metadata (does NOT change the computed tonnes; travels into the inventory sheet):
+  dataQuality?: DataQuality; // measured (CEMS/meter) > invoice (台電/油單) > estimate
+  evidenceNote?: string; // 佐證來源, e.g. 台電電費單 2025/01–12、加油發票
+  uncertaintyPct?: number; // optional ± uncertainty for the activity figure
 }
 
 export interface InventoryLineResult {

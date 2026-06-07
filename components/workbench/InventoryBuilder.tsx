@@ -3,10 +3,12 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useI18n } from '@/lib/i18n/context';
-import { computeInventory, type ActivityLine } from '@/lib/workbench/inventory';
-import { EMISSION_FACTORS, FACTOR_BY_KEY, CITATION_EMISSION_FACTORS, GWP_NOTE } from '@/lib/workbench/emission-factors';
+import { computeInventory, DATA_QUALITY_LABEL, type ActivityLine, type DataQuality } from '@/lib/workbench/inventory';
+import { EMISSION_FACTORS, FACTOR_BY_KEY, FACTOR_CATEGORY_LABEL, CITATION_EMISSION_FACTORS, GWP_NOTE, type FactorCategory } from '@/lib/workbench/emission-factors';
+
+const FACTOR_CATEGORY_ORDER: FactorCategory[] = ['electricity', 'steam', 'fuel', 'fugitive', 'process'];
 import CitationTag from '@/components/diagnose/CitationTag';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(n);
@@ -35,7 +37,18 @@ export default function InventoryBuilder({ activities, onChange }: { activities:
                   <Label className="text-[11px] text-gray-500">{t('排放源', 'Source')}</Label>
                   <Select value={a.factorKey} onValueChange={(v) => v && setLine(a.id, { factorKey: v, customFactor: undefined })}>
                     <SelectTrigger className="h-9 w-full text-sm"><SelectValue>{() => (f ? `${tObj(f.label)}` : '')}</SelectValue></SelectTrigger>
-                    <SelectContent>{EMISSION_FACTORS.map((x) => <SelectItem key={x.key} value={x.key}>S{x.scope} · {tObj(x.label)}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      {FACTOR_CATEGORY_ORDER.map((cat) => {
+                        const items = EMISSION_FACTORS.filter((x) => x.category === cat);
+                        if (!items.length) return null;
+                        return (
+                          <SelectGroup key={cat}>
+                            <SelectLabel>{tObj(FACTOR_CATEGORY_LABEL[cat])}</SelectLabel>
+                            {items.map((x) => <SelectItem key={x.key} value={x.key}>S{x.scope} · {tObj(x.label)}</SelectItem>)}
+                          </SelectGroup>
+                        );
+                      })}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="sm:col-span-3">
@@ -59,9 +72,30 @@ export default function InventoryBuilder({ activities, onChange }: { activities:
                   <>
                     {fmt(a.amount || 0)} {tObj(f.unit)} × {factorVal} = {fmt(res?.tonnes ?? 0)} t · {t('Scope', 'Scope')} {res?.scope} · {t('來源', 'Source')} {tObj(f.source)}
                     {res?.isOverride && <span className="text-amber-600"> · {t('已覆寫', 'overridden')}</span>}
+                    {f.userSupplied && !(factorVal > 0) && <span className="font-medium text-amber-600"> · {t('請填入你的係數', 'enter your factor')}</span>}
                   </>
                 )}
               </p>
+              {/* P1b — assurance metadata: data quality + evidence + uncertainty (audit trail) */}
+              <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-dashed border-gray-100 pt-1.5 sm:grid-cols-12">
+                <div className="sm:col-span-3">
+                  <Label className="text-[10px] text-gray-400">{t('數據品質', 'Data quality')}</Label>
+                  <Select value={a.dataQuality ?? ''} onValueChange={(v) => v && setLine(a.id, { dataQuality: v as DataQuality })}>
+                    <SelectTrigger className="h-8 w-full text-xs"><SelectValue placeholder={t('選填', '—')}>{() => (a.dataQuality ? tObj(DATA_QUALITY_LABEL[a.dataQuality]) : t('選填', '—'))}</SelectValue></SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(DATA_QUALITY_LABEL) as DataQuality[]).map((q) => <SelectItem key={q} value={q}>{tObj(DATA_QUALITY_LABEL[q])}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-7">
+                  <Label className="text-[10px] text-gray-400">{t('佐證來源', 'Evidence')}</Label>
+                  <Input className="h-8 text-xs" placeholder={t('如 台電電費單 2025/01–12、加油發票', 'e.g. utility bills 2025, fuel receipts')} value={a.evidenceNote ?? ''} onChange={(e) => setLine(a.id, { evidenceNote: e.target.value || undefined })} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="text-[10px] text-gray-400">{t('不確定性 ±%', 'Uncert. ±%')}</Label>
+                  <Input type="number" className="h-8 text-xs" placeholder={t('選填', 'opt')} value={a.uncertaintyPct ?? ''} onChange={(e) => setLine(a.id, { uncertaintyPct: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })} />
+                </div>
+              </div>
             </div>
           );
         })}

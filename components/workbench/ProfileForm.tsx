@@ -108,10 +108,11 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
       {/* Company basics */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-base">{t('① 公司基本', '① Company basics')}</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="space-y-1.5"><Label className="text-sm">{t('公司（選填）', 'Company (optional)')}</Label><Input value={profile.company ?? ''} onChange={(e) => set({ company: e.target.value })} /></div>
           <div className="space-y-1.5"><Label className="text-sm">{t('產業別', 'Industry')}</Label><Picker value={profile.industry} onChange={(v) => set({ industry: v })} options={INDUSTRIES.map((i) => ({ value: i.value, label: i.label }))} /></div>
           <div className="space-y-1.5"><Label className="text-sm">{t('分析年度', 'Analysis year')}</Label><Picker value={String(profile.year)} onChange={(v) => set({ year: Number(v) })} options={[2026, 2027, 2028].map((y) => ({ value: String(y), label: { zhTW: String(y), en: String(y) } }))} /></div>
+          <div className="space-y-1.5"><Label className="text-sm">{t('基準年（選填）', 'Base year (opt)')}</Label><Input type="number" value={profile.baseYear ?? ''} placeholder={t('如 2024', 'e.g. 2024')} onChange={(e) => set({ baseYear: e.target.value === '' ? undefined : Math.max(2000, Number(e.target.value) || 0) })} /><p className="text-[10px] text-gray-400">{t('SBTi／減量目標的基準', 'SBTi/target baseline')}</p></div>
         </CardContent>
       </Card>
 

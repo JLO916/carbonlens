@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
 import { targetTrajectory, SBTI_NOTE, CITATION_SBTI } from '@/lib/workbench/target';
 import CitationTag from '@/components/diagnose/CitationTag';
+import InfoHint from '@/components/ui/InfoHint';
 import type { CompanyProfile } from '@/lib/workbench/profile';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n));
@@ -66,8 +67,8 @@ export default function TargetTracker({ profile }: { profile: CompanyProfile }) 
           ))}
         </div>
 
-        <p className={`text-xs ${tr.sbtiAligned ? 'text-[#5d7d44]' : 'text-amber-700'}`}>
-          {t('隱含年減', 'Implied')} {tr.impliedAnnualPct}%/{t('年', 'yr')} ·
+        <p className={`flex flex-wrap items-center gap-x-1 text-xs ${tr.sbtiAligned ? 'text-[#5d7d44]' : 'text-amber-700'}`}>
+          <InfoHint termKey="sbti" label={t('隱含年減', 'Implied')} /> {tr.impliedAnnualPct}%/{t('年', 'yr')} ·
           {tr.sbtiAligned ? t(' ✓ 達 SBTi 1.5°C 最低 4.2%/年', ' ✓ meets SBTi 1.5°C min 4.2%/yr') : t(` ✗ 未達 SBTi 1.5°C 最低 4.2%/年`, ` ✗ below SBTi 1.5°C min 4.2%/yr`)}
           {tr.baseAssumed && t(' ·（基準年排放未填,暫用今年值）', ' · (base-year emissions blank — using current)')}
         </p>

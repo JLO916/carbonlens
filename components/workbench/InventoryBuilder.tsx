@@ -10,6 +10,7 @@ import { EMISSION_FACTORS, FACTOR_BY_KEY, FACTOR_CATEGORY_LABEL, CITATION_EMISSI
 
 const FACTOR_CATEGORY_ORDER: FactorCategory[] = ['electricity', 'steam', 'fuel', 'fugitive', 'process'];
 import CitationTag from '@/components/diagnose/CitationTag';
+import InfoHint from '@/components/ui/InfoHint';
 import type { CountryCode } from '@/lib/types';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(n);
@@ -115,7 +116,7 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
 
       {inv.renewablePct > 0 && (
         <p className="rounded-lg bg-[#89B56C]/10 px-2.5 py-1.5 text-[11px] leading-relaxed text-[#5d7d44]">
-          {t('市場基礎 Scope 2', 'Market-based Scope 2')}（RE100 {fmt(inv.renewablePct)}%）：<span className="font-semibold">{fmt(inv.scope2MarketTonnes)}</span> tCO₂e
+          <InfoHint termKey="locationVsMarket" label={t('市場基礎 Scope 2', 'Market-based Scope 2')} />（RE100 {fmt(inv.renewablePct)}%）：<span className="font-semibold">{fmt(inv.scope2MarketTonnes)}</span> tCO₂e
           <span className="text-gray-500"> · {t('市場基礎合計', 'market-based total')} {fmt(inv.totalMarketTonnes)} tCO₂e · {t('簡化:綠電佔比歸零該份額;嚴格應採殘差電力係數', 'simplified: renewables zero their share; strict uses a residual-mix factor')}</span>
         </p>
       )}

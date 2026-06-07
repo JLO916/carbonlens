@@ -160,8 +160,8 @@ export default function WorkbenchClient() {
         <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">{t('你的碳合規全貌', 'Your whole carbon-compliance picture')}</h1>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">
           {t(
-            '填一次公司側寫,同時算出國內碳費、CBAM 暴露、IFRS 揭露與供應鏈壓力,並給跨義務的「先做哪件」。資料只存在你的瀏覽器。',
-            'Fill your company profile once — get domestic carbon fee, CBAM exposure, IFRS disclosure and supply-chain pressure together, plus a cross-obligation "do this first". Data stays in your browser.',
+            '填一次公司側寫,工作台帶你走完盤查→目標→減量→查證→申報→揭露→年對年閉環的完整週期。術語旁都有 ⓘ(白話＋專業),新手到專家都看得懂。資料只存在你的瀏覽器。',
+            'Fill one company profile; the workbench walks the full cycle — inventory → targets → reductions → assurance → filing → disclosure → year-over-year. Terms carry an ⓘ (plain + professional). Data stays in your browser.',
           )}
         </p>
       </header>

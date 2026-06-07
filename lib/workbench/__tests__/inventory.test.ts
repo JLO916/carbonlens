@@ -127,3 +127,25 @@ describe('E2 — assurance rollups (uncertainty + data-quality mix)', () => {
     expect(computeInventory([ELEC]).dataQualityMix.unspecified).toBeCloseTo(100, 0);
   });
 });
+
+describe('F2 — abatement DRE (destruction/removal efficiency)', () => {
+  it('reported = gross × (1 − DRE); gross + abatementPct exposed for lineage; sums use reported', () => {
+    const r = computeInventory([{ id: 'g', factorKey: 'nf3', amount: 2000, abatementPct: 95 }]);
+    const l = r.lines[0];
+    expect(l.grossTonnes).toBeCloseTo(32200, 0); // 2,000 kg × 16,100 / 1000
+    expect(l.abatementPct).toBe(95);
+    expect(l.tonnes).toBeCloseTo(1610, 0); // 32,200 × (1 − 0.95)
+    expect(r.scope1Tonnes).toBeCloseTo(1610, 0); // scope sums use the reported (abated) tonnes
+  });
+
+  it('no abatement → reported equals gross', () => {
+    const l = computeInventory([{ id: 'g', factorKey: 'nf3', amount: 2000 }]).lines[0];
+    expect(l.abatementPct).toBe(0);
+    expect(l.tonnes).toBeCloseTo(l.grossTonnes, 3);
+  });
+
+  it('DRE is clamped to 0–100', () => {
+    expect(computeInventory([{ id: 'g', factorKey: 'nf3', amount: 100, abatementPct: 150 }]).lines[0].tonnes).toBe(0); // ≥100 → fully abated
+    expect(computeInventory([{ id: 'g', factorKey: 'nf3', amount: 100, abatementPct: -10 }]).lines[0].abatementPct).toBe(0);
+  });
+});

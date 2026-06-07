@@ -5,7 +5,7 @@ describe('emission-factor library (P1a depth) — sourced & overridable', () => 
   it('covers electricity + steam + fuels + fugitive + process (≥17 sources)', () => {
     expect(EMISSION_FACTORS.length).toBeGreaterThanOrEqual(17);
     const cats = new Set(EMISSION_FACTORS.map((f) => f.category));
-    expect(cats).toEqual(new Set(['electricity', 'steam', 'fuel', 'fugitive', 'process']));
+    expect(cats).toEqual(new Set(['electricity', 'steam', 'fuel', 'fugitive', 'fgas', 'process']));
     // every category has a bilingual label
     for (const c of cats) expect(FACTOR_CATEGORY_LABEL[c].zhTW).toBeTruthy();
   });
@@ -84,5 +84,29 @@ describe('E3 — process calcination factors (sourced IPCC Tier-1 / stoichiometr
   it('process_other stays a user-supplied placeholder (no fabricated default)', () => {
     expect(FACTOR_BY_KEY.process_other.userSupplied).toBe(true);
     expect(FACTOR_BY_KEY.process_other.kgco2ePerUnit).toBe(0);
+  });
+});
+
+describe('F1 — fluorinated process gases (semiconductor/TFT/PV), IPCC AR5 GWP', () => {
+  it('NF₃/CF₄/C₂F₆/C₃F₈/CHF₃/c-C₄F₈ carry their AR5 GWP as the factor (Scope 1, fgas)', () => {
+    const gwp: Record<string, number> = { nf3: 16100, cf4: 6630, c2f6: 11100, c3f8: 8900, chf3: 12400, c4f8: 9540 };
+    for (const [k, v] of Object.entries(gwp)) {
+      expect(FACTOR_BY_KEY[k].kgco2ePerUnit).toBe(v);
+      expect(FACTOR_BY_KEY[k].scope).toBe(1);
+      expect(FACTOR_BY_KEY[k].category).toBe('fgas');
+      expect(FACTOR_BY_KEY[k].source.zhTW).toMatch(/AR5/);
+    }
+  });
+
+  it('SF₆ is grouped under the F-gas category alongside the PFCs/NF₃', () => {
+    expect(FACTOR_BY_KEY.sf6.category).toBe('fgas');
+    expect(FACTOR_BY_KEY.sf6.kgco2ePerUnit).toBe(23500);
+  });
+
+  it('computeInventory: 2,000 kg NF₃ × 16,100 = 32,200 t (Scope 1) — a fab’s real F-gas load', () => {
+    const r = computeInventory([{ id: 'g', factorKey: 'nf3', amount: 2000 }]);
+    expect(r.lines[0].scope).toBe(1);
+    expect(r.lines[0].tonnes).toBeCloseTo(32200, 0);
+    expect(r.scope1Tonnes).toBeCloseTo(32200, 0);
   });
 });

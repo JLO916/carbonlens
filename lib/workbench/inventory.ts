@@ -26,6 +26,10 @@ export interface ActivityLine {
   dataQuality?: DataQuality; // measured (CEMS/meter) > invoice (台電/油單) > estimate
   evidenceNote?: string; // 佐證來源, e.g. 台電電費單 2025/01–12、加油發票
   uncertaintyPct?: number; // optional ± uncertainty for the activity figure
+  // F2 — abatement destruction/removal efficiency % (0–100). For abated F-gases / flared streams the
+  // reported emission is consumption × factor × (1 − DRE) (IPCC Tier 2b). Needs verified abatement
+  // data; default undefined = no abatement (conservative gross).
+  abatementPct?: number;
 }
 
 export interface InventoryLineResult {
@@ -34,7 +38,9 @@ export interface InventoryLineResult {
   effectiveFactor: number; // customFactor ?? factor.kgco2ePerUnit
   isOverride: boolean;
   scope: Scope;
-  tonnes: number; // amount × effectiveFactor / 1000
+  grossTonnes: number; // amount × effectiveFactor / 1000 (before abatement)
+  abatementPct: number; // F2 — destruction/removal efficiency applied (0 when none)
+  tonnes: number; // reported = grossTonnes × (1 − abatementPct/100)
 }
 
 /** E2 — combined ± uncertainty over the QUANTIFIED portion of the inventory (the lines that carry a
@@ -81,8 +87,11 @@ export function computeInventory(activities: ActivityLine[], countryCode?: Count
     const isOverride = typeof line.customFactor === 'number' && line.customFactor >= 0;
     const effectiveFactor = isOverride ? (line.customFactor as number) : factor?.kgco2ePerUnit ?? 0;
     const scope: Scope = factor?.scope ?? 1;
-    const tonnes = round((Math.max(0, line.amount) * effectiveFactor) / 1000);
-    return { line, factor, effectiveFactor, isOverride, scope, tonnes };
+    const grossTonnes = round((Math.max(0, line.amount) * effectiveFactor) / 1000);
+    // F2 — abatement (DRE): reported emission = gross × (1 − DRE). Only reduces; clamps to 0–100.
+    const abatementPct = Math.max(0, Math.min(100, line.abatementPct ?? 0));
+    const tonnes = round(grossTonnes * (1 - abatementPct / 100));
+    return { line, factor, effectiveFactor, isOverride, scope, grossTonnes, abatementPct, tonnes };
   });
   const scope1Tonnes = round(lines.filter((l) => l.scope === 1).reduce((a, l) => a + l.tonnes, 0));
   const scope2Tonnes = round(lines.filter((l) => l.scope === 2).reduce((a, l) => a + l.tonnes, 0));
@@ -124,6 +133,12 @@ export function computeInventory(activities: ActivityLine[], countryCode?: Count
     dataQualityMix,
   };
 }
+
+/** F2 — note for the abatement (DRE) reduction, so it isn't taken as a free unsourced cut. */
+export const ABATEMENT_NOTE: BilingualText = {
+  zhTW: '減排設備去除率(DRE):已裝廢氣燃燒/電漿洗滌等末端處理時,申報排放 = 用量 × 係數 ×（1−DRE)。半導體含氟氣體常 90–99%。須附查證之破壞去除效率(IPCC Tier 2b;精確盤查另計氣體利用率與副產物)。未填=不抵減(保守毛排放)。',
+  en: 'Abatement (DRE): with end-of-pipe combustion/plasma scrubbing, reported = consumption × factor × (1 − DRE). Semiconductor F-gases are often 90–99%. Requires a verified destruction/removal efficiency (IPCC Tier 2b; precise inventories also model gas utilization + byproducts). Blank = no reduction (conservative gross).',
+};
 
 /** E2 — methodology note for the aggregated uncertainty (so the rollup isn't a black box). */
 export const UNCERTAINTY_NOTE: BilingualText = {

@@ -25,16 +25,10 @@ export default function InfoHint({ termKey, label, className = '' }: { termKey: 
         i
       </button>
       {open && (
-        <span className="absolute left-0 top-full z-30 mt-1 w-64 rounded-lg border border-gray-200 bg-white p-3 text-left shadow-lg">
+        <span className="absolute left-0 top-full z-30 mt-1 w-64 rounded-lg border border-gray-200 bg-white p-3 text-left font-normal shadow-lg">
           <span className="block text-xs font-semibold text-gray-900">{tObj(g.term)}</span>
-          <span className="mt-1 flex gap-1.5 text-[11px] leading-relaxed text-gray-700">
-            <span className="shrink-0 rounded bg-[#89B56C]/15 px-1 font-medium text-[#5d7d44]">{t('白話', 'Plain')}</span>
-            <span>{tObj(g.plain)}</span>
-          </span>
-          <span className="mt-1.5 flex gap-1.5 text-[11px] leading-relaxed text-gray-500">
-            <span className="shrink-0 rounded bg-gray-100 px-1 font-medium text-gray-500">{t('專業', 'Pro')}</span>
-            <span>{tObj(g.pro)}</span>
-          </span>
+          <span className="mt-1 block text-[11px] leading-relaxed text-gray-700">{tObj(g.plain)}</span>
+          <span className="mt-1.5 block border-t border-gray-100 pt-1.5 text-[11px] leading-relaxed text-gray-400">{tObj(g.pro)}</span>
         </span>
       )}
     </span>

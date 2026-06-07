@@ -128,7 +128,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
 
       {/* Disclosure */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">{t('② 揭露（上市櫃）', '② Disclosure (listed)')}</CardTitle><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('白話:你是上市櫃嗎、資本額多大?——決定你哪一年起要編 IFRS 永續／氣候揭露。', 'Plain: listed? capital tier? — sets which year you must file IFRS sustainability/climate disclosure.')}</p></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">{t('② 揭露（上市櫃）', '② Disclosure (listed)')}</CardTitle><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('你是上市櫃嗎、資本額多大?——決定你哪一年起要編 IFRS 永續／氣候揭露。', 'listed? capital tier? — sets which year you must file IFRS sustainability/climate disclosure.')}</p></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5"><Label className="text-sm">{t('上市/上櫃', 'Listed/OTC')}</Label><Toggle value={profile.listingType} onChange={(v) => set({ listingType: v })} options={[{ value: 'listed' as ListingType, label: { zhTW: '上市', en: 'Listed' } }, { value: 'otc' as ListingType, label: { zhTW: '上櫃', en: 'OTC' } }]} /></div>
@@ -141,7 +141,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
 
       {/* Supply-chain */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">{t('③ 供應鏈位置', '③ Supply-chain position')}</CardTitle><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('白話:你在供應鏈的哪一端、客戶承諾了什麼?——決定你被要求碳數據的壓力大小。', 'Plain: where you sit in the chain + what your customers pledged — sets how hard you’ll be pushed for carbon data.')}</p></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">{t('③ 供應鏈位置', '③ Supply-chain position')}</CardTitle><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('你在供應鏈的哪一端、客戶承諾了什麼?——決定你被要求碳數據的壓力大小。', 'where you sit in the chain + what your customers pledged — sets how hard you’ll be pushed for carbon data.')}</p></CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5"><Label className="text-sm">{t('商業模式', 'Business model')}</Label><Toggle value={profile.businessModel} onChange={(v) => set({ businessModel: v })} options={BUSINESS_MODELS} /></div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -160,7 +160,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
 
       {/* Export & assumptions */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base">{t('④ 出口與假設', '④ Export & assumptions')}</CardTitle><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('白話:有沒有出口歐盟、歐盟碳價假設多少?——驅動下面 CBAM 的估算。', 'Plain: do you export to the EU, and what EU carbon price do you assume? — drives the CBAM estimate below.')}</p></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">{t('④ 出口與假設', '④ Export & assumptions')}</CardTitle><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('有沒有出口歐盟、歐盟碳價假設多少?——驅動下面 CBAM 的估算。', 'do you export to the EU, and what EU carbon price do you assume? — drives the CBAM estimate below.')}</p></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-1.5"><Label className="text-sm">{t('出口歐盟？', 'Export to EU?')}</Label><Toggle value={profile.exportsToEU} onChange={(v) => set({ exportsToEU: v })} options={YES_NO} /></div>
@@ -177,7 +177,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
 
       {/* Facilities */}
       <Card>
-        <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑤ 廠區（國內碳費／碳稅）', '⑤ Facilities (domestic carbon price)')}</CardTitle><Button size="sm" variant="outline" onClick={addFacility}>＋ {t('新增廠區', 'Add')}</Button></div><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('白話:你各廠一年排多少碳(自己燒的+外購電力)。這是國內碳費／碳稅的基礎,也是 Scope 1+2。', 'Plain: each site’s annual emissions (what you burn + purchased electricity). This is the carbon-fee base, and your Scope 1+2.')}</p></CardHeader>
+        <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑤ 廠區（國內碳費／碳稅）', '⑤ Facilities (domestic carbon price)')}</CardTitle><Button size="sm" variant="outline" onClick={addFacility}>＋ {t('新增廠區', 'Add')}</Button></div><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('你各廠一年排多少碳(自己燒的+外購電力)。這是國內碳費／碳稅的基礎,也是 Scope 1+2。', 'each site’s annual emissions (what you burn + purchased electricity). This is the carbon-fee base, and your Scope 1+2.')}</p></CardHeader>
         <CardContent className="space-y-3">
           {profile.facilities.map((f) => (
             <div key={f.id} className="rounded-lg border border-gray-200 p-3">
@@ -243,7 +243,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
 
       {/* CBAM products */}
       <Card>
-        <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑥ CBAM 出口品項', '⑥ CBAM export lines')}</CardTitle><Button size="sm" variant="outline" onClick={addCbam}>＋ {t('新增品項', 'Add')}</Button></div><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('白話:出口歐盟、且在 CBAM 清單上的貨品(鋼／鋁／水泥／肥料／氫／電力)。成品電子、紡織不在清單上。', 'Plain: goods you export to the EU that are ON the CBAM list (steel/al/cement/fertilizer/H₂/power). Finished electronics/textiles are not.')}</p></CardHeader>
+        <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑥ CBAM 出口品項', '⑥ CBAM export lines')}</CardTitle><Button size="sm" variant="outline" onClick={addCbam}>＋ {t('新增品項', 'Add')}</Button></div><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('出口歐盟、且在 CBAM 清單上的貨品(鋼／鋁／水泥／肥料／氫／電力)。成品電子、紡織不在清單上。', 'goods you export to the EU that are ON the CBAM list (steel/al/cement/fertilizer/H₂/power). Finished electronics/textiles are not.')}</p></CardHeader>
         <CardContent className="space-y-3">
           <p className="rounded-lg bg-blue-50 p-2.5 text-[11px] leading-relaxed text-blue-800">ℹ️ {t('只填「在 CBAM 清單上」的貨品(鋼鐵/鋁/水泥/肥料/氫/電力)。成品電子/伺服器不在清單上——其鋼鋁零件的 CBAM 成本是上游供應商轉嫁(屬你的 Scope 3,見下方 ⑦),不是你自己的 CBAM 申報。', 'List only goods ON the CBAM list (steel/aluminium/cement/fertilizer/hydrogen/electricity). Finished electronics/servers are NOT on the list — the CBAM cost of their steel/aluminium parts is passed through by upstream suppliers (your Scope 3, see ⑦ below), not your own CBAM filing.')}</p>
           {profile.cbamProducts.map((c) => (

@@ -25,6 +25,9 @@ export interface FacilityLine {
   // the facility's emissions are computed from `activities` instead of the typed total.
   useInventory?: boolean;
   activities?: ActivityLine[];
+  // G2: % of electricity from contracted renewables (PPA/REC/green tariff) — drives market-based
+  // Scope 2 (GHG Protocol dual reporting) and RE100 progress. 0–100.
+  renewablePct?: number;
   // Taiwan carbon-fee params (countrySpecific for taiwanCalculator):
   highCarbonLeakage: boolean;
   rateType: 'general' | 'preferA' | 'preferB';

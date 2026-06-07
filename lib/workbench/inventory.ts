@@ -39,9 +39,13 @@ export interface InventoryLineResult {
 
 export interface InventoryResult {
   lines: InventoryLineResult[];
-  totalTonnes: number;
+  totalTonnes: number; // location-based total (scope1 + scope2 location)
   scope1Tonnes: number;
-  scope2Tonnes: number;
+  scope2Tonnes: number; // location-based Scope 2 (grid factor)
+  // G2 — GHG Protocol Scope 2 dual reporting + RE100:
+  scope2MarketTonnes: number; // market-based Scope 2 (after contracted renewables)
+  totalMarketTonnes: number; // scope1 + scope2Market
+  renewablePct: number; // 0–100, the RE100 progress figure applied
 }
 
 const round = (x: number) => Math.round(x * 1000) / 1000;
@@ -49,7 +53,7 @@ const round = (x: number) => Math.round(x * 1000) / 1000;
 /** Compute a facility inventory from its activity lines, with per-line lineage. `countryCode` makes
  *  the electricity (Scope 2) factor follow that country's grid (G1) — so a Vietnam plant uses
  *  Vietnam's 0.6592, not Taiwan's 0.474 — unless the line carries an explicit override. */
-export function computeInventory(activities: ActivityLine[], countryCode?: CountryCode): InventoryResult {
+export function computeInventory(activities: ActivityLine[], countryCode?: CountryCode, renewablePct = 0): InventoryResult {
   const lines: InventoryLineResult[] = activities.map((line) => {
     let factor = FACTOR_BY_KEY[line.factorKey];
     if (line.factorKey === 'electricity' && countryCode && factor) {
@@ -64,7 +68,19 @@ export function computeInventory(activities: ActivityLine[], countryCode?: Count
   });
   const scope1Tonnes = round(lines.filter((l) => l.scope === 1).reduce((a, l) => a + l.tonnes, 0));
   const scope2Tonnes = round(lines.filter((l) => l.scope === 2).reduce((a, l) => a + l.tonnes, 0));
-  return { lines, totalTonnes: round(scope1Tonnes + scope2Tonnes), scope1Tonnes, scope2Tonnes };
+  // G2 — market-based Scope 2: contracted renewables (PPA/REC) zero out that share. Simplified
+  // (residual ≈ grid factor); strict accounting uses a residual-mix factor.
+  const r = Math.max(0, Math.min(100, renewablePct)) / 100;
+  const scope2MarketTonnes = round(scope2Tonnes * (1 - r));
+  return {
+    lines,
+    totalTonnes: round(scope1Tonnes + scope2Tonnes),
+    scope1Tonnes,
+    scope2Tonnes,
+    scope2MarketTonnes,
+    totalMarketTonnes: round(scope1Tonnes + scope2MarketTonnes),
+    renewablePct: round(r * 100),
+  };
 }
 
 /** The emissions a facility contributes — from its built inventory when present, else the typed total. */

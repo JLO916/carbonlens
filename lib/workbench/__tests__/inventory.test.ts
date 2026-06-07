@@ -51,6 +51,19 @@ describe('computeInventory — activity data → emissions with lineage', () => 
     expect(computeInventory([overridden], 'vn').totalTonnes).toBeCloseTo(500, 0);
   });
 
+  it('G2: market-based Scope 2 applies the renewable % (GHG Protocol dual reporting + RE100)', () => {
+    const elec1M: ActivityLine = { id: 'e', factorKey: 'electricity', amount: 1_000_000 };
+    const r = computeInventory([elec1M], 'tw', 40); // 40% PPA/REC
+    expect(r.scope2Tonnes).toBeCloseTo(474, 0); // location-based unchanged
+    expect(r.scope2MarketTonnes).toBeCloseTo(284.4, 1); // 474 × (1 − 0.40)
+    expect(r.totalMarketTonnes).toBeCloseTo(284.4, 1);
+    expect(r.renewablePct).toBe(40);
+    // 100% renewable → market-based Scope 2 is zero
+    expect(computeInventory([elec1M], 'tw', 100).scope2MarketTonnes).toBe(0);
+    // 0% (default) → market equals location
+    expect(computeInventory([elec1M], 'tw').scope2MarketTonnes).toBeCloseTo(474, 0);
+  });
+
   it('G1: facilityEmissionsTonnes for an overseas facility uses that country grid factor', () => {
     const f = emptyProfile().facilities[0];
     const vn = { ...f, countryCode: 'vn' as const, useInventory: true, activities: [{ id: 'e', factorKey: 'electricity', amount: 1_000_000 }] };

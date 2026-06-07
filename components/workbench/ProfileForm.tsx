@@ -202,9 +202,14 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                     options={[{ value: false, label: { zhTW: '直接填總數', en: 'Type total' } }, { value: true, label: { zhTW: '從活動數據建模（盤查）', en: 'Build from activity data' } }]}
                   />
                 </div>
+                <div className="mb-2 flex items-center gap-2">
+                  <Label className="text-xs text-gray-500">{t('綠電/PPA/REC 佔比', 'Renewable (PPA/REC) %')}</Label>
+                  <Input type="number" className="h-8 w-24 text-xs" placeholder="0" value={f.renewablePct ?? ''} onChange={(e) => setFacility(f.id, { renewablePct: e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} />
+                  <span className="text-[11px] text-gray-400">% · {t('驅動市場基礎 Scope 2 與 RE100', 'drives market-based Scope 2 & RE100')}</span>
+                </div>
                 {f.useInventory ? (
                   <>
-                    <InventoryBuilder activities={f.activities ?? []} countryCode={f.countryCode as CountryCode} onChange={(a) => setFacility(f.id, { activities: a })} />
+                    <InventoryBuilder activities={f.activities ?? []} countryCode={f.countryCode as CountryCode} renewablePct={f.renewablePct} onChange={(a) => setFacility(f.id, { activities: a })} />
                     {(() => {
                       const st = facilityEmissionsStatus(f);
                       const typed = st.typedTotalTonnes.toLocaleString('en-US');

@@ -16,9 +16,9 @@ const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigit
 
 /** Activity-data inventory builder — each line: amount × factor = tCO₂e, with traceable factor +
  *  source (audit lineage) and an editable factor (override to your verified/latest value). */
-export default function InventoryBuilder({ activities, countryCode, onChange }: { activities: ActivityLine[]; countryCode?: CountryCode; onChange: (a: ActivityLine[]) => void }) {
+export default function InventoryBuilder({ activities, countryCode, renewablePct = 0, onChange }: { activities: ActivityLine[]; countryCode?: CountryCode; renewablePct?: number; onChange: (a: ActivityLine[]) => void }) {
   const { t, tObj } = useI18n();
-  const inv = computeInventory(activities, countryCode);
+  const inv = computeInventory(activities, countryCode, renewablePct);
 
   const setLine = (id: string, patch: Partial<ActivityLine>) => onChange(activities.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   const addLine = () => onChange([...activities, { id: crypto.randomUUID(), factorKey: 'electricity', amount: 0 }]);
@@ -108,10 +108,17 @@ export default function InventoryBuilder({ activities, countryCode, onChange }: 
         <Button size="sm" variant="outline" onClick={addLine}>＋ {t('新增排放源', 'Add source')}</Button>
         <div className="text-right text-xs text-gray-600">
           <span className="mr-3">Scope 1: <span className="font-semibold">{fmt(inv.scope1Tonnes)}</span></span>
-          <span className="mr-3">Scope 2: <span className="font-semibold">{fmt(inv.scope2Tonnes)}</span></span>
+          <span className="mr-3">Scope 2{inv.renewablePct > 0 ? t('（地點）', ' (loc.)') : ''}: <span className="font-semibold">{fmt(inv.scope2Tonnes)}</span></span>
           <span className="font-semibold text-gray-900">{t('合計', 'Total')} {fmt(inv.totalTonnes)} tCO₂e</span>
         </div>
       </div>
+
+      {inv.renewablePct > 0 && (
+        <p className="rounded-lg bg-[#89B56C]/10 px-2.5 py-1.5 text-[11px] leading-relaxed text-[#5d7d44]">
+          {t('市場基礎 Scope 2', 'Market-based Scope 2')}（RE100 {fmt(inv.renewablePct)}%）：<span className="font-semibold">{fmt(inv.scope2MarketTonnes)}</span> tCO₂e
+          <span className="text-gray-500"> · {t('市場基礎合計', 'market-based total')} {fmt(inv.totalMarketTonnes)} tCO₂e · {t('簡化:綠電佔比歸零該份額;嚴格應採殘差電力係數', 'simplified: renewables zero their share; strict uses a residual-mix factor')}</span>
+        </p>
+      )}
 
       <p className="text-[11px] leading-relaxed text-gray-400">{tObj(GWP_NOTE)}</p>
       <CitationTag citation={CITATION_EMISSION_FACTORS} />

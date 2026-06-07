@@ -12,6 +12,11 @@ const round = (x: number) => Math.round(x * 100) / 100;
 /** SBTi near-term 1.5°C minimum linear reduction ≈ 4.2%/yr of the base year (absolute contraction). */
 export const SBTI_NEARTERM_ANNUAL_PCT = 4.2;
 
+/** Which boundary a target is measured on. SBTi near-term targets are usually Scope 1+2 (with a
+ *  separate Scope 3 target), so the default is scope12 — comparing a Scope 1+2 base against the
+ *  whole Scope 1+2+3 footprint is apples-to-oranges and falsely reads as wildly off-track. */
+export type TargetScope = 'scope12' | 'scope123';
+
 export interface TargetTrajectory {
   baseYear: number;
   baseEmissions: number;
@@ -22,7 +27,8 @@ export interface TargetTrajectory {
   series: { year: number; target: number }[]; // linear allowance path
   thisYear: number;
   thisYearTarget?: number; // on-trajectory allowance for the analysis year
-  actual: number; // current whole footprint (Scope 1+2+3)
+  actual: number; // current emissions ON THE TARGET SCOPE (so base vs actual are comparable)
+  scope: TargetScope; // which boundary the base/target/actual are all measured on
   gap?: number; // actual − thisYearTarget (positive = behind target)
   onTrack?: boolean;
   impliedAnnualPct: number; // linear %/yr of base implied by the target
@@ -37,7 +43,9 @@ export function targetTrajectory(profile: CompanyProfile): TargetTrajectory | nu
   if (!baseYear || !targetYear || pct == null || pct <= 0 || targetYear <= baseYear) return null;
 
   const fp = footprintSummary(profile);
-  const actual = fp.total;
+  const scope: TargetScope = profile.targetScope ?? 'scope12';
+  // Measure "actual" on the SAME boundary as the base/target so they're comparable (D1 fix).
+  const actual = scope === 'scope123' ? fp.total : fp.scope12;
   const baseAssumed = profile.baseYearEmissionsTonnes == null;
   const baseEmissions = round(profile.baseYearEmissionsTonnes ?? actual);
   const targetEmissions = round(baseEmissions * (1 - pct / 100));
@@ -55,7 +63,7 @@ export function targetTrajectory(profile: CompanyProfile): TargetTrajectory | nu
 
   return {
     baseYear, baseEmissions, baseAssumed, targetYear, targetReductionPct: pct, targetEmissions,
-    series, thisYear, thisYearTarget, actual,
+    series, thisYear, thisYearTarget, actual, scope,
     gap, onTrack: gap != null ? gap <= 0 : undefined,
     impliedAnnualPct, sbtiAligned: impliedAnnualPct >= SBTI_NEARTERM_ANNUAL_PCT,
   };

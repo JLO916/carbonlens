@@ -13,6 +13,7 @@ import { getAvailableCountries } from '@/lib/calculators/domestic';
 import type { CountryCode } from '@/lib/types';
 import { ifrsPhaseFromCapital, FRAMEWORK_LOOKUP_HINT } from '@/lib/workbench/classify';
 import { feeGated } from '@/lib/workbench/derive';
+import { allocatedCbamSEE } from '@/lib/workbench/cbam-allocation';
 import { facilityEmissionsStatus } from '@/lib/workbench/inventory';
 import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
 import InventoryBuilder from './InventoryBuilder';
@@ -123,6 +124,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
           <div className="space-y-1.5"><Label className="text-sm">{t('基準年排放 tCO₂e', 'Base-yr tCO₂e')}</Label><Input type="number" value={profile.baseYearEmissionsTonnes ?? ''} placeholder={t('空白=用今年', 'blank=use current')} onChange={(e) => set({ baseYearEmissionsTonnes: e.target.value === '' ? undefined : nn(e.target.value) })} /></div>
           <div className="space-y-1.5"><Label className="text-sm">{t('目標年', 'Target year')}</Label><Input type="number" value={profile.targetYear ?? ''} placeholder={t('如 2030', 'e.g. 2030')} onChange={(e) => set({ targetYear: e.target.value === '' ? undefined : Math.max(2000, Number(e.target.value) || 0) })} /></div>
           <div className="space-y-1.5"><Label className="text-sm">{t('目標減量 %', 'Target cut %')}</Label><Input type="number" value={profile.targetReductionPct ?? ''} placeholder={t('如 30', 'e.g. 30')} onChange={(e) => set({ targetReductionPct: e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} /></div>
+          <div className="space-y-1.5"><Label className="text-sm">{t('目標範疇', 'Target scope')}</Label><Toggle value={profile.targetScope ?? 'scope12'} onChange={(v) => set({ targetScope: v })} options={[{ value: 'scope12', label: { zhTW: 'S1+2', en: 'S1+2' } }, { value: 'scope123', label: { zhTW: 'S1+2+3', en: 'S1+2+3' } }]} /><p className="text-[10px] text-gray-400">{t('基準/目標/實際同範疇比較', 'base/target/actual same scope')}</p></div>
         </CardContent>
       </Card>
 
@@ -253,9 +255,14 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 <div className="space-y-1"><Label className="text-xs">{t('產品', 'Product')}</Label><Picker value={c.product} onChange={(v) => setCbam(c.id, { product: v as CbamProductKey })} options={CBAM_PRODUCTS.map((p) => ({ value: p.key, label: p.label }))} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('來源國', 'Origin')}</Label><Picker value={c.originCountry} onChange={(v) => setCbam(c.id, { originCountry: v })} options={CBAM_ORIGIN_COUNTRIES} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('年出口量 t', 'Volume t')}</Label><Input type="number" value={c.annualVolumeTonnes || ''} onChange={(e) => setCbam(c.id, { annualVolumeTonnes: nn(e.target.value) })} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('數據來源', 'Data')}</Label><Toggle value={c.emissionsSource} onChange={(v) => setCbam(c.id, { emissionsSource: v })} options={[{ value: 'actual' as EmissionsSource, label: { zhTW: '實際', en: 'Actual' } }, { value: 'official_default' as EmissionsSource, label: { zhTW: '官方', en: 'Default' } }]} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('數據來源', 'Data')}</Label><Toggle value={c.emissionsSource} onChange={(v) => setCbam(c.id, { emissionsSource: v })} options={[{ value: 'actual', label: { zhTW: '實際', en: 'Actual' } }, { value: 'allocated', label: { zhTW: '盤查分攤', en: 'Alloc.' } }, { value: 'official_default', label: { zhTW: '官方', en: 'Default' } }]} /></div>
                 {c.emissionsSource === 'actual' ? (
                   <div className="space-y-1"><Label className="text-xs">{t('單位排放 tCO₂e/t', 'SEE tCO₂e/t')}</Label><Input type="number" step={0.01} value={c.actualSpecificEmissions || ''} onChange={(e) => setCbam(c.id, { actualSpecificEmissions: nn(e.target.value) || undefined })} /></div>
+                ) : c.emissionsSource === 'allocated' ? (
+                  <>
+                    <div className="space-y-1"><Label className="text-xs">{t('生產廠別', 'Facility')}</Label><Picker value={c.facilityId ?? ''} onChange={(v) => setCbam(c.id, { facilityId: v })} options={profile.facilities.map((f) => ({ value: f.id, label: { zhTW: f.label, en: f.label } }))} /></div>
+                    <div className="space-y-1"><Label className="text-xs">{t('分攤 SEE tCO₂e/t', 'Alloc. SEE')}</Label>{(() => { const see = allocatedCbamSEE(profile, c); return <div className={`rounded-md border px-3 py-2 text-sm ${see != null ? 'bg-[#89B56C]/5 font-mono font-semibold text-[#5d7d44]' : 'bg-amber-50 text-[11px] text-amber-700'}`}>{see != null ? see.toFixed(3) : t('需該廠開盤查', 'needs facility inventory')}</div>; })()}</div>
+                  </>
                 ) : (
                   <div className="space-y-1"><Label className="text-xs">{t('CN 碼（選填）', 'CN code (opt)')}</Label><Input value={c.cnCode ?? ''} placeholder={t('如 7208；空白=範圍', 'e.g. 7208; blank=range')} onChange={(e) => setCbam(c.id, { cnCode: e.target.value || undefined })} /></div>
                 )}

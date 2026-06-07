@@ -50,7 +50,7 @@ export default function LandingContent() {
       {/* Hero — the full cycle, not a single calculator */}
       <section className="bg-gradient-to-br from-[#89B56C]/10 via-white to-[#89B56C]/5 py-14 lg:py-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-          <p className="mb-3 text-sm font-medium text-[#5d7d44]">{t('CarbonLens · RECCESSARY ｜ 企業碳合規與管理工作台', 'CarbonLens · RECCESSARY · corporate carbon-management workbench')}</p>
+          <p className="mb-3 text-sm font-medium text-[#5d7d44]">{t('Carbon Lens 碳排鏡菱 ｜ 企業碳合規與管理工作平台', 'Carbon Lens · corporate carbon-management platform')}</p>
           <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-900 lg:text-[2.75rem]">
             <span className="block">{t('從碳盤查到揭露', 'From carbon inventory to disclosure')}</span>
             <span className="block">{t('全程可查證的企業碳管理工作平台', 'a fully auditable corporate carbon-management platform')}</span>

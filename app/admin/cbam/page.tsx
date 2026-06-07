@@ -1,7 +1,7 @@
 import AdminCbamClient from './client';
 
 export const metadata = {
-  title: 'CBAM 基線確認 — CarbonLens',
+  title: 'CBAM 基線確認 — Carbon Lens 碳排鏡菱',
   robots: { index: false, follow: false },
 };
 

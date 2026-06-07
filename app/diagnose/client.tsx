@@ -39,7 +39,7 @@ export default function DiagnoseLandingClient() {
   return (
     <div className="space-y-8">
       <header className="text-center">
-        <p className="text-sm font-medium text-[#5d7d44]">{t('RECCESSARY · 碳合規暴露診斷', 'RECCESSARY · Carbon compliance exposure')}</p>
+        <p className="text-sm font-medium text-[#5d7d44]">{t('Carbon Lens 碳排鏡菱 · 碳合規暴露診斷', 'Carbon Lens · Carbon compliance exposure')}</p>
         <h1 className="mt-2 text-3xl font-bold text-gray-900 sm:text-4xl">
           {t('你正卡在哪一個問題？', 'Which question are you stuck on?')}
         </h1>

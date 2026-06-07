@@ -14,7 +14,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded bg-[#89B56C] flex items-center justify-center text-white font-bold text-[10px]">C</div>
-            <span className="text-sm font-semibold text-gray-700">CarbonLens</span>
+            <span className="text-sm font-semibold text-gray-700">{t('Carbon Lens 碳排鏡菱', 'Carbon Lens')}</span>
             <Link href="/about" className="text-xs text-gray-400 hover:text-gray-600 ml-2">
               {t('關於', 'About')}
             </Link>
@@ -26,7 +26,7 @@ export default function Footer() {
             </Link>
           </div>
           <p className="text-xs text-gray-400 max-w-2xl sm:text-right leading-relaxed">
-            {t('CarbonLens 由', 'CarbonLens is built and maintained by')}{' '}
+            {t('Carbon Lens 碳排鏡菱 由', 'Carbon Lens is built and maintained by')}{' '}
             <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" className="text-[#89B56C] hover:underline font-medium">
               Jimmy Lo
             </a>

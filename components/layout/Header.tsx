@@ -28,7 +28,7 @@ export default function Header() {
         <div className="flex h-14 items-center justify-between sm:h-16">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#89B56C] text-sm font-bold text-white">C</div>
-            <span className="hidden text-sm font-semibold text-gray-900 sm:block lg:text-base">CarbonLens</span>
+            <span className="hidden text-sm font-semibold text-gray-900 sm:block lg:text-base">{t('Carbon Lens 碳排鏡菱', 'Carbon Lens')}</span>
           </Link>
 
           {/* Desktop nav — 5 items, tools collapsed into a dropdown */}

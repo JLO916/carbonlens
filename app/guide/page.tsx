@@ -3,8 +3,8 @@ import Footer from '@/components/layout/Footer';
 import GuideContent from './content';
 
 export const metadata = {
-  title: '碳費與CBAM計算方法說明｜CarbonLens 使用指南',
-  description: 'CarbonLens使用指南。了解台灣碳費公式、CBAM計算方法、各國碳價資料來源，以及常見問題解答。',
+  title: '碳費與CBAM計算方法說明｜Carbon Lens 碳排鏡菱 使用指南',
+  description: 'Carbon Lens 碳排鏡菱使用指南。了解台灣碳費公式、CBAM計算方法、各國碳價資料來源，以及常見問題解答。',
 };
 
 const faqJsonLd = {

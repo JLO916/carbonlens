@@ -20,6 +20,10 @@ import LockedVersions from '@/components/workbench/LockedVersions';
 import { loadLockedVersions, type LockedVersion } from '@/lib/workbench/locked-versions';
 import { loadProfile, saveProfile, exportProfileJson, parseProfile } from '@/lib/workbench/storage';
 import { inventorySheetCsv, disclosureReportText, cbamCommunicationCsv } from '@/lib/workbench/export-deliverables';
+import { questionnaireText } from '@/lib/workbench/questionnaire';
+import Questionnaire from '@/components/workbench/Questionnaire';
+import { pcfDeclarationText } from '@/lib/workbench/pcf';
+import ProductPcf from '@/components/workbench/ProductPcf';
 import { snapshotOf, appendSnapshot, loadSnapshots, type Snapshot } from '@/lib/workbench/snapshots';
 import ListedResultView from '@/components/diagnose/ListedResult';
 import SupplyChainResultView from '@/components/diagnose/SupplyChainResult';
@@ -138,6 +142,14 @@ export default function WorkbenchClient() {
     downloadText('cbam-communication-template.csv', '﻿' + cbamCommunicationCsv(profile, lang), 'text/csv;charset=utf-8');
   }
 
+  function exportQuestionnaire() {
+    downloadText('customer-questionnaire-answers.txt', questionnaireText(profile, lang), 'text/plain;charset=utf-8');
+  }
+
+  function exportPcf() {
+    downloadText('product-carbon-footprint-declaration.txt', pcfDeclarationText(profile, lang), 'text/plain;charset=utf-8');
+  }
+
   function importProfile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -189,6 +201,10 @@ export default function WorkbenchClient() {
         {snap && <span className="text-gray-300">·</span>}
         {snap && <button type="button" onClick={exportReport} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('揭露報告段落(草稿)', 'Disclosure draft (text)')}</button>}
         <span className="text-gray-300">·</span>
+        <button type="button" onClick={exportQuestionnaire} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('客戶問卷回覆包', 'Customer answer pack')}</button>
+        <span className="text-gray-300">·</span>
+        {(profile.products?.length ?? 0) > 0 && <button type="button" onClick={exportPcf} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('產品碳足跡聲明', 'PCF declaration')}</button>}
+        {(profile.products?.length ?? 0) > 0 && <span className="text-gray-300">·</span>}
         <label className="cursor-pointer text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">
           ⬆ {t('匯入側寫', 'Import profile')}
           <input type="file" accept="application/json,.json" onChange={importProfile} className="hidden" />
@@ -208,6 +224,8 @@ export default function WorkbenchClient() {
           <PriorityList result={snap.result} />
           <CbamRampChart ramp={cbamRampSeries(snap.profile, snap.lookups)} />
           <CbamDeduction profile={snap.profile} result={snap.result} />
+          <ProductPcf profile={snap.profile} />
+          <Questionnaire profile={snap.profile} />
           <ReductionLens profile={snap.profile} lookups={snap.lookups} />
 
           <AssuranceGuide />

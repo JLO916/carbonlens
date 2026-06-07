@@ -19,7 +19,7 @@ import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
 import InventoryBuilder from './InventoryBuilder';
 import Scope3Builder from './Scope3Builder';
 import InfoHint from '@/components/ui/InfoHint';
-import type { CompanyProfile, FacilityLine, CbamProductLine } from '@/lib/workbench/profile';
+import type { CompanyProfile, FacilityLine, CbamProductLine, ProductLine } from '@/lib/workbench/profile';
 import type { TargetDef, TargetScope } from '@/lib/workbench/target';
 import type {
   BilingualText,
@@ -108,6 +108,12 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
   const setTarget = (id: string, patch: Partial<TargetDef>) => set({ extraTargets: targets.map((tg) => (tg.id === id ? { ...tg, ...patch } : tg)) });
   const addTarget = () => set({ extraTargets: [...targets, { id: crypto.randomUUID(), label: t('近期 Scope 3', 'Near-term Scope 3'), scope: 'scope3', baseYear: profile.baseYear ?? profile.year, targetYear: profile.targetYear ?? profile.year + 4, targetReductionPct: 25 }] });
   const delTarget = (id: string) => set({ extraTargets: targets.filter((tg) => tg.id !== id) });
+
+  // S3 — per-SKU product carbon footprint.
+  const products = profile.products ?? [];
+  const setProduct = (id: string, patch: Partial<ProductLine>) => set({ products: products.map((pr) => (pr.id === id ? { ...pr, ...patch } : pr)) });
+  const addProduct = () => set({ products: [...products, { id: crypto.randomUUID(), name: t(`產品 ${products.length + 1}`, `Product ${products.length + 1}`), annualUnits: 1000 }] });
+  const delProduct = (id: string) => set({ products: products.filter((pr) => pr.id !== id) });
 
   const toggleFramework = (k: FrameworkKey) => {
     const cur = profile.customerFrameworks;
@@ -223,7 +229,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 </div>
                 {f.useInventory ? (
                   <>
-                    <InventoryBuilder activities={f.activities ?? []} countryCode={f.countryCode as CountryCode} renewablePct={f.renewablePct} onChange={(a) => setFacility(f.id, { activities: a })} />
+                    <InventoryBuilder activities={f.activities ?? []} countryCode={f.countryCode as CountryCode} renewablePct={f.renewablePct} industry={profile.industry} onChange={(a) => setFacility(f.id, { activities: a })} />
                     {(() => {
                       const st = facilityEmissionsStatus(f);
                       const typed = st.typedTotalTonnes.toLocaleString('en-US');
@@ -315,6 +321,31 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 <div className="space-y-1"><Label className="text-xs">{t('目標年', 'Target year')}</Label><Input type="number" className="h-8" value={tg.targetYear || ''} onChange={(e) => setTarget(tg.id, { targetYear: Math.max(2000, Number(e.target.value) || 0) })} /></div>
                 <div className="space-y-1"><Label className="text-xs">{t('減量 %', 'Cut %')}</Label><Input type="number" className="h-8" value={tg.targetReductionPct || ''} onChange={(e) => setTarget(tg.id, { targetReductionPct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} /></div>
               </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* ⑨ Per-SKU product carbon footprint (S3) — the deliverable brands increasingly ask for */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑨ 產品碳足跡（每料號）', '⑨ Product carbon footprint (per SKU)')}</CardTitle><Button size="sm" variant="outline" onClick={addProduct}>＋ {t('新增產品', 'Add product')}</Button></div>
+          <p className="mt-1 text-xs leading-relaxed text-gray-500">{t('把組織盤查足跡分攤到各產品,給品牌客戶報價／出貨用的每單位碳數字。篩選級分攤(ISO 14067 精神),非查證 LCA。', 'Allocate the org inventory footprint to each product — a per-unit carbon figure for brand quotes/shipments. Screening allocation (ISO 14067-aligned), not a verified LCA.')}</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1"><Label className="text-xs">{t('系統邊界', 'System boundary')}</Label><Toggle value={profile.pcfBoundary ?? 'total'} onChange={(v) => set({ pcfBoundary: v })} options={[{ value: 'total' as const, label: { zhTW: '含價值鏈', en: 'Incl. chain' } }, { value: 'scope12' as const, label: { zhTW: '營運 S1+2', en: 'Ops S1+2' } }]} /></div>
+            <div className="space-y-1"><Label className="text-xs">{t('分攤基礎', 'Allocation basis')}</Label><Toggle value={profile.pcfBasis ?? 'equal'} onChange={(v) => set({ pcfBasis: v })} options={[{ value: 'equal' as const, label: { zhTW: '數量', en: 'Units' } }, { value: 'mass' as const, label: { zhTW: '質量', en: 'Mass' } }, { value: 'revenue' as const, label: { zhTW: '營收', en: 'Revenue' } }]} /></div>
+          </div>
+          {products.length === 0 && <p className="rounded-lg bg-gray-50 p-2.5 text-[11px] leading-relaxed text-gray-500">{t('尚無產品。新增後,系統把總足跡依「數量／質量／營收」分攤到各料號,算出每單位 kgCO₂e,並可在「全貌」匯出一頁聲明。', 'No products yet. Add one and the total footprint is split across SKUs by units/mass/revenue → kgCO₂e per unit, with a one-page declaration export in the overview.')}</p>}
+          {products.map((pr) => (
+            <div key={pr.id} className="grid grid-cols-2 items-end gap-2 rounded-xl border border-gray-200 p-3 sm:grid-cols-12">
+              <div className="space-y-1 sm:col-span-5"><Label className="text-xs">{t('產品名稱／料號', 'Product / SKU')}</Label><Input className="h-8 text-sm" value={pr.name} onChange={(e) => setProduct(pr.id, { name: e.target.value })} /></div>
+              <div className="space-y-1 sm:col-span-3"><Label className="text-xs">{t('年產量／出貨', 'Annual units')}</Label><Input type="number" className="h-8" value={pr.annualUnits || ''} onChange={(e) => setProduct(pr.id, { annualUnits: nn(e.target.value) })} /></div>
+              {(profile.pcfBasis ?? 'equal') !== 'equal' && (
+                <div className="space-y-1 sm:col-span-3"><Label className="text-xs">{(profile.pcfBasis === 'revenue') ? t('每單位售價', 'Price/unit') : t('每單位質量 kg', 'Mass/unit kg')}</Label><Input type="number" className="h-8" value={pr.weightPerUnit ?? ''} placeholder={t('每單位', 'per unit')} onChange={(e) => setProduct(pr.id, { weightPerUnit: e.target.value === '' ? undefined : nn(e.target.value) })} /></div>
+              )}
+              <div className="flex justify-end sm:col-span-1"><Button size="sm" variant="ghost" className="text-gray-400 hover:text-red-600" onClick={() => delProduct(pr.id)}>✕</Button></div>
             </div>
           ))}
         </CardContent>

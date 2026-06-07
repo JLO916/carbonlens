@@ -39,6 +39,14 @@ export interface FacilityLine {
   hasApprovedReductionPlan: boolean;
 }
 
+/** One product/SKU for per-product carbon-footprint allocation (S3). */
+export interface ProductLine {
+  id: string;
+  name: string;
+  annualUnits: number; // units produced/shipped per year
+  weightPerUnit?: number; // allocation weight per unit — mass (kg) or revenue ($); ignored when basis='equal'
+}
+
 /** One CBAM export line — feeds diagnoseCbam. A real manufacturer has several (multi-CN/product). */
 export interface CbamProductLine {
   id: string;
@@ -93,6 +101,11 @@ export interface CompanyProfile {
   scope3?: Scope3Line[];
   annualUnitsSold?: number; // units/yr (e.g. servers) for the per-unit PCF allocation
   unitLabel?: string; // what a "unit" is, e.g. 台 / server
+  // S3 — per-SKU product carbon footprint (org-footprint allocation; ISO 14067 screening, NOT a
+  // verified LCA). Brands increasingly ask for product-level carbon on the quote/declaration.
+  products?: ProductLine[];
+  pcfBasis?: 'equal' | 'mass' | 'revenue'; // what weightPerUnit means (allocation key)
+  pcfBoundary?: 'scope12' | 'total'; // operations only (S1+2) vs incl. value chain (+ Scope 3)
   // C4 — where this profile is in the annual ESG cycle:
   cycleStage?: 'measure' | 'review' | 'assure' | 'assured' | 'filed' | 'disclosed';
 }

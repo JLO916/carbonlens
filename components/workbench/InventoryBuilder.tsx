@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useI18n } from '@/lib/i18n/context';
 import { computeInventory, DATA_QUALITY_LABEL, UNCERTAINTY_NOTE, ABATEMENT_NOTE, type ActivityLine, type DataQuality } from '@/lib/workbench/inventory';
+import { applyIndustryTemplate } from '@/lib/workbench/industry-templates';
 import { EMISSION_FACTORS, FACTOR_BY_KEY, FACTOR_CATEGORY_LABEL, CITATION_EMISSION_FACTORS, GWP_NOTE, type FactorCategory } from '@/lib/workbench/emission-factors';
 
 const FACTOR_CATEGORY_ORDER: FactorCategory[] = ['electricity', 'steam', 'fuel', 'fugitive', 'fgas', 'process'];
@@ -17,13 +18,16 @@ const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigit
 
 /** Activity-data inventory builder — each line: amount × factor = tCO₂e, with traceable factor +
  *  source (audit lineage) and an editable factor (override to your verified/latest value). */
-export default function InventoryBuilder({ activities, countryCode, renewablePct = 0, onChange }: { activities: ActivityLine[]; countryCode?: CountryCode; renewablePct?: number; onChange: (a: ActivityLine[]) => void }) {
+export default function InventoryBuilder({ activities, countryCode, renewablePct = 0, industry, onChange }: { activities: ActivityLine[]; countryCode?: CountryCode; renewablePct?: number; industry?: string; onChange: (a: ActivityLine[]) => void }) {
   const { t, tObj } = useI18n();
   const inv = computeInventory(activities, countryCode, renewablePct);
 
   const setLine = (id: string, patch: Partial<ActivityLine>) => onChange(activities.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   const addLine = () => onChange([...activities, { id: crypto.randomUUID(), factorKey: 'electricity', amount: 0 }]);
   const delLine = (id: string) => onChange(activities.filter((a) => a.id !== id));
+  // S1 — pull in the typical emission sources for this industry (only the ones not already present).
+  const loadTemplate = () => onChange(applyIndustryTemplate(activities, industry));
+  const templateAdds = applyIndustryTemplate(activities, industry).length - activities.length;
 
   return (
     <div className="space-y-3">
@@ -118,8 +122,17 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
         })}
       </div>
 
-      <div className="flex items-center justify-between">
-        <Button size="sm" variant="outline" onClick={addLine}>＋ {t('新增排放源', 'Add source')}</Button>
+      {activities.length === 0 && templateAdds > 0 && (
+        <button type="button" onClick={loadTemplate} className="w-full rounded-lg border border-dashed border-[#89B56C]/50 bg-[#89B56C]/5 px-3 py-2.5 text-xs text-[#5d7d44] hover:bg-[#89B56C]/10">
+          ✨ {t('不知從何填起?一鍵帶入這個行業的典型排放源,你只要填數字。', 'Not sure what to enter? Load this industry’s typical sources in one click — then just fill the numbers.')}
+        </button>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={addLine}>＋ {t('新增排放源', 'Add source')}</Button>
+          {templateAdds > 0 && <Button size="sm" variant="outline" onClick={loadTemplate} className="text-[#5d7d44]">✨ {t('帶入行業典型源', 'Load industry sources')}{` (+${templateAdds})`}</Button>}
+        </div>
         <div className="text-right text-xs text-gray-600">
           <span className="mr-3">Scope 1: <span className="font-semibold">{fmt(inv.scope1Tonnes)}</span></span>
           <span className="mr-3">Scope 2{inv.renewablePct > 0 ? t('（地點）', ' (loc.)') : ''}: <span className="font-semibold">{fmt(inv.scope2Tonnes)}</span></span>

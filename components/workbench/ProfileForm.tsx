@@ -8,9 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useI18n } from '@/lib/i18n/context';
 import { INDUSTRIES } from '@/lib/diagnose/data/industries';
 import { CBAM_PRODUCTS, CBAM_ORIGIN_COUNTRIES } from '@/lib/diagnose/data/cbam';
+import { COUNTRIES } from '@/lib/data/countries';
+import { getAvailableCountries } from '@/lib/calculators/domestic';
+import type { CountryCode } from '@/lib/types';
 import { ifrsPhaseFromCapital, FRAMEWORK_LOOKUP_HINT } from '@/lib/workbench/classify';
 import { feeGated } from '@/lib/workbench/derive';
-import { facilityEmissionsTonnes } from '@/lib/workbench/inventory';
+import { facilityEmissionsStatus } from '@/lib/workbench/inventory';
 import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
 import InventoryBuilder from './InventoryBuilder';
 import type { CompanyProfile, FacilityLine, CbamProductLine } from '@/lib/workbench/profile';
@@ -51,6 +54,8 @@ const RATE_TYPES: { value: FacilityLine['rateType']; label: BilingualText }[] = 
   { value: 'preferA', label: { zhTW: '優惠A 50', en: 'Pref-A 50' } },
   { value: 'preferB', label: { zhTW: '優惠B 100', en: 'Pref-B 100' } },
 ];
+// P2c — facilities can sit in any of the 6 priced countries (engines already exist).
+const COUNTRY_OPTIONS: { value: CountryCode; label: BilingualText }[] = getAvailableCountries().map((c) => ({ value: c, label: COUNTRIES[c].name }));
 
 function Toggle<T extends string | boolean>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { value: T; label: BilingualText }[] }) {
   const { tObj } = useI18n();
@@ -108,10 +113,11 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
       {/* Company basics */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-base">{t('① 公司基本', '① Company basics')}</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="space-y-1.5"><Label className="text-sm">{t('公司（選填）', 'Company (optional)')}</Label><Input value={profile.company ?? ''} onChange={(e) => set({ company: e.target.value })} /></div>
           <div className="space-y-1.5"><Label className="text-sm">{t('產業別', 'Industry')}</Label><Picker value={profile.industry} onChange={(v) => set({ industry: v })} options={INDUSTRIES.map((i) => ({ value: i.value, label: i.label }))} /></div>
           <div className="space-y-1.5"><Label className="text-sm">{t('分析年度', 'Analysis year')}</Label><Picker value={String(profile.year)} onChange={(v) => set({ year: Number(v) })} options={[2026, 2027, 2028].map((y) => ({ value: String(y), label: { zhTW: String(y), en: String(y) } }))} /></div>
+          <div className="space-y-1.5"><Label className="text-sm">{t('基準年（選填）', 'Base year (opt)')}</Label><Input type="number" value={profile.baseYear ?? ''} placeholder={t('如 2024', 'e.g. 2024')} onChange={(e) => set({ baseYear: e.target.value === '' ? undefined : Math.max(2000, Number(e.target.value) || 0) })} /><p className="text-[10px] text-gray-400">{t('SBTi／減量目標的基準', 'SBTi/target baseline')}</p></div>
         </CardContent>
       </Card>
 
@@ -166,17 +172,24 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
 
       {/* Facilities */}
       <Card>
-        <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑤ 廠區（碳費，台灣）', '⑤ Facilities (carbon fee, Taiwan)')}</CardTitle><Button size="sm" variant="outline" onClick={addFacility}>＋ {t('新增廠區', 'Add')}</Button></div></CardHeader>
+        <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑤ 廠區（國內碳費／碳稅）', '⑤ Facilities (domestic carbon price)')}</CardTitle><Button size="sm" variant="outline" onClick={addFacility}>＋ {t('新增廠區', 'Add')}</Button></div></CardHeader>
         <CardContent className="space-y-3">
           {profile.facilities.map((f) => (
             <div key={f.id} className="rounded-lg border border-gray-200 p-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="col-span-2 space-y-1"><Label className="text-xs">{t('名稱', 'Name')}</Label><Input value={f.label} onChange={(e) => setFacility(f.id, { label: e.target.value })} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('費率', 'Rate')}</Label><Picker value={f.rateType} onChange={(v) => setFacility(f.id, { rateType: v })} options={RATE_TYPES} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('高碳洩漏？', 'High leakage?')}</Label><Toggle value={f.highCarbonLeakage} onChange={(v) => setFacility(f.id, { highCarbonLeakage: v })} options={YES_NO} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('碳權扣抵 t', 'Credit offset t')}</Label><Input type="number" value={f.carbonCreditOffset || ''} onChange={(e) => setFacility(f.id, { carbonCreditOffset: nn(e.target.value) })} /></div>
-                <div className="space-y-1"><Label className="text-xs">{t('已核定自主減量計畫?', 'Approved reduction plan?')}</Label><Toggle value={f.hasApprovedReductionPlan} onChange={(v) => setFacility(f.id, { hasApprovedReductionPlan: v })} options={YES_NO} /></div>
-                {profile.facilities.length > 1 && <div className="flex items-end"><Button size="sm" variant="outline" onClick={() => delFacility(f.id)} className="text-gray-400">🗑</Button></div>}
+                <div className="space-y-1"><Label className="text-xs">{t('國別', 'Country')}</Label><Picker value={f.countryCode} onChange={(v) => setFacility(f.id, { countryCode: v as CountryCode })} options={COUNTRY_OPTIONS} /></div>
+                <div className="flex items-end">{profile.facilities.length > 1 && <Button size="sm" variant="outline" onClick={() => delFacility(f.id)} className="text-gray-400">🗑</Button>}</div>
+                {f.countryCode === 'tw' ? (
+                  <>
+                    <div className="space-y-1"><Label className="text-xs">{t('費率', 'Rate')}</Label><Picker value={f.rateType} onChange={(v) => setFacility(f.id, { rateType: v })} options={RATE_TYPES} /></div>
+                    <div className="space-y-1"><Label className="text-xs">{t('高碳洩漏？', 'High leakage?')}</Label><Toggle value={f.highCarbonLeakage} onChange={(v) => setFacility(f.id, { highCarbonLeakage: v })} options={YES_NO} /></div>
+                    <div className="space-y-1"><Label className="text-xs">{t('碳權扣抵 t', 'Credit offset t')}</Label><Input type="number" value={f.carbonCreditOffset || ''} onChange={(e) => setFacility(f.id, { carbonCreditOffset: nn(e.target.value) })} /></div>
+                    <div className="space-y-1"><Label className="text-xs">{t('已核定自主減量計畫?', 'Approved reduction plan?')}</Label><Toggle value={f.hasApprovedReductionPlan} onChange={(v) => setFacility(f.id, { hasApprovedReductionPlan: v })} options={YES_NO} /></div>
+                  </>
+                ) : (
+                  <div className="col-span-2 flex items-center sm:col-span-4"><p className="text-[11px] leading-relaxed text-gray-500">{tObj(COUNTRIES[f.countryCode as CountryCode].mechanism)}：{t('以該國引擎之預設參數估算(台灣專屬的費率／優惠／碳洩漏不適用海外廠)。', 'estimated with this country’s default engine params (Taiwan-only rate/relief/leakage do not apply abroad).')}</p></div>
+                )}
               </div>
 
               {/* Emissions: build from activity data, or type a total */}
@@ -192,7 +205,17 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 {f.useInventory ? (
                   <>
                     <InventoryBuilder activities={f.activities ?? []} onChange={(a) => setFacility(f.id, { activities: a })} />
-                    <p className="mt-2 text-sm font-medium text-[#5d7d44]">→ {t('本廠盤查合計', 'Facility total')} {facilityEmissionsTonnes(f).toLocaleString('en-US', { maximumFractionDigits: 2 })} tCO₂e</p>
+                    {(() => {
+                      const st = facilityEmissionsStatus(f);
+                      const typed = st.typedTotalTonnes.toLocaleString('en-US');
+                      return st.inventoryIncomplete ? (
+                        <p className="mt-2 rounded-lg bg-amber-50 p-2.5 text-[11px] leading-relaxed text-amber-800">
+                          ⚠️ {t(`盤查合計目前為 0 tCO₂e(尚未填活動量)。為避免碳費被誤歸零,目前暫以你原填的 ${typed} t 計算——請填入活動數據完成盤查,或切回「直接填總數」。`, `Inventory total is 0 tCO₂e (no activity data yet). To avoid silently zeroing the fee, it currently falls back to your typed ${typed} t — add activity data to complete the inventory, or switch back to “type total”.`)}
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-sm font-medium text-[#5d7d44]">→ {t('本廠盤查合計', 'Facility total')} {st.inventoryTotalTonnes.toLocaleString('en-US', { maximumFractionDigits: 2 })} tCO₂e</p>
+                      );
+                    })()}
                   </>
                 ) : (
                   <div className="max-w-xs">

@@ -20,20 +20,30 @@ export default function CarbonFeeBreakdown({ result, profile }: { result: Workbe
       </summary>
       <div className="mt-3 space-y-4">
         {result.domestic.facilities.map(({ facility, result: r }) => {
-          const { steps } = feeBreakdown(facility, profile, r);
+          const isTW = facility.countryCode === 'tw';
+          const { steps, inventoryIncomplete } = feeBreakdown(facility, profile, r);
           return (
             <div key={facility.id} className="rounded-lg border border-gray-100 bg-gray-50/60 p-3">
               <p className="mb-2 text-xs font-semibold text-gray-700">{facility.label}（{facility.countryCode.toUpperCase()}）</p>
-              <table className="w-full text-xs">
-                <tbody>
-                  {steps.map((s, i) => (
-                    <tr key={i} className={i === steps.length - 1 ? 'border-t border-gray-200 font-semibold text-gray-900' : 'text-gray-600'}>
-                      <td className="py-1 pr-3">{tObj(s.label)}</td>
-                      <td className="py-1 text-right font-mono">{s.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {inventoryIncomplete && <p className="mb-2 rounded bg-amber-50 px-2 py-1 text-[11px] leading-relaxed text-amber-800">⚠️ {t('此廠已開盤查但合計為 0,以下碳費暫用「直接填寫值」估算;完成盤查後會改用實算值。', 'Inventory started but totals 0 — this fee uses the typed fallback value; it will switch to the computed inventory once completed.')}</p>}
+              {isTW ? (
+                <table className="w-full text-xs">
+                  <tbody>
+                    {steps.map((s, i) => (
+                      <tr key={i} className={i === steps.length - 1 ? 'border-t border-gray-200 font-semibold text-gray-900' : 'text-gray-600'}>
+                        <td className="py-1 pr-3">{tObj(s.label)}</td>
+                        <td className="py-1 text-right font-mono">{s.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-xs text-gray-600">
+                  {t('該國引擎估算(預設參數):', 'Country engine estimate (default params): ')}
+                  <span className="font-mono font-semibold text-gray-900">{r.currency} {Math.round(r.totalCarbonCost).toLocaleString('en-US')}</span>
+                  <span className="text-gray-400"> · ≈ US$ {Math.round(r.totalCarbonCostUSD).toLocaleString('en-US')}／yr</span>
+                </p>
+              )}
             </div>
           );
         })}

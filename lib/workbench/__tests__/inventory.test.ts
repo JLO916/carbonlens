@@ -1,4 +1,4 @@
-import { computeInventory, facilityEmissionsTonnes, type ActivityLine } from '@/lib/workbench/inventory';
+import { computeInventory, facilityEmissionsTonnes, facilityEmissionsStatus, type ActivityLine } from '@/lib/workbench/inventory';
 import { emptyProfile } from '@/lib/workbench/profile';
 
 const ELEC: ActivityLine = { id: 'e', factorKey: 'electricity', amount: 1_200_000 }; // kWh
@@ -36,5 +36,33 @@ describe('computeInventory — activity data → emissions with lineage', () => 
     expect(facilityEmissionsTonnes(withInv)).toBeCloseTo(581.83, 1); // from activity data
     // a useInventory facility with no lines falls back to the typed total
     expect(facilityEmissionsTonnes({ ...f, useInventory: true, activities: [] })).toBe(50000);
+  });
+
+  it('P0 trust fix: an inventory whose lines total 0 does NOT zero the fee — it falls back to the typed total', () => {
+    const f = emptyProfile().facilities[0]; // typed 50,000
+    // the trap: toggled to inventory mode, one seeded zero-amount line → total 0
+    const trap = { ...f, useInventory: true, activities: [{ id: 'z', factorKey: 'electricity', amount: 0 }] };
+    expect(computeInventory(trap.activities).totalTonnes).toBe(0);
+    expect(facilityEmissionsTonnes(trap)).toBe(50000); // fee basis preserved, NOT 0
+  });
+
+  it('facilityEmissionsStatus flags inventory-incomplete and exposes the fallback basis', () => {
+    const f = emptyProfile().facilities[0];
+    // typed mode → not using inventory, not incomplete
+    const typed = facilityEmissionsStatus(f);
+    expect(typed.usingInventory).toBe(false);
+    expect(typed.inventoryIncomplete).toBe(false);
+    expect(typed.feeBasisTonnes).toBe(50000);
+    // inventory mode, zero data → incomplete, fee falls back to typed 50,000, inventory total 0
+    const incomplete = facilityEmissionsStatus({ ...f, useInventory: true, activities: [{ id: 'z', factorKey: 'electricity', amount: 0 }] });
+    expect(incomplete.inventoryIncomplete).toBe(true);
+    expect(incomplete.inventoryTotalTonnes).toBe(0);
+    expect(incomplete.feeBasisTonnes).toBe(50000);
+    expect(incomplete.typedTotalTonnes).toBe(50000);
+    // inventory mode, real data → complete, fee uses the computed inventory
+    const complete = facilityEmissionsStatus({ ...f, useInventory: true, activities: [ELEC, DIESEL] });
+    expect(complete.inventoryIncomplete).toBe(false);
+    expect(complete.inventoryTotalTonnes).toBeCloseTo(581.83, 1);
+    expect(complete.feeBasisTonnes).toBeCloseTo(581.83, 1);
   });
 });

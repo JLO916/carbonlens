@@ -5,7 +5,7 @@
 
 import type { CompanyProfile, FacilityLine } from './profile';
 import { taiwanPeriodForYear } from './profile';
-import { facilityEmissionsTonnes } from './inventory';
+import { facilityEmissionsTonnes, facilityEmissionsStatus } from './inventory';
 import type { BilingualText } from '@/lib/diagnose/types';
 import type { DomesticResult } from '@/lib/calculators/domestic/types';
 
@@ -25,8 +25,9 @@ export interface FeeStep {
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US');
 
 /** Re-derive the carbon-fee steps for one facility, honouring the A1 gating (no plan → general). */
-export function feeBreakdown(facility: FacilityLine, profile: CompanyProfile, result: DomesticResult): { steps: FeeStep[]; gated: boolean } {
+export function feeBreakdown(facility: FacilityLine, profile: CompanyProfile, result: DomesticResult): { steps: FeeStep[]; gated: boolean; inventoryIncomplete: boolean } {
   const gated = !facility.hasApprovedReductionPlan;
+  const inventoryIncomplete = facilityEmissionsStatus(facility).inventoryIncomplete;
   const leakage = gated ? false : facility.highCarbonLeakage;
   const rateType = gated ? 'general' : facility.rateType;
   const k = leakage ? 0 : 25000;
@@ -37,7 +38,7 @@ export function feeBreakdown(facility: FacilityLine, profile: CompanyProfile, re
   const afterCL = afterK * cl;
 
   const steps: FeeStep[] = [
-    { label: { zhTW: '年排放量（Scope 1+2）', en: 'Annual emissions (Scope 1+2)' }, value: `${fmt(emissions)} tCO₂e${facility.useInventory ? '（盤查）' : ''}` },
+    { label: { zhTW: '年排放量（Scope 1+2）', en: 'Annual emissions (Scope 1+2)' }, value: `${fmt(emissions)} tCO₂e${facility.useInventory ? (inventoryIncomplete ? '（盤查未完成,暫用填寫值）' : '（盤查）') : ''}` },
     { label: { zhTW: leakage ? '− 起徵額 K（高碳洩漏=0）' : '− 起徵額 K（2.5 萬噸）', en: leakage ? '− threshold K (high-leakage = 0)' : '− threshold K (25,000 t)' }, value: `${fmt(afterK)} tCO₂e` },
     { label: { zhTW: `× 碳洩漏係數 CL（${cl}）`, en: `× leakage coefficient CL (${cl})` }, value: `${fmt(afterCL)} tCO₂e` },
     ...(facility.carbonCreditOffset > 0
@@ -47,7 +48,7 @@ export function feeBreakdown(facility: FacilityLine, profile: CompanyProfile, re
     { label: { zhTW: '× 費率', en: '× rate' }, value: `NT$${rate}／tCO₂e` },
     { label: { zhTW: '= 應繳碳費／年', en: '= carbon fee / yr' }, value: `NT$${fmt(result.totalCarbonCost)}` },
   ];
-  return { steps, gated };
+  return { steps, gated, inventoryIncomplete };
 }
 
 /** Rate label for the applied rate type (general unless an approved plan unlocks 優惠). */

@@ -1,564 +1,245 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
-import { useI18n, Lang } from '@/lib/i18n/context';
+import type { ReactNode } from 'react';
+import { useI18n } from '@/lib/i18n/context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { JOURNEY } from '@/lib/content/journey';
 
-function StepBadge({ n }: { n: number }) {
-  return (
-    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#89B56C] text-white text-sm font-bold shrink-0">
-      {n}
-    </span>
-  );
-}
+/* ---------- small presentational helpers ---------- */
 
-function MockField({ label, value }: { label: string; value: string }) {
+function Num({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs text-gray-500 font-medium">{label}</p>
-      <div className="px-3 py-2 bg-white border rounded-md text-sm text-gray-700">{value}</div>
+    <div className="rounded-lg border border-gray-200 bg-white p-3 text-center">
+      <p className="text-[11px] text-gray-400">{label}</p>
+      <p className="mt-1 font-mono text-lg font-bold text-gray-900">{value}</p>
+      {sub && <p className="mt-0.5 text-[11px] text-gray-400">{sub}</p>}
     </div>
   );
 }
 
-function MockResult({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Feature({ id, icon, title, lead, children }: { id: string; icon: string; title: string; lead: string; children: ReactNode }) {
   return (
-    <div className="text-center p-3 bg-white rounded-lg border">
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className="text-xl font-bold text-gray-900 mt-1">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    <div id={id} className="scroll-mt-20 rounded-xl border border-gray-200 bg-white p-5">
+      <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900"><span className="text-xl">{icon}</span>{title}</h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{lead}</p>
+      <div className="mt-3 space-y-2 text-sm leading-relaxed text-gray-600">{children}</div>
     </div>
   );
 }
+
+function Walk({ n, title, children }: { n: number; title: string; children: ReactNode }) {
+  return (
+    <div className="flex gap-3">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#89B56C] text-sm font-bold text-white">{n}</span>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-gray-900">{title}</p>
+        <div className="mt-1.5 space-y-2 text-sm leading-relaxed text-gray-600">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- guide ---------- */
 
 export default function GuideContent() {
-  const { t, lang } = useI18n();
-  const imgPrefix = lang === 'en' ? 'en' : 'zh';
+  const { t, tObj } = useI18n();
+
+  const toc = [
+    { href: '#what', label: t('這是什麼、給誰用', 'What it is, who it’s for') },
+    { href: '#cycle', label: t('核心:七步年度週期', 'Core: the 7-step cycle') },
+    { href: '#how', label: t('逐項使用說明', 'Feature-by-feature') },
+    { href: '#walk', label: t('實例導覽:AI 伺服器代工廠', 'Worked example: AI-server ODM') },
+    { href: '#deliver', label: t('匯出與交付', 'Exports & deliverables') },
+    { href: '#faq', label: t('常見問題', 'FAQ') },
+  ];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 space-y-10">
-      {/* Page title */}
-      <div className="text-center space-y-3">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {t('使用說明', 'User Guide')}
-        </h1>
-        <p className="text-gray-500">
-          {t(
-            '本指南將帶您逐步了解亞太碳成本試算器的所有功能',
-            'This guide walks you through every feature of the APAC Carbon Cost Calculator'
-          )}
+    <div className="mx-auto max-w-3xl space-y-10 px-4 py-10">
+      {/* title */}
+      <div className="space-y-3 text-center">
+        <h1 className="text-3xl font-bold text-gray-900">{t('使用指南', 'User guide')}</h1>
+        <p className="mx-auto max-w-2xl leading-relaxed text-gray-500">
+          {t('帶你從零開始用 Carbon Lens 碳排鏡菱,走完盤查、目標、減量、查證、申報、揭露到年對年閉環的完整碳管理週期——並用一家「AI 伺服器組裝代工廠」實際走一遍。', 'A from-zero walkthrough of Carbon Lens — inventory, targets, reductions, assurance, filing, disclosure and the year-over-year loop — illustrated with a real “AI-server assembly ODM” example.')}
         </p>
       </div>
 
-      {/* Quick nav */}
+      {/* TOC */}
       <Card>
         <CardContent className="py-4">
           <div className="flex flex-wrap gap-2">
-            <a href="#overview"><Badge variant="secondary" className="cursor-pointer hover:bg-gray-200">{t('總覽', 'Overview')}</Badge></a>
-            <a href="#domestic"><Badge variant="secondary" className="cursor-pointer hover:bg-gray-200">{t('國內碳費', 'Domestic Carbon')}</Badge></a>
-            <a href="#cbam"><Badge variant="secondary" className="cursor-pointer hover:bg-gray-200">CBAM</Badge></a>
-            <a href="#compare"><Badge variant="secondary" className="cursor-pointer hover:bg-gray-200">{t('跨國比較', 'Compare')}</Badge></a>
-            <a href="#language"><Badge variant="secondary" className="cursor-pointer hover:bg-gray-200">{t('語言切換', 'Language')}</Badge></a>
-            <a href="#confidence"><Badge variant="secondary" className="cursor-pointer hover:bg-gray-200">{t('抵扣確定性', 'Confidence')}</Badge></a>
+            {toc.map((x) => (
+              <a key={x.href} href={x.href} className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-[#89B56C]/15 hover:text-[#5d7d44]">{x.label}</a>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* ============ 1. OVERVIEW ============ */}
-      <section id="overview" className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
-          {t('1. 工具總覽', '1. Overview')}
-        </h2>
-        <p className="text-gray-600 leading-relaxed">
-          {t(
-            '亞太碳成本試算器涵蓋台灣、新加坡、韓國、日本、泰國、越南六國的國內碳定價機制，以及歐盟碳邊境調整機制（EU CBAM）。您可以：',
-            'The APAC Carbon Cost Calculator covers domestic carbon pricing mechanisms across six countries — Taiwan, Singapore, South Korea, Japan, Thailand, and Vietnam — plus the EU Carbon Border Adjustment Mechanism (CBAM). You can:'
-          )}
+      {/* 1. What / who */}
+      <section id="what" className="scroll-mt-20 space-y-3">
+        <h2 className="text-2xl font-bold text-gray-900">{t('① 這是什麼、給誰用', '① What it is, who it’s for')}</h2>
+        <p className="leading-relaxed text-gray-600">
+          {t('Carbon Lens 碳排鏡菱是一套「企業碳管理工作台」。你只要填一份公司側寫,它就能一次算出你的國內碳費、CBAM 暴露、IFRS 揭露階段、供應鏈壓力,並把這些串成一條從盤查到揭露、年年滾動的完整流程。每筆數字都標一手法源、可追溯;資料只存在你的瀏覽器,免註冊。', 'Carbon Lens is a corporate carbon-management workbench. Fill one company profile and it computes your domestic carbon fee, CBAM exposure, IFRS phase and supply-chain pressure at once — then threads them into one auditable, year-over-year flow from inventory to disclosure. Every figure cites primary law; data stays in your browser, no signup.')}
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Card className="bg-[#89B56C]/5 border-[#89B56C]/20">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl mb-2">🏭</p>
-              <p className="text-sm font-medium">{t('計算國內碳費/碳稅', 'Calculate domestic carbon cost')}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-blue-50 border-blue-100">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl mb-2">🇪🇺</p>
-              <p className="text-sm font-medium">{t('估算 EU CBAM 成本', 'Estimate EU CBAM cost')}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-amber-50 border-amber-100">
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl mb-2">📊</p>
-              <p className="text-sm font-medium">{t('跨國碳成本比較', 'Cross-country comparison')}</p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="p-4 bg-gray-100 rounded-lg">
-          <p className="text-sm text-gray-500">
-            {t(
-              '💡 首頁可看到六國卡片，點擊任一國家即可進入該國碳費計算器。',
-              '💡 The homepage shows six country cards — click any card to enter that country\'s calculator.'
-            )}
-          </p>
+        <p className="leading-relaxed text-gray-600">
+          {t('最適合:出口歐盟、面對品牌客戶碳要求、或須依 IFRS 編製永續資訊的台灣與 APAC 製造業——尤其在海外(越南、泰國等)設有廠區的公司。', 'Best for: Taiwan & APAC manufacturers that export to the EU, face brand-customer carbon demands, or file IFRS sustainability information — especially groups with overseas plants (Vietnam, Thailand, …).')}
+        </p>
+        <div className="rounded-lg bg-[#89B56C]/10 p-4 text-sm leading-relaxed text-[#5d7d44]">
+          {t('看不懂專有名詞?工作台裡每個術語旁都有一個 ⓘ:點一下會先給你一句白話說明,再附上精確定義與標準出處。新手照著做、專家也站得住。', 'New to the jargon? Every term in the workbench carries an ⓘ: tap it for a one-line explanation, then the precise definition and source. Easy for newcomers, solid for experts.')}
         </div>
       </section>
 
-      <Separator />
-
-      {/* ============ 2. DOMESTIC CALCULATOR ============ */}
-      <section id="domestic" className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
-          {t('2. 國內碳費/碳稅計算', '2. Domestic Carbon Cost Calculator')}
-        </h2>
-        <p className="text-gray-600 leading-relaxed">
-          {t(
-            '以台灣為例，示範完整操作流程：',
-            'Using Taiwan as an example, here is the complete workflow:'
-          )}
-        </p>
-
-        {/* Step 1 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={1} />
-              {t('選擇國家', 'Select a Country')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-gray-600">
-              {t(
-                '在首頁點擊國家卡片，或使用頂部導覽列的「碳費試算」進入。每個國家都顯示其碳定價機制類型和現行費率。',
-                'Click a country card on the homepage, or use the "Calculator" link in the header. Each card shows the carbon pricing mechanism type and current rate.'
-              )}
-            </p>
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
-              <span className="text-2xl">🇹🇼</span>
+      {/* 2. The cycle */}
+      <section id="cycle" className="scroll-mt-20 space-y-4">
+        <h2 className="text-2xl font-bold text-gray-900">{t('② 核心觀念:七步年度週期', '② The core: a 7-step annual cycle')}</h2>
+        <p className="leading-relaxed text-gray-600">{t('碳管理不是「算一個數字」,而是一個每年重複的流程。工作台就是照這七步設計的:', 'Carbon management isn’t “one number” — it’s an annual loop. The workbench is built around these seven steps:')}</p>
+        <ol className="space-y-2">
+          {JOURNEY.map((s) => (
+            <li key={s.id} className="flex gap-3 rounded-lg border border-gray-100 bg-white p-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#89B56C] text-sm font-bold text-white">{s.num}</span>
               <div>
-                <p className="font-medium text-sm">{t('台灣', 'Taiwan')}</p>
-                <p className="text-xs text-gray-500">{t('碳費', 'Carbon Fee')}</p>
+                <p className="font-semibold text-gray-900">{s.icon} {tObj(s.title)}</p>
+                <p className="mt-0.5 text-sm leading-relaxed text-gray-600">{tObj(s.plain)}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-gray-400">{tObj(s.pro)}</p>
               </div>
-              <Badge className="ml-auto bg-green-100 text-green-700" variant="secondary">{t('已實施', 'Active')}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step 2 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={2} />
-              {t('填寫基本資訊（Step 1）', 'Fill in Basic Information (Step 1)')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600">
-              {t(
-                '輸入您企業的年排放量（Scope 1+2，單位 tCO₂e）並選擇產業別。',
-                'Enter your facility\'s annual emissions (Scope 1+2, in tCO₂e) and select the industry type.'
-              )}
-            </p>
-            <div className="p-4 bg-gray-50 rounded-lg border space-y-3">
-              <MockField label={t('年排放量 (tCO₂e)', 'Annual Emissions (tCO₂e)')} value="100,000" />
-              <MockField label={t('產業別', 'Industry Type')} value={t('鋼鐵', 'Steel')} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step 3 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={3} />
-              {t('設定國別特定參數（Step 2）', 'Set Country-specific Parameters (Step 2)')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600">
-              {t(
-                '每個國家有不同的計算參數。以台灣為例：',
-                'Each country has different parameters. For Taiwan:'
-              )}
-            </p>
-            <div className="p-4 bg-gray-50 rounded-lg border space-y-3">
-              <MockField label={t('費率類型', 'Rate Type')} value={t('一般費率 (NT$300/tCO₂e)', 'General Rate (NT$300/tCO₂e)')} />
-              <div className="space-y-1">
-                <p className="text-xs text-gray-500 font-medium">{t('高碳洩漏風險產業', 'High Carbon Leakage Risk')}</p>
-                <div className="flex gap-2">
-                  <span className="px-3 py-1 border rounded text-xs bg-white">{t('是', 'Yes')}</span>
-                  <span className="px-3 py-1 border rounded text-xs bg-gray-800 text-white">{t('否', 'No')}</span>
-                </div>
-              </div>
-              <MockField label={t('計算期別', 'Calculation Period')} value={t('第一期 2025-2026（CL=0.2）', 'Period 1: 2025-2026 (CL=0.2)')} />
-            </div>
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
-              {t(
-                '💡 各國參數不同：新加坡可輸入碳權抵扣、韓國需填免費配額、日本可選擇是否為 GX-ETS 受管制企業。',
-                '💡 Parameters vary by country: Singapore has carbon credit offsets, Korea requires free allowance input, Japan has GX-ETS regulated entity toggle.'
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step 4 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={4} />
-              {t('點擊「計算碳費」', 'Click "Calculate Carbon Cost"')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600">
-              {t(
-                '按下綠色按鈕後，系統會即時計算碳費並顯示完整結果。',
-                'Press the green button to instantly calculate and display the full results.'
-              )}
-            </p>
-            <div className="flex justify-center">
-              <div className="bg-[#89B56C] text-white px-8 py-3 rounded-lg text-sm font-medium">
-                {t('計算碳費', 'Calculate Carbon Cost')}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step 5 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={5} />
-              {t('查看計算結果（Step 3）', 'View Results (Step 3)')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600">
-              {t(
-                '結果面板包含：碳費總額（當地幣值 + USD）、收費排放量、有效費率、計算步驟拆解，以及可用於 CBAM 抵扣的金額。',
-                'The result panel shows: total carbon cost (local currency + USD), chargeable emissions, effective rate, calculation breakdown, and the amount deductible for CBAM.'
-              )}
-            </p>
-            <div className="p-4 bg-[#89B56C]/5 rounded-lg border border-[#89B56C]/20 space-y-3">
-              <div className="text-center">
-                <p className="text-xs text-gray-400">{t('碳費總額', 'Total Carbon Cost')}</p>
-                <p className="text-3xl font-bold text-gray-900">NT$22,500,000</p>
-                <p className="text-sm text-gray-400">≈ USD 692,308</p>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <MockResult label={t('收費排放量', 'Chargeable Emissions')} value="75,000 tCO₂e" />
-                <MockResult label={t('有效費率', 'Effective Rate')} value="NT$225/tCO₂e" />
-              </div>
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between p-2 bg-white rounded">
-                  <span className="text-gray-500">{t('年排放量', 'Annual Emissions')}</span>
-                  <span className="font-mono">100,000 tCO₂e</span>
-                </div>
-                <div className="flex justify-between p-2 bg-white rounded">
-                  <span className="text-gray-500">{t('K 值（免徵額）', 'K-value (Exemption)')}</span>
-                  <span className="font-mono">25,000 tCO₂e</span>
-                </div>
-                <div className="flex justify-between p-2 bg-white rounded">
-                  <span className="text-gray-500">{t('適用費率', 'Applicable Rate')}</span>
-                  <span className="font-mono">300 TWD/tCO₂e</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step 6 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={6} />
-              {t('查看情境預測圖表', 'View Scenario Projection Chart')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-gray-600">
-              {t(
-                '結果下方會自動顯示 2025-2034 碳成本預測折線圖，包含三條線：國內碳價（綠）、CBAM 成本（藍）、合計（紅色虛線）。',
-                'Below the results, a 2025-2034 projection chart is shown with three lines: domestic carbon cost (green), CBAM cost (blue), and total (red dashed).'
-              )}
-            </p>
-            <div className="p-4 bg-white rounded-lg border text-center">
-              <div className="flex items-center justify-center gap-4 text-xs">
-                <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#89B56C] inline-block"></span> {t('國內碳價', 'Domestic')}</span>
-                <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-blue-500 inline-block"></span> CBAM</span>
-                <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-red-500 inline-block border-dashed"></span> {t('合計', 'Total')}</span>
-              </div>
-              <p className="text-gray-400 mt-2 text-xs">{t('圖表呈上升趨勢 — CBAM 免費配額逐年減少', 'Chart trends upward — CBAM free allocation decreases yearly')}</p>
-            </div>
-          </CardContent>
-        </Card>
+            </li>
+          ))}
+        </ol>
+        <p className="text-sm text-gray-500">{t('走完第 7 步,按「結轉下一年」就把邊界與係數帶到明年,再走一輪。', 'After step 7, “carry forward” brings your boundary and factors into next year — and the loop repeats.')}</p>
       </section>
 
-      <Separator />
+      {/* 3. Feature-by-feature */}
+      <section id="how" className="scroll-mt-20 space-y-4">
+        <h2 className="text-2xl font-bold text-gray-900">{t('③ 逐項使用說明', '③ Feature-by-feature')}</h2>
 
-      {/* ============ 3. CBAM CALCULATOR ============ */}
-      <section id="cbam" className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
-          {t('3. EU CBAM 試算', '3. EU CBAM Calculator')}
-        </h2>
-        <p className="text-gray-600 leading-relaxed">
-          {t(
-            '從導覽列點擊「CBAM」進入。適用於向歐盟出口鋼鐵、鋁、水泥、化肥、氫、電力的企業。',
-            'Click "CBAM" in the navigation bar. This is for companies exporting steel, aluminum, cement, fertilizer, hydrogen, or electricity to the EU.'
-          )}
+        <Feature id="f-profile" icon="📝" title={t('填側寫(①–④)', 'Fill the profile (①–④)')} lead={t('工作台最上面是公司側寫。填一次,下面所有計算都用它。', 'The top of the workbench is your company profile. Fill it once; everything below uses it.')}>
+          <p>{t('① 公司基本:產業別、分析年度;若要管目標,順手填基準年、基準年排放、目標年、目標減量%。', '① Basics: industry, analysis year; for target tracking, also set base year, base-year emissions, target year and target %.')}</p>
+          <p>{t('② 揭露:上市/上櫃與資本額——工具據此推你哪一年要編 IFRS S1/S2 永續揭露。', '② Disclosure: listed/OTC + capital tier — sets which year you must file IFRS S1/S2.')}</p>
+          <p>{t('③ 供應鏈位置:商業模式(品牌/代工/零組件)、員工規模、客戶承諾的框架(RE100/SBTi/CDP)——決定你被要求碳數據的壓力。', '③ Supply-chain position: business model, headcount, customer frameworks — sets how hard you’ll be pushed for carbon data.')}</p>
+          <p>{t('④ 出口與假設:是否出口歐盟、歐盟碳價(ETS)的低/中/高假設——驅動 CBAM 估算與敏感度區間。', '④ Export & assumptions: EU export? low/mid/high EU ETS price — drives the CBAM estimate and its sensitivity band.')}</p>
+        </Feature>
+
+        <Feature id="f-inventory" icon="📏" title={t('盤查:把排放一筆筆算出來(⑤⑦)', 'Inventory: compute emissions line by line (⑤⑦)')} lead={t('這是整套工具的地基。你可以「直接填總數」,或切到「從活動數據建模」逐項算出可查證的數字。', 'The foundation. Type a total, or switch to “build from activity data” for an auditable, line-by-line number.')}>
+          <p>{t('每一行 = 活動量 × 排放係數 = tCO₂e,並顯示完整計算式與來源(供查證)。電力是 Scope 2、燃料/製程/冷媒是 Scope 1。', 'Each line = activity × factor = tCO₂e, with the full formula and source shown. Electricity is Scope 2; fuels/process/refrigerants are Scope 1.')}</p>
+          <p>{t('海外廠會自動套該國電網係數:越南 0.6592、泰國 0.475、新加坡 0.402、台灣 0.474……(都可逐行覆寫為你的查證值)。', 'Overseas sites auto-use that country’s grid factor: Vietnam 0.6592, Thailand 0.475, Singapore 0.402, Taiwan 0.474… (each overridable).')}</p>
+          <p>{t('填「綠電/PPA/REC 佔比」就會多算一個「市場基礎 Scope 2」與 RE100% (品牌客戶最看這個)。每行還能標數據品質(實測/發票/估算)與佐證來源,供查證留痕。', 'Enter your renewable % to also get market-based Scope 2 and RE100% (what brand customers check). Each line can carry a data-quality tier and evidence note for the audit trail.')}</p>
+          <p>{t('Scope 3(⑦):代工/組裝業 90% 以上的碳在這裡。用「使用階段」算售出產品的用電(類別11)、用「支出基礎」估採購零件(類別1)。', 'Scope 3 (⑦): 90%+ of an assembler’s carbon is here. Use “use-phase” for sold-product electricity (Cat 11) and “spend-based” for purchased parts (Cat 1).')}</p>
+          <p className="rounded bg-amber-50 px-2 py-1 text-[13px] text-amber-800">{t('提醒:切到「盤查」卻還沒填活動量時,碳費不會被歸零——會暫用你原填的總數,並提示你完成盤查。', 'Note: switching to inventory before entering data won’t zero your fee — it falls back to your typed total and flags it.')}</p>
+        </Feature>
+
+        <Feature id="f-target" icon="🎯" title={t('目標管理:訂目標、看是否在軌', 'Targets: set them, see if you’re on track')} lead={t('填了基準年、基準年排放、目標年、目標% 之後,結果區會出現「減量目標管理」。', 'Once base year + base emissions + target year + target % are set, a “target management” panel appears.')}>
+          <p>{t('它畫出基準年到目標年的線性軌跡,標出今年「該降到多少」、實際排多少、差多少(在軌/落後),並把你的隱含年減% 跟 SBTi 1.5°C 最低 4.2%/年比對。', 'It draws the linear pathway, shows this year’s allowance vs actual (on track / behind), and compares your implied annual % to the SBTi 1.5°C minimum of 4.2%/yr.')}</p>
+        </Feature>
+
+        <Feature id="f-reduce" icon="📉" title={t('減碳鏡:一個目標牽動三筆', 'Reduction lens: one target, three levers')} lead={t('拉動「目標減量%」滑桿(會自動帶入你設的目標),看同一個減量如何同時降低碳費與(有實際數據時的)CBAM。', 'Drag the “target reduction %” (seeded from your set target) to see one cut lower the carbon fee and — with actual data — CBAM together.')}>
+          <p>{t('減量槓桿(綠電、能效、製程、燃料轉換)是質性列出的——本工具不會給你沒有依據的「每噸減碳成本」。', 'Reduction levers are listed qualitatively — the tool never invents an unsourced “cost per tonne abated”.')}</p>
+        </Feature>
+
+        <Feature id="f-assure" icon="🔒" title={t('查證定版:把已查證的數字凍結', 'Assurance: freeze the verified number')} lead={t('盤查經內審/查證後,按「凍結此版本」,填版本名與簽核人,就把當下整份側寫鎖成一個版本。', 'After review/assurance, “freeze this version” with a label and signer to lock the whole profile as a version.')}>
+          <p>{t('版本清單就是你的變更軌跡;任何一版都能「還原」回來重現或比對。這是自我聲明的凍結紀錄,不是第三方查證。', 'The version list is your change trail; any version can be “restored” to reproduce/compare. It’s a self-attested freeze, not third-party assurance.')}</p>
+        </Feature>
+
+        <Feature id="f-cycle" icon="🗓" title={t('週期狀態 + 義務行事曆', 'Cycle status + obligation calendar')} lead={t('結果區頂端有一條週期看板(盤查中→內審→查證中→已查證→已申報→已揭露),點一下標記你目前所在階段。', 'A status bar at the top of the results (measuring → review → assurance → assured → filed → disclosed) — tap your current stage.')}>
+          <p>{t('下面是依你側寫導出的年度義務行事曆:碳費申報(5/31)、CBAM 申報、永續報告書、CDP——每筆都有截止日、倒數天數與法源。', 'Below it, an obligation calendar derived from your profile: carbon-fee filing (May 31), CBAM, sustainability report, CDP — each with a due date, countdown and source.')}</p>
+        </Feature>
+
+        <Feature id="f-results" icon="📊" title={t('看結果:總足跡、碳 P&L、先做哪件', 'Read results: footprint, carbon P&L, do-this-first')} lead={t('按「計算我的合規全貌」後,結果由上而下:', 'After “compute”, results read top-down:')}>
+          <p>{t('總碳足跡(Scope 1+2+3)領銜,並拆出 Scope 3 占比與每單位 PCF——避免「碳費近零」誤導你以為碳風險小。', 'Total footprint (Scope 1+2+3) leads, with Scope 3 share and per-unit PCF — so a near-zero fee doesn’t mislead you.')}</p>
+          <p>{t('接著是碳 P&L 四卡(碳費/CBAM/IFRS/供應鏈)、碳費算式(可給查核員)、「先做哪件」優先序(依工作量與死線排,不只看金額)、CBAM 逐年暴露圖。', 'Then the carbon P&L (fee/CBAM/IFRS/supply-chain), an auditor-ready fee breakdown, a “do this first” priority list (by workload + deadline, not just money), and the CBAM ramp chart.')}</p>
+        </Feature>
+
+        <Feature id="f-loop" icon="🔁" title={t('年對年閉環:拍快照、結轉下一年', 'Close the loop: snapshot & carry forward')} lead={t('「拍下這次快照」把總額存進歷史;歷史表會顯示總足跡與 vs 前次的 Δ%。', '“Take a snapshot” saves totals to history; the table shows footprint and Δ% vs the prior one.')}>
+          <p>{t('「結轉下一年」會複製側寫、把年度 +1、沿用邊界與係數,讓你明年從這裡接著盤——週期才真正閉環。', '“Carry forward” clones the profile, bumps the year, keeps boundaries and factors — so next year picks up here. That closes the loop.')}</p>
+        </Feature>
+      </section>
+
+      {/* 4. Worked example */}
+      <section id="walk" className="scroll-mt-20 space-y-4">
+        <h2 className="text-2xl font-bold text-gray-900">{t('④ 實例導覽:AI 伺服器組裝代工廠', '④ Worked example: an AI-server assembly ODM')}</h2>
+        <p className="leading-relaxed text-gray-600">
+          {t('情境:一家台灣 AI 伺服器 ODM 代工廠「宏碩 AI Server」,在越南、泰國設有組裝廠,出口歐盟,品牌客戶要求 SBTi 與 CDP。以下照七步走一遍(數字都是工具實算結果,你可照填重現)。', 'Scenario: a Taiwan AI-server ODM with assembly plants in Vietnam and Thailand, exporting to the EU, with brand customers demanding SBTi and CDP. Here’s the seven-step run (all figures are real tool outputs you can reproduce).')}
         </p>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t('操作步驟', 'Steps')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-3">
-              <div className="flex gap-3 items-start">
-                <StepBadge n={1} />
-                <div>
-                  <p className="text-sm font-medium">{t('選擇產品類別', 'Select product type')}</p>
-                  <p className="text-xs text-gray-500">{t('如：鋼鐵（高爐-轉爐）、鋁（原生）、水泥（熟料）等', 'e.g., Steel (BF-BOF), Aluminum (Primary), Cement (Clinker)')}</p>
-                </div>
-              </div>
-              <div className="flex gap-3 items-start">
-                <StepBadge n={2} />
-                <div>
-                  <p className="text-sm font-medium">{t('輸入進口量（噸）', 'Enter import volume (tonnes)')}</p>
-                  <p className="text-xs text-gray-500">{t('年度出口至歐盟的產品總噸數', 'Total tonnes exported to EU per year')}</p>
-                </div>
-              </div>
-              <div className="flex gap-3 items-start">
-                <StepBadge n={3} />
-                <div>
-                  <p className="text-sm font-medium">{t('選擇排放數據來源', 'Choose emissions data source')}</p>
-                  <p className="text-xs text-gray-500">{t('「使用預設值」會自動套用 EU 預設排放因子（含加成）；「實際數據」可輸入您的實際排放強度', '"Default Values" applies EU default emission factors (with surcharge); "Actual Data" lets you enter your actual emission intensity')}</p>
-                </div>
-              </div>
-              <div className="flex gap-3 items-start">
-                <StepBadge n={4} />
-                <div>
-                  <p className="text-sm font-medium">{t('設定計算年度與 EU ETS 價格', 'Set year and EU ETS price')}</p>
-                  <p className="text-xs text-gray-500">{t('年度影響免費配額比例（2026: 97.5% → 2034: 0%）', 'The year affects free allocation (2026: 97.5% → 2034: 0%)')}</p>
-                </div>
-              </div>
-              <div className="flex gap-3 items-start">
-                <StepBadge n={5} />
-                <div>
-                  <p className="text-sm font-medium">{t('輸入原產國已繳碳價（€）', 'Enter domestic carbon price paid (€)')}</p>
-                  <p className="text-xs text-gray-500">{t('將國內碳費按出口佔比折算為歐元。若無國內碳價（如越南），填 0', 'Convert domestic carbon cost by EU export share to EUR. Enter 0 if no domestic carbon price (e.g., Vietnam)')}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="space-y-5 py-5">
+          <Walk n={1} title={t('填側寫', 'Fill the profile')}>
+            <p>{t('① 產業=電子/半導體、年度 2026、基準年 2024、基準年排放 40,000 t、目標年 2030、目標減量 30%。② 上市、資本逾 100 億。③ 商業模式=ODM 代工、員工逾千、客戶框架 SBTi+CDP。④ 出口歐盟=是。', '① Industry = electronics, year 2026, base year 2024, base emissions 40,000 t, target year 2030, target −30%. ② Listed, capital >NT$10bn. ③ ODM, >1,000 staff, frameworks SBTi+CDP. ④ Exports to EU = yes.')}</p>
+          </Walk>
 
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="py-4 space-y-2">
-            <p className="text-sm font-medium text-blue-900">{t('範例', 'Example')}</p>
-            <div className="text-xs text-blue-800 space-y-1">
-              <p>{t('• 產品：鋼鐵（高爐-轉爐），進口 5,000 噸', '• Product: Steel (BF-BOF), 5,000 tonnes')}</p>
-              <p>{t('• 排放因子：2.1 tCO₂e/噸（實際數據）', '• Emission intensity: 2.1 tCO₂e/t (actual data)')}</p>
-              <p>{t('• 年度：2026，EU ETS €80/tCO₂e', '• Year: 2026, EU ETS €80/tCO₂e')}</p>
-              <p>{t('• 原產國碳價：€0（越南，無正式碳價）', '• Domestic carbon price: €0 (Vietnam, no formal price)')}</p>
-              <p className="font-bold mt-2">{t('→ CBAM 淨成本：約 €338,460', '→ Net CBAM cost: approx. €338,460')}</p>
-            </div>
-          </CardContent>
-        </Card>
+          <Walk n={2} title={t('建越南廠盤查(電力)', 'Build the Vietnam plant inventory (electricity)')}>
+            <p>{t('新增廠區「越南廠」、國別=越南,切到「從活動數據建模」,排放源選「外購電力」、活動量填 8,000,000 度。工具自動套越南電網係數 0.6592:', 'Add “Vietnam plant”, country = Vietnam, switch to activity-data, pick electricity, enter 8,000,000 kWh. The tool auto-applies Vietnam’s 0.6592 grid factor:')}</p>
+            <p className="rounded bg-gray-50 px-2 py-1 font-mono text-[13px] text-gray-700">8,000,000 × 0.6592 ÷ 1000 = 5,273.6 tCO₂e（Scope 2 地點基礎）</p>
+            <p>{t('再填「綠電佔比 40%」→ 多出市場基礎 Scope 2 = 5,273.6 × 60% = 3,164 t,RE100 40%。', 'Set renewable 40% → market-based Scope 2 = 5,273.6 × 60% = 3,164 t, RE100 40%.')}</p>
+          </Walk>
 
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
-          {t(
-            '⚠️ 進口量 ≤ 50 噸（氫和電力除外）可豁免 CBAM。工具會自動判斷並顯示「豁免」。',
-            '⚠️ Imports ≤ 50 tonnes (except hydrogen and electricity) are exempt from CBAM. The tool automatically detects and shows "Exempt".'
-          )}
-        </div>
+          <Walk n={3} title={t('加泰國廠', 'Add the Thailand plant')}>
+            <p>{t('同樣方式,泰國廠電力 5,000,000 度 × 0.475(泰國 TGO)= 2,375 t。兩廠 Scope 1+2 合計 ≈ 7,649 t。', 'Same way: Thailand 5,000,000 kWh × 0.475 (TGO) = 2,375 t. Both plants’ Scope 1+2 ≈ 7,649 t.')}</p>
+          </Walk>
+
+          <Walk n={4} title={t('量化 Scope 3(這才是大宗)', 'Quantify Scope 3 (this is the big one)')}>
+            <p>{t('在 ⑦ 新增一筆,類別 11(售出產品使用)、方法=使用階段,填:2,000 台 × 800 W × 8,760 小時/年 × 4 年壽命 × 0.4 kgCO₂e/kWh:', 'In ⑦ add Cat 11 (use of sold products), method = use-phase: 2,000 units × 800 W × 8,760 h/yr × 4 yr × 0.4 kgCO₂e/kWh:')}</p>
+            <p className="rounded bg-gray-50 px-2 py-1 font-mono text-[13px] text-gray-700">2000 × 800 × 8760 × 4 × 0.4 ÷ 1,000,000 = 22,426 tCO₂e</p>
+            <p>{t('再填「年售出 2,000 台、單位=台」,工具就能算每台 PCF。', 'Enter “2,000 units/yr, unit = server” so the tool can compute per-unit PCF.')}</p>
+          </Walk>
+
+          <Walk n={5} title={t('按「計算」,看全貌', 'Compute and read the picture')}>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Num label={t('總碳足跡', 'Total footprint')} value="30,074" sub="tCO₂e" />
+              <Num label={t('Scope 3 占比', 'Scope 3 share')} value="75%" sub={t('價值鏈', 'value chain')} />
+              <Num label={t('每台 PCF', 'Per-server PCF')} value="15,037" sub="kgCO₂e" />
+              <Num label={t('市場基礎 Scope 2', 'Market Scope 2')} value="3,164" sub={t('越南廠', 'VN plant')} />
+            </div>
+            <p>{t('重點:你自己營運(Scope 1+2)只有 ~7,649 t,但加上售出伺服器的使用階段,總足跡衝到 30,074 t——Scope 3 佔 75%。這正是客戶要你揭露的數字。', 'Key insight: your own operations (Scope 1+2) are only ~7,649 t, but with the sold servers’ use-phase the total jumps to 30,074 t — Scope 3 is 75%. That’s exactly what customers want disclosed.')}</p>
+          </Walk>
+
+          <Walk n={6} title={t('目標、CBAM、行事曆', 'Targets, CBAM, calendar')}>
+            <p>{t('目標管理顯示:2026 年該降到 ~36,000 t、實際 30,074 t → ✓ 在軌;隱含年減 5%/年 ✓ 達 SBTi 1.5°C(≥4.2%)。', 'Target panel: 2026 allowance ~36,000 t, actual 30,074 t → ✓ on track; implied 5%/yr ✓ meets SBTi 1.5°C (≥4.2%).')}</p>
+            <p>{t('CBAM:成品伺服器不在 CBAM 清單上——若你出口鋁機殼等清單貨品,才在 ⑥ 申報;否則此區留空即可(工具會提示)。', 'CBAM: finished servers are not on the CBAM list — only list goods (e.g. aluminium chassis) go in ⑥; otherwise leave it empty (the tool says so).')}</p>
+            <p>{t('行事曆自動列出:碳費申報 2027-05-31、永續報告書 2027-03-31、CDP 2027-07-31,各含倒數與法源。', 'The calendar lists carbon-fee filing 2027-05-31, sustainability report 2027-03-31, CDP 2027-07-31 — each with a countdown and source.')}</p>
+          </Walk>
+
+          <Walk n={7} title={t('定版、匯出、結轉', 'Lock, export, carry forward')}>
+            <p>{t('查證後按「凍結此版本」存成「FY2025 已查證版」。下載「盤查清冊(CSV)」交查核、「揭露報告段落」貼進報告書、「CBAM 溝通範本」給買家。最後按「結轉下一年(2027)」,明年從這裡接著盤。', 'After assurance, “freeze” it as “FY2025 assured”. Download the inventory CSV for auditors, the disclosure draft for the report, the CBAM template for buyers. Finally “carry forward to 2027” and pick up there next year.')}</p>
+          </Walk>
+        </CardContent></Card>
       </section>
 
-      <Separator />
-
-      {/* ============ 4. CROSS-COUNTRY COMPARISON ============ */}
-      <section id="compare" className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
-          {t('4. 跨國碳成本比較', '4. Cross-Country Comparison')}
-        </h2>
-        <p className="text-gray-600 leading-relaxed">
-          {t(
-            '從導覽列點擊「跨國比較」，輸入相同的排放量假設，一次比較六國的國內碳成本 + CBAM 淨成本。',
-            'Click "Compare" in the navigation bar. Enter the same emissions assumptions to compare domestic carbon costs + CBAM net costs across all six countries at once.'
-          )}
-        </p>
-
-        {/* Step 1: Input */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={1} />
-              {t('輸入排放量與出口量', 'Enter Emissions & Export Volume')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600">
-              {t(
-                '輸入年排放量（tCO₂e）和出口歐盟的鋼鐵噸數，系統會以相同假設計算六國碳成本。',
-                'Enter annual emissions (tCO₂e) and steel export tonnes to the EU. The system calculates costs for all six countries under identical assumptions.'
-              )}
-            </p>
-            <div className="rounded-lg border overflow-hidden">
-              <Image src={`/guide/${imgPrefix}-compare-input.png`} alt={t('跨國比較輸入表單', 'Compare input form')} width={1280} height={900} className="w-full h-auto" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step 2: Click Compare */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={2} />
-              {t('點擊「開始比較」查看圖表', 'Click "Compare" to View Chart')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600">
-              {t(
-                '堆疊長條圖顯示六國的國內碳價（綠色）與 CBAM 淨成本（藍色），一目了然各國總碳成本差異。',
-                'The stacked bar chart shows domestic carbon cost (green) and CBAM net cost (blue) for all six countries, making it easy to compare total carbon costs.'
-              )}
-            </p>
-            <div className="rounded-lg border overflow-hidden">
-              <Image src={`/guide/${imgPrefix}-compare-chart.png`} alt={t('跨國比較圖表', 'Compare chart')} width={1280} height={900} className="w-full h-auto" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step 3: Table */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <StepBadge n={3} />
-              {t('查看詳細比較表格', 'View Detailed Comparison Table')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600">
-              {t(
-                '表格列出每個國家的國內碳價（USD）、CBAM 淨成本（EUR）和合計（USD），並按合計金額排序。越南因無碳價抵扣，CBAM 成本最高。',
-                'The table lists each country\'s domestic carbon cost (USD), CBAM net cost (EUR), and total (USD), sorted by total. Vietnam faces the highest CBAM cost due to zero domestic deduction.'
-              )}
-            </p>
-            <div className="rounded-lg border overflow-hidden">
-              <Image src={`/guide/${imgPrefix}-compare-table.png`} alt={t('跨國比較表格', 'Compare table')} width={1280} height={900} className="w-full h-auto" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-          {t(
-            '🔴 越南因無正式碳價，出口商將面臨最高的 CBAM 淨成本（無法抵扣任何國內碳價）。比較頁面會突出顯示此風險。',
-            '🔴 Vietnam has no formal carbon price, so exporters face the highest net CBAM cost (zero domestic deduction). The comparison page highlights this risk.'
-          )}
-        </div>
+      {/* 5. Deliverables */}
+      <section id="deliver" className="scroll-mt-20 space-y-3">
+        <h2 className="text-2xl font-bold text-gray-900">{t('⑤ 匯出與交付', '⑤ Exports & deliverables')}</h2>
+        <ul className="space-y-2 text-sm leading-relaxed text-gray-600">
+          <li>{t('• 側寫 JSON:換電腦或多廠彙整用——匯出存檔、之後匯入即還原。', '• Profile JSON: for switching machines / merging plants — export then import to restore.')}</li>
+          <li>{t('• 盤查清冊 CSV:逐排放源含係數、來源、Scope、數據品質、佐證、tCO₂e——Excel 可開,交查證的工作底稿。', '• Inventory sheet CSV: every source with factor, source, scope, data quality, evidence, tCO₂e — opens in Excel, the assurance working paper.')}</li>
+          <li>{t('• 揭露報告段落:IFRS S1/S2 四支柱草稿,已用你的實算數字預填,定性內容留空待你補。', '• Disclosure draft: an IFRS S1/S2 four-pillar draft pre-filled with your numbers; qualitative parts left to complete.')}</li>
+          <li>{t('• CBAM 設施溝通範本:依 Reg (EU) 2023/956 欄位整理,給歐盟買家所需的設施資料。', '• CBAM communication template: per Reg (EU) 2023/956, the installation data your EU buyer needs.')}</li>
+        </ul>
+        <p className="text-sm text-gray-500">{t('所有匯出都在前端產生、直接下載,不經伺服器。', 'All exports are generated in your browser and downloaded directly — nothing leaves your device.')}</p>
       </section>
 
-      <Separator />
-
-      {/* ============ 5. LANGUAGE TOGGLE ============ */}
-      <section id="language" className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
-          {t('5. 中英文切換', '5. Language Toggle')}
-        </h2>
-        <Card>
-          <CardContent className="py-4 space-y-2">
-            <p className="text-sm text-gray-600">
-              {t(
-                '點擊右上角的「EN」或「中文」按鈕，即可即時切換全站語言。所有標籤、選項、結果說明均支援雙語。',
-                'Click the "EN" or "中文" button in the top-right corner to instantly switch the entire site language. All labels, options, and result descriptions support both languages.'
-              )}
-            </p>
-            <div className="flex items-center gap-3 justify-center">
-              <div className="px-3 py-1 border rounded text-xs font-medium text-gray-700 bg-white">EN</div>
-              <span className="text-gray-400">⇄</span>
-              <div className="px-3 py-1 border rounded text-xs font-medium text-gray-700 bg-white">中文</div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* 6. FAQ */}
+      <section id="faq" className="scroll-mt-20 space-y-3">
+        <h2 className="text-2xl font-bold text-gray-900">{t('⑥ 常見問題', '⑥ FAQ')}</h2>
+        {[
+          { q: t('我的資料會被上傳嗎?', 'Is my data uploaded?'), a: t('不會。側寫、快照、凍結版本都只存在你的瀏覽器(localStorage),不經伺服器、免註冊。換電腦請用「匯出側寫 JSON」搬移。', 'No. Your profile, snapshots and locked versions live only in your browser (localStorage) — no server, no signup. Use “export profile JSON” to move machines.')},
+          { q: t('海外廠的用電碳排怎麼算才對?', 'How are overseas plants’ electricity emissions calculated?'), a: t('工具依廠區國別自動套該國電網係數(如越南 0.6592、泰國 0.475),不會誤用台灣值。係數逐年公布、可逐行覆寫為你查證的最新值。', 'The tool auto-applies each country’s grid factor (e.g. Vietnam 0.6592, Thailand 0.475), not Taiwan’s. Factors are updated yearly and overridable per line.')},
+          { q: t('為什麼我的碳費很低、工具卻說風險很大?', 'Why is my fee low but the tool flags big risk?'), a: t('因為代工/組裝業的碳幾乎都在 Scope 3(採購零件、售出產品使用),不在你自己繳碳費的 Scope 1+2。工具用「總足跡 + Scope 3 占比 + 每台 PCF」把這塊攤開給你看。', 'Because most of an assembler’s carbon is Scope 3 (purchased parts, use of sold products), not the Scope 1+2 you pay a fee on. The tool surfaces this via total footprint, Scope 3 share and per-unit PCF.')},
+          { q: t('地點基礎與市場基礎 Scope 2 有什麼差?', 'Location- vs market-based Scope 2?'), a: t('地點基礎用當地電網平均;市場基礎把你買的綠電/PPA/REC 算進去(RE100 看的是這個)。填「綠電佔比」即可同時得到兩個數。', 'Location-based uses the grid average; market-based counts your green-power contracts (RE100 looks at this). Enter your renewable % to get both.')},
+          { q: t('CBAM 是我要繳嗎?成品伺服器要報嗎?', 'Do I pay CBAM? Do finished servers count?'), a: t('CBAM 憑證由歐盟進口商購買,不是你。且成品電子/伺服器不在 CBAM 清單上(清單僅鋼/鋁/水泥/肥料/氫/電力)——只有你出口這些清單貨品時才在 ⑥ 申報。', 'CBAM certificates are bought by the EU importer, not you. And finished electronics/servers aren’t on the CBAM list (only steel/al/cement/fertilizer/H₂/power) — file in ⑥ only for those list goods.')},
+          { q: t('SBTi 的 4.2% 是怎麼來的?', 'Where does the SBTi 4.2% come from?'), a: t('SBTi 1.5°C 近期目標準則要求約每年線性絕對減 4.2%。工具把你「目標% ÷ 年數」的隱含年減和它比對,標示是否對齊。', 'SBTi’s 1.5°C near-term criteria require ≈4.2%/yr linear absolute reduction. The tool compares your implied annual cut (target % ÷ years) and flags alignment.')},
+        ].map((f, i) => (
+          <details key={i} className="rounded-lg border border-gray-200 bg-white p-4">
+            <summary className="cursor-pointer text-sm font-semibold text-gray-800">{f.q}</summary>
+            <p className="mt-2 text-sm leading-relaxed text-gray-600">{f.a}</p>
+          </details>
+        ))}
       </section>
 
-      <Separator />
-
-      {/* ============ 6. CBAM DEDUCTION CONFIDENCE ============ */}
-      <section id="confidence" className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">
-          {t('6. CBAM 抵扣確定性等級', '6. CBAM Deduction Confidence Levels')}
-        </h2>
-        <p className="text-gray-600 leading-relaxed">
-          {t(
-            '各國碳價能否被歐盟認定為有效抵扣 CBAM 費用，確定性不同。工具在每個國家的計算結果下方和首頁底部顯示確定性等級：',
-            'Whether each country\'s carbon price qualifies as a valid CBAM deduction varies in certainty. The tool displays confidence levels below each country\'s results and at the bottom of the homepage:'
-          )}
-        </p>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-            <span className="text-lg">🟢</span>
-            <div>
-              <p className="text-sm font-medium">{t('高確定性 — 新加坡、韓國', 'High Confidence — Singapore, South Korea')}</p>
-              <p className="text-xs text-gray-500">{t('明確碳稅/ETS 配額購買成本，直接符合 CBAM 定義', 'Clear carbon tax / ETS allowance costs, directly meet CBAM definition')}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-            <span className="text-lg">🟡</span>
-            <div>
-              <p className="text-sm font-medium">{t('中等確定性 — 台灣、日本', 'Medium Confidence — Taiwan, Japan')}</p>
-              <p className="text-xs text-gray-500">{t('台灣 Scope 2 折算待協商；日本碳稅定義模糊', 'Taiwan Scope 2 conversion pending; Japan carbon tax definition unclear')}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
-            <span className="text-lg">🔴</span>
-            <div>
-              <p className="text-sm font-medium">{t('低確定性 — 泰國', 'Low Confidence — Thailand')}</p>
-              <p className="text-xs text-gray-500">{t('碳稅嵌入消費稅且不影響價格，歐盟認定存疑', 'Carbon tax embedded in excise with no price impact')}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg border border-gray-300">
-            <span className="text-lg">⚫</span>
-            <div>
-              <p className="text-sm font-medium">{t('無法抵扣 — 越南', 'No Deduction — Vietnam')}</p>
-              <p className="text-xs text-gray-500">{t('無正式碳價，進口商須全額負擔 CBAM 成本', 'No formal carbon price — EU importer bears full CBAM cost')}</p>
-            </div>
-          </div>
-        </div>
+      {/* sources + CTA */}
+      <section className="space-y-4 border-t border-gray-200 pt-8 text-center">
+        <p className="text-sm text-gray-500">{t('每個數字的法源與三條資料紅線,見', 'Every figure’s source and our three data red-lines:')}{' '}<Link href="/methodology" className="font-medium text-[#5d7d44] underline-offset-2 hover:underline">{t('方法論與來源', 'Methodology & sources')}</Link></p>
+        <Link href="/workbench"><Button className="h-11 bg-[#89B56C] px-8 text-white hover:bg-[#6E9156]">{t('開始用工作台 →', 'Open the workbench →')}</Button></Link>
+        <p className="text-xs text-gray-400">{t('本工具提供估算與情報參考,非法律/稅務意見、非永續簽證。正式申報請依主管機關規範與專業意見辦理。', 'This tool is a preliminary estimate and reference — not legal/tax advice, not sustainability assurance. For formal filing, follow the authority’s rules and professional advice.')}</p>
       </section>
-
-      <Separator />
-
-      {/* CTA */}
-      <div className="text-center space-y-4 py-4">
-        <p className="text-lg font-medium text-gray-700">
-          {t('準備好了嗎？', 'Ready to start?')}
-        </p>
-        <div className="flex gap-3 justify-center flex-wrap">
-          <Link href="/tw">
-            <Button className="bg-[#89B56C] hover:bg-[#6E9156] text-white px-6">
-              {t('開始試算', 'Get Started')}
-            </Button>
-          </Link>
-          <Link href="/cbam">
-            <Button variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50 px-6">
-              {t('CBAM 試算', 'CBAM Calculator')}
-            </Button>
-          </Link>
-          <Link href="/compare">
-            <Button variant="outline" className="border-[#89B56C] text-[#89B56C] hover:bg-[#89B56C]/10 px-6">
-              {t('跨國比較', 'Compare Countries')}
-            </Button>
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }

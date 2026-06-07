@@ -5,6 +5,7 @@
 
 import type { CountryCode } from '@/lib/types';
 import type { ActivityLine } from './inventory';
+import type { Scope3Line } from './scope3';
 import type {
   ListingType,
   CapitalTier,
@@ -78,6 +79,10 @@ export interface CompanyProfile {
   year: number;
   // Base year for reduction targets / SBTi (P1c) — the reference year cuts are measured against:
   baseYear?: number;
+  // G3 — Scope 3 quantification + product carbon footprint:
+  scope3?: Scope3Line[];
+  annualUnitsSold?: number; // units/yr (e.g. servers) for the per-unit PCF allocation
+  unitLabel?: string; // what a "unit" is, e.g. 台 / server
 }
 
 /** Taiwan carbon-fee period band for a year (CL-coefficient schedule). */

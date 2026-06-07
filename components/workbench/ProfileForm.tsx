@@ -16,6 +16,7 @@ import { feeGated } from '@/lib/workbench/derive';
 import { facilityEmissionsStatus } from '@/lib/workbench/inventory';
 import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
 import InventoryBuilder from './InventoryBuilder';
+import Scope3Builder from './Scope3Builder';
 import type { CompanyProfile, FacilityLine, CbamProductLine } from '@/lib/workbench/profile';
 import type {
   BilingualText,
@@ -240,6 +241,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
       <Card>
         <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑥ CBAM 出口品項', '⑥ CBAM export lines')}</CardTitle><Button size="sm" variant="outline" onClick={addCbam}>＋ {t('新增品項', 'Add')}</Button></div></CardHeader>
         <CardContent className="space-y-3">
+          <p className="rounded-lg bg-blue-50 p-2.5 text-[11px] leading-relaxed text-blue-800">ℹ️ {t('只填「在 CBAM 清單上」的貨品(鋼鐵/鋁/水泥/肥料/氫/電力)。成品電子/伺服器不在清單上——其鋼鋁零件的 CBAM 成本是上游供應商轉嫁(屬你的 Scope 3,見下方 ⑦),不是你自己的 CBAM 申報。', 'List only goods ON the CBAM list (steel/aluminium/cement/fertilizer/hydrogen/electricity). Finished electronics/servers are NOT on the list — the CBAM cost of their steel/aluminium parts is passed through by upstream suppliers (your Scope 3, see ⑦ below), not your own CBAM filing.')}</p>
           {profile.cbamProducts.map((c) => (
             <div key={c.id} className="rounded-lg border border-gray-200 p-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -257,6 +259,20 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
               </div>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Scope 3 (G3) */}
+      <Card>
+        <CardHeader className="pb-3"><CardTitle className="text-base">{t('⑦ Scope 3 與產品碳足跡', '⑦ Scope 3 & product footprint')}</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-[11px] leading-relaxed text-gray-500">{t('代工/組裝業的碳足跡常 90%+ 在 Scope 3:類別1(採購零件內含碳)+ 類別11(售出產品使用)。在此起步量化,餵入總足跡與每台 PCF。', 'For assembly/ODM, 90%+ of the footprint is often Scope 3: Cat 1 (purchased-part embodied carbon) + Cat 11 (use of sold products). Quantify it here to feed the total footprint and per-unit PCF.')}</p>
+          <Scope3Builder lines={profile.scope3 ?? []} onChange={(l) => set({ scope3: l })} />
+          <div className="grid grid-cols-2 gap-3 border-t border-gray-100 pt-3 sm:grid-cols-3">
+            <div className="space-y-1"><Label className="text-xs">{t('年售出單位數', 'Annual units sold')}</Label><Input type="number" value={profile.annualUnitsSold || ''} placeholder={t('如 2000', 'e.g. 2000')} onChange={(e) => set({ annualUnitsSold: e.target.value === '' ? undefined : nn(e.target.value) })} /></div>
+            <div className="space-y-1"><Label className="text-xs">{t('單位名稱', 'Unit label')}</Label><Input value={profile.unitLabel ?? ''} placeholder={t('如 台', 'e.g. server')} onChange={(e) => set({ unitLabel: e.target.value || undefined })} /></div>
+            <div className="flex items-end"><p className="text-[11px] leading-relaxed text-gray-400">{t('用於「每台 PCF＝總足跡÷台數」(組織分攤,非完整 LCA)。', 'For “per-unit PCF = total footprint ÷ units” (org allocation, not full LCA).')}</p></div>
+          </div>
         </CardContent>
       </Card>
     </div>

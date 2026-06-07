@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import { footprintSummary } from '@/lib/workbench/scope3';
+import InfoHint from '@/components/ui/InfoHint';
 import type { CompanyProfile } from '@/lib/workbench/profile';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
@@ -26,7 +27,7 @@ export default function FootprintSummary({ profile }: { profile: CompanyProfile 
           <p className="font-mono text-sm font-semibold text-gray-900">{fmt(fp.scope12)}</p>
         </div>
         <div className="rounded-lg bg-[#89B56C]/10 p-2">
-          <p className="text-[11px] text-[#5d7d44]">{t('Scope 3（價值鏈）', 'Scope 3 (value chain)')}</p>
+          <p className="flex items-center justify-center text-[11px] text-[#5d7d44]"><InfoHint termKey="scope3" label={t('Scope 3（價值鏈）', 'Scope 3 (value chain)')} /></p>
           <p className="font-mono text-sm font-semibold text-[#5d7d44]">{fmt(fp.scope3)}</p>
         </div>
         <div className="rounded-lg bg-gray-50 p-2">
@@ -36,8 +37,8 @@ export default function FootprintSummary({ profile }: { profile: CompanyProfile 
       </div>
 
       {fp.pcfPerUnit !== undefined && (
-        <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800">
-          {t('每', 'Per ')}{unit}{t(' 產品碳足跡（PCF）≈ ', ' PCF ≈ ')}
+        <p className="mt-3 flex flex-wrap items-center rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800">
+          {t('每', 'Per ')}{unit}{' '}<InfoHint termKey="pcf" label={t('產品碳足跡（PCF）', 'PCF')} />{' ≈ '}
           <span className="font-mono font-semibold">{fmt(fp.pcfPerUnit)} kgCO₂e</span>
           <span className="text-blue-500">（{fmt(fp.units)} {unit}／{t('年,組織分攤、非完整 LCA', 'yr · org allocation, not full LCA')}）</span>
         </p>

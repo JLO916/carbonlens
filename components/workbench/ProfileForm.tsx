@@ -204,7 +204,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 </div>
                 {f.useInventory ? (
                   <>
-                    <InventoryBuilder activities={f.activities ?? []} onChange={(a) => setFacility(f.id, { activities: a })} />
+                    <InventoryBuilder activities={f.activities ?? []} countryCode={f.countryCode as CountryCode} onChange={(a) => setFacility(f.id, { activities: a })} />
                     {(() => {
                       const st = facilityEmissionsStatus(f);
                       const typed = st.typedTotalTonnes.toLocaleString('en-US');

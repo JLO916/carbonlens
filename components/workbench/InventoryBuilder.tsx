@@ -10,14 +10,15 @@ import { EMISSION_FACTORS, FACTOR_BY_KEY, FACTOR_CATEGORY_LABEL, CITATION_EMISSI
 
 const FACTOR_CATEGORY_ORDER: FactorCategory[] = ['electricity', 'steam', 'fuel', 'fugitive', 'process'];
 import CitationTag from '@/components/diagnose/CitationTag';
+import type { CountryCode } from '@/lib/types';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(n);
 
 /** Activity-data inventory builder — each line: amount × factor = tCO₂e, with traceable factor +
  *  source (audit lineage) and an editable factor (override to your verified/latest value). */
-export default function InventoryBuilder({ activities, onChange }: { activities: ActivityLine[]; onChange: (a: ActivityLine[]) => void }) {
+export default function InventoryBuilder({ activities, countryCode, onChange }: { activities: ActivityLine[]; countryCode?: CountryCode; onChange: (a: ActivityLine[]) => void }) {
   const { t, tObj } = useI18n();
-  const inv = computeInventory(activities);
+  const inv = computeInventory(activities, countryCode);
 
   const setLine = (id: string, patch: Partial<ActivityLine>) => onChange(activities.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   const addLine = () => onChange([...activities, { id: crypto.randomUUID(), factorKey: 'electricity', amount: 0 }]);
@@ -27,8 +28,10 @@ export default function InventoryBuilder({ activities, onChange }: { activities:
     <div className="space-y-3">
       <div className="space-y-2">
         {activities.map((a, i) => {
-          const f = FACTOR_BY_KEY[a.factorKey];
           const res = inv.lines[i];
+          // res.factor is country-resolved (electricity → the facility's grid factor + source); fall
+          // back to the raw library factor for safety.
+          const f = res?.factor ?? FACTOR_BY_KEY[a.factorKey];
           const factorVal = a.customFactor ?? f?.kgco2ePerUnit ?? 0;
           return (
             <div key={a.id} className="rounded-lg border border-gray-200 p-2.5">

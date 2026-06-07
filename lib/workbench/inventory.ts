@@ -2,9 +2,10 @@
 // lineage (the 80% of ESG work the tool previously skipped). Each line: amount × factor = tCO₂e,
 // with the factor + source traceable for assurance. Pure + testable.
 
-import { FACTOR_BY_KEY, type EmissionFactor, type Scope } from './emission-factors';
+import { FACTOR_BY_KEY, gridFactorFor, type EmissionFactor, type Scope } from './emission-factors';
 import type { FacilityLine } from './profile';
 import type { BilingualText } from '@/lib/diagnose/types';
+import type { CountryCode } from '@/lib/types';
 
 /** Data-quality tier for an activity line (drives the assurance audit trail). */
 export type DataQuality = 'measured' | 'invoice' | 'estimate';
@@ -45,10 +46,16 @@ export interface InventoryResult {
 
 const round = (x: number) => Math.round(x * 1000) / 1000;
 
-/** Compute a facility inventory from its activity lines, with per-line lineage. */
-export function computeInventory(activities: ActivityLine[]): InventoryResult {
+/** Compute a facility inventory from its activity lines, with per-line lineage. `countryCode` makes
+ *  the electricity (Scope 2) factor follow that country's grid (G1) — so a Vietnam plant uses
+ *  Vietnam's 0.6592, not Taiwan's 0.474 — unless the line carries an explicit override. */
+export function computeInventory(activities: ActivityLine[], countryCode?: CountryCode): InventoryResult {
   const lines: InventoryLineResult[] = activities.map((line) => {
-    const factor = FACTOR_BY_KEY[line.factorKey];
+    let factor = FACTOR_BY_KEY[line.factorKey];
+    if (line.factorKey === 'electricity' && countryCode && factor) {
+      const gf = gridFactorFor(countryCode);
+      factor = { ...factor, kgco2ePerUnit: gf.kgco2ePerUnit, source: gf.source };
+    }
     const isOverride = typeof line.customFactor === 'number' && line.customFactor >= 0;
     const effectiveFactor = isOverride ? (line.customFactor as number) : factor?.kgco2ePerUnit ?? 0;
     const scope: Scope = factor?.scope ?? 1;
@@ -63,7 +70,7 @@ export function computeInventory(activities: ActivityLine[]): InventoryResult {
 /** The emissions a facility contributes — from its built inventory when present, else the typed total. */
 export function facilityEmissionsTonnes(facility: FacilityLine): number {
   if (facility.useInventory) {
-    const t = computeInventory(facility.activities ?? []).totalTonnes;
+    const t = computeInventory(facility.activities ?? [], facility.countryCode as CountryCode).totalTonnes;
     // Inventory mode but the built total is still 0 (no/zero activity data) → fall back to the typed
     // total so the carbon fee is NEVER silently zeroed mid-inventory (P0 trust fix). The UI flags it.
     if (t > 0) return t;
@@ -84,7 +91,7 @@ export interface FacilityEmissionsStatus {
 
 export function facilityEmissionsStatus(facility: FacilityLine): FacilityEmissionsStatus {
   const usingInventory = !!facility.useInventory;
-  const inventoryTotalTonnes = usingInventory ? computeInventory(facility.activities ?? []).totalTonnes : 0;
+  const inventoryTotalTonnes = usingInventory ? computeInventory(facility.activities ?? [], facility.countryCode as CountryCode).totalTonnes : 0;
   const typedTotalTonnes = facility.annualEmissionsTonnes || 0;
   return {
     usingInventory,

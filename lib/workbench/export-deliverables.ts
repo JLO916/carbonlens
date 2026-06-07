@@ -36,7 +36,7 @@ export function inventorySheetCsv(profile: CompanyProfile, lang: Lang = 'zhTW'):
 
   for (const f of profile.facilities) {
     if (f.useInventory && f.activities && f.activities.length > 0) {
-      const inv = computeInventory(f.activities);
+      const inv = computeInventory(f.activities, f.countryCode);
       inv.lines.forEach((ln) => {
         const fac = ln.factor;
         rows.push([
@@ -116,7 +116,7 @@ export function disclosureReportText(profile: CompanyProfile, result: WorkbenchR
   let s1 = 0, s2 = 0;
   for (const f of profile.facilities) {
     if (f.useInventory && f.activities && f.activities.length > 0) {
-      const inv = computeInventory(f.activities);
+      const inv = computeInventory(f.activities, f.countryCode);
       s1 += inv.scope1Tonnes; s2 += inv.scope2Tonnes;
     }
   }

@@ -24,6 +24,8 @@ import { questionnaireText } from '@/lib/workbench/questionnaire';
 import Questionnaire from '@/components/workbench/Questionnaire';
 import { pcfDeclarationText } from '@/lib/workbench/pcf';
 import ProductPcf from '@/components/workbench/ProductPcf';
+import { scorecardText } from '@/lib/workbench/scorecard';
+import Scorecard from '@/components/workbench/Scorecard';
 import RelatedArticles from '@/components/RelatedArticles';
 import { snapshotOf, appendSnapshot, loadSnapshots, type Snapshot } from '@/lib/workbench/snapshots';
 import ListedResultView from '@/components/diagnose/ListedResult';
@@ -166,6 +168,10 @@ export default function WorkbenchClient() {
     downloadText('product-carbon-footprint-declaration.txt', pcfDeclarationText(profile, lang), 'text/plain;charset=utf-8');
   }
 
+  function exportScorecard() {
+    downloadText('customer-scorecard.txt', scorecardText(profile, lang), 'text/plain;charset=utf-8');
+  }
+
   function importProfile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -221,6 +227,8 @@ export default function WorkbenchClient() {
         <span className="text-gray-300">·</span>
         {(profile.products?.length ?? 0) > 0 && <button type="button" onClick={exportPcf} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('產品碳足跡聲明', 'PCF declaration')}</button>}
         {(profile.products?.length ?? 0) > 0 && <span className="text-gray-300">·</span>}
+        {(profile.scorecardCustomers?.length ?? 0) > 0 && <button type="button" onClick={exportScorecard} className="text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">⬇ {t('客戶記分卡', 'Customer scorecard')}</button>}
+        {(profile.scorecardCustomers?.length ?? 0) > 0 && <span className="text-gray-300">·</span>}
         <label className="cursor-pointer text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline">
           ⬆ {t('匯入側寫', 'Import profile')}
           <input type="file" accept="application/json,.json" onChange={importProfile} className="hidden" />
@@ -241,6 +249,7 @@ export default function WorkbenchClient() {
           <CbamRampChart ramp={cbamRampSeries(snap.profile, snap.lookups)} />
           <CbamDeduction profile={snap.profile} result={snap.result} />
           <ProductPcf profile={snap.profile} />
+          <Scorecard profile={snap.profile} />
           <Questionnaire profile={snap.profile} />
           <div id="wb-reduce" className="scroll-mt-24"><ReductionLens profile={snap.profile} lookups={snap.lookups} /></div>
 

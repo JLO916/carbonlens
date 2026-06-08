@@ -7,6 +7,7 @@ import type { CountryCode } from '@/lib/types';
 import type { ActivityLine } from './inventory';
 import type { Scope3Line } from './scope3';
 import type { TargetDef } from './target';
+import type { CustomerLine, SelfRatings } from './scorecard';
 import type {
   ListingType,
   CapitalTier,
@@ -108,6 +109,10 @@ export interface CompanyProfile {
   pcfBoundary?: 'scope12' | 'total'; // operations only (S1+2) vs incl. value chain (+ Scope 3)
   // C4 — where this profile is in the annual ESG cycle:
   cycleStage?: 'measure' | 'review' | 'assure' | 'assured' | 'filed' | 'disclosed';
+  // CS — customer scorecard: each brand customer's carbon/ESG requirements (the "No ESG, No Order"
+  // tracker) + self-declared external ratings the tool can't compute (CDP/EcoVadis/S&P CSA).
+  scorecardCustomers?: CustomerLine[];
+  selfRatings?: SelfRatings;
 }
 
 /** Taiwan carbon-fee period band for a year (CL-coefficient schedule). */

@@ -9,6 +9,7 @@ import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
 import WorkbenchBridge from '@/components/WorkbenchBridge';
+import RelatedArticles from '@/components/RelatedArticles';
 import { diagnoseCbam, type CbamDefaultLookup } from '@/lib/diagnose/logic/cbam';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildCbamChecklist } from '@/lib/diagnose/logic/checklist';
@@ -118,6 +119,8 @@ export default function CbamDiagnoseClient() {
               <DualCTA routing={routing} enterprise={ENTERPRISE_CTA} />
             </div>
           )}
+
+          <RelatedArticles context="cbam" country={result.input.originCountry !== 'other' ? result.input.originCountry : undefined} />
         </div>
       )}
 

@@ -9,6 +9,7 @@ import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
 import WorkbenchBridge from '@/components/WorkbenchBridge';
+import RelatedArticles from '@/components/RelatedArticles';
 import { diagnoseSupplyChain } from '@/lib/diagnose/logic/supply-chain';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildSupplyChainChecklist } from '@/lib/diagnose/logic/checklist';
@@ -104,6 +105,8 @@ export default function SupplyChainDiagnoseClient() {
               <DualCTA routing={routing} enterprise={ENTERPRISE_CTA} />
             </div>
           )}
+
+          <RelatedArticles context="inventory" industry={result.input.industry} frameworks={result.input.frameworks} />
         </div>
       )}
 

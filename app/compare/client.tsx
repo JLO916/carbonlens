@@ -14,6 +14,7 @@ import { calculateCBAM } from '@/lib/calculators/cbam';
 import { formatCurrency } from '@/lib/data/exchange-rates';
 import { useI18n } from '@/lib/i18n/context';
 import { useCurrency } from '@/lib/currency/context';
+import RelatedArticles from '@/components/RelatedArticles';
 
 const COUNTRY_COLORS: Record<CountryCode, string> = {
   tw: '#89B56C', sg: '#E53E3E', kr: '#3182CE',
@@ -201,6 +202,8 @@ export default function CompareClient() {
               </div>
             </CardContent>
           </Card>
+
+          <RelatedArticles context="carbonFee" industry="metals" />
         </>
       )}
     </div>

@@ -22,7 +22,10 @@ describe('dual-level content discipline', () => {
       expect(bilingual(s.plain)).toBe(true);
       expect(bilingual(s.pro)).toBe(true);
       expect(bilingual(s.tool)).toBe(true);
-      expect(s.href).toBe('/workbench');
+      // each step deep-links to its own workbench section anchor (not all to the same top-of-page)
+      expect(s.href).toMatch(/^\/workbench#wb-[a-z]+$/);
     }
+    // the 7 anchors are distinct — clicking different steps lands you in different places
+    expect(new Set(JOURNEY.map((s) => s.href)).size).toBe(7);
   });
 });

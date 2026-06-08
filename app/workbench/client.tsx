@@ -1,6 +1,6 @@
 'use client';
 
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/context';
 import ProfileForm from '@/components/workbench/ProfileForm';
@@ -76,6 +76,21 @@ export default function WorkbenchClient() {
     setHistory(loadSnapshots());
     setLocked(loadLockedVersions());
   }, []);
+
+  // Deep-link from the homepage cycle journey: scroll to the targeted section. Form sections (②⑤⑥⑧)
+  // exist on mount; result panels (reduce/assure/close) appear after compute, so this re-runs when
+  // `snap` first populates and scrolls then. Fires once per visit.
+  const didHashScroll = useRef(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || didHashScroll.current) return;
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      didHashScroll.current = true;
+    }
+  }, [snap]);
 
   function restoreVersion(profileJson: string) {
     const p = parseProfile(profileJson);
@@ -227,12 +242,14 @@ export default function WorkbenchClient() {
           <CbamDeduction profile={snap.profile} result={snap.result} />
           <ProductPcf profile={snap.profile} />
           <Questionnaire profile={snap.profile} />
-          <ReductionLens profile={snap.profile} lookups={snap.lookups} />
+          <div id="wb-reduce" className="scroll-mt-24"><ReductionLens profile={snap.profile} lookups={snap.lookups} /></div>
 
-          <AssuranceGuide />
-          <LockedVersions profile={snap.profile} versions={locked} onChange={setLocked} onRestore={restoreVersion} />
+          <div id="wb-assure" className="scroll-mt-24 space-y-5">
+            <AssuranceGuide />
+            <LockedVersions profile={snap.profile} versions={locked} onChange={setLocked} onRestore={restoreVersion} />
+          </div>
 
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div id="wb-close" className="grid scroll-mt-24 gap-2 sm:grid-cols-2">
             <Button variant="outline" onClick={takeSnapshot} className="w-full">
               📸 {t('拍下這次快照（追蹤變化）', 'Take a snapshot (track change)')}
             </Button>

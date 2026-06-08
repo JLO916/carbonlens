@@ -24,6 +24,7 @@ import { questionnaireText } from '@/lib/workbench/questionnaire';
 import Questionnaire from '@/components/workbench/Questionnaire';
 import { pcfDeclarationText } from '@/lib/workbench/pcf';
 import ProductPcf from '@/components/workbench/ProductPcf';
+import RelatedArticles from '@/components/RelatedArticles';
 import { snapshotOf, appendSnapshot, loadSnapshots, type Snapshot } from '@/lib/workbench/snapshots';
 import ListedResultView from '@/components/diagnose/ListedResult';
 import SupplyChainResultView from '@/components/diagnose/SupplyChainResult';
@@ -239,6 +240,19 @@ export default function WorkbenchClient() {
               ⏭ {t(`結轉下一年（${profile.year + 1}）`, `Carry forward to ${profile.year + 1}`)}
             </Button>
           </div>
+
+          <RelatedArticles
+            context={
+              profile.exportsToEU && (profile.cbamProducts?.length ?? 0) > 0 ? 'cbam'
+                : (profile.customerFrameworks ?? []).includes('re100') ? 'scope2re100'
+                  : profile.baseYear && profile.targetYear ? 'targets'
+                    : (profile.cbamProducts?.length ?? 0) > 0 ? 'cbam'
+                      : 'inventory'
+            }
+            industry={profile.industry}
+            country={profile.facilities[0]?.countryCode}
+            frameworks={profile.customerFrameworks}
+          />
 
           <details className="rounded-xl border border-gray-200 bg-white p-4">
             <summary className="cursor-pointer list-none text-sm font-medium text-gray-700">▸ {t('明細：各模組完整診斷', 'Detail: full per-module diagnosis')}</summary>

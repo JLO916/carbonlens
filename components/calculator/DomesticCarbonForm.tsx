@@ -17,6 +17,7 @@ import CrossDeductionPanel from './CrossDeductionPanel';
 import InfoTip from '@/components/ui/info-tip';
 import RecommendationsPanel from './RecommendationsPanel';
 import WorkbenchBridge from '@/components/WorkbenchBridge';
+import RelatedArticles from '@/components/RelatedArticles';
 
 interface Props {
   calculator: DomesticCarbonPriceCalculator;
@@ -259,6 +260,7 @@ export default function DomesticCarbonForm({ calculator }: Props) {
           <RecommendationsPanel countryCode={calculator.countryCode} domesticResult={result} />
           <ScenarioChart countryCode={calculator.countryCode} annualEmissions={annualEmissions} />
           <WorkbenchBridge from={t('碳費', 'Carbon fee')} />
+          <RelatedArticles context="carbonFee" country={calculator.countryCode} />
         </>
       )}
     </div>

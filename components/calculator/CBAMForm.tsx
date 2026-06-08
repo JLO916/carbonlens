@@ -17,6 +17,7 @@ import { useCurrency } from '@/lib/currency/context';
 import InfoTip from '@/components/ui/info-tip';
 import DataVsDefaultPanel from './DataVsDefaultPanel';
 import RecommendationsPanel from './RecommendationsPanel';
+import RelatedArticles from '@/components/RelatedArticles';
 import { DEFAULT_EMBEDDED_EMISSIONS as DEF_EMISSIONS } from '@/lib/data/cbam-defaults';
 import { DEFAULT_EMISSION_SURCHARGES } from '@/lib/data/cbam-defaults';
 
@@ -327,6 +328,8 @@ export default function CBAMForm() {
           cbamResult={result}
         />
       )}
+
+      {result && <RelatedArticles context="cbam" />}
     </div>
   );
 }

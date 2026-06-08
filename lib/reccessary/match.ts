@@ -88,3 +88,13 @@ export function rankArticles(articles: ReccessaryArticle[], signals: MatchSignal
   }
   return out;
 }
+
+/** Like rankArticles, but if a thin context yields fewer than `min`, top up with general
+ *  carbon/energy coverage (deduped) so every surface shows a healthy 5–10 articles. */
+export function rankArticlesWithBackfill(articles: ReccessaryArticle[], signals: MatchSignals, lang: 'zh-tw' | 'en', max = 8, min = 5): ReccessaryArticle[] {
+  const primary = rankArticles(articles, signals, lang, max);
+  if (primary.length >= min || signals.context === 'general') return primary;
+  const seen = new Set(primary.map((a) => a.url));
+  const fill = rankArticles(articles, { ...signals, context: 'general' }, lang, max).filter((a) => !seen.has(a.url));
+  return [...primary, ...fill].slice(0, max);
+}

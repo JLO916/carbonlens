@@ -9,6 +9,7 @@ import LeadCaptureForm from '@/components/diagnose/LeadCaptureForm';
 import DualCTA from '@/components/diagnose/DualCTA';
 import Disclaimer from '@/components/diagnose/Disclaimer';
 import WorkbenchBridge from '@/components/WorkbenchBridge';
+import RelatedArticles from '@/components/RelatedArticles';
 import { diagnoseListed } from '@/lib/diagnose/logic/listed';
 import { classifyLead } from '@/lib/diagnose/logic/lead-routing';
 import { buildChecklist } from '@/lib/diagnose/logic/checklist';
@@ -96,6 +97,8 @@ export default function ListedDiagnoseClient() {
               <DualCTA routing={routing} />
             </div>
           )}
+
+          <RelatedArticles context="disclosure" industry={result.input.industry} />
         </div>
       )}
 

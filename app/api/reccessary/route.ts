@@ -2,7 +2,7 @@
 // surface (ctx) + company profile signals (industry/country/frameworks), in the requested language.
 // The corpus is a live-augmented snapshot (lib/reccessary/feed.ts); matching is keyword overlap.
 import { getFeed } from '@/lib/reccessary/feed';
-import { rankArticles } from '@/lib/reccessary/match';
+import { rankArticlesWithBackfill } from '@/lib/reccessary/match';
 import type { RelatedContext } from '@/lib/reccessary/types';
 
 export const revalidate = 21600; // 6h ISR for the route
@@ -17,11 +17,11 @@ export async function GET(req: Request): Promise<Response> {
   const industry = sp.get('industry') || undefined;
   const country = sp.get('country') || undefined;
   const frameworks = (sp.get('fw') || '').split(',').map((s) => s.trim()).filter(Boolean);
-  const n = Math.min(5, Math.max(1, Number(sp.get('n') || 4)));
+  const n = Math.min(10, Math.max(5, Number(sp.get('n') || 8))); // always 5–10 articles
 
   try {
     const feed = await getFeed(lang);
-    const items = rankArticles(feed, { context, industry, country, frameworks }, lang, n);
+    const items = rankArticlesWithBackfill(feed, { context, industry, country, frameworks }, lang, n, 5);
     return Response.json(
       { items },
       { headers: { 'Cache-Control': 'public, s-maxage=21600, stale-while-revalidate=86400' } },

@@ -1,4 +1,4 @@
-import { rankArticles, queryTerms } from '@/lib/reccessary/match';
+import { rankArticles, rankArticlesWithBackfill, queryTerms } from '@/lib/reccessary/match';
 import type { ReccessaryArticle } from '@/lib/reccessary/types';
 
 const A: ReccessaryArticle[] = [
@@ -45,5 +45,13 @@ describe('R2 — RECCESSARY article matcher', () => {
   it('queryTerms weights primary context terms above broad/industry terms', () => {
     const terms = queryTerms({ context: 'cbam', industry: 'metals' });
     expect(terms.find((t) => t.t === 'CBAM')!.w).toBeGreaterThan(terms.find((t) => t.t === '鋼')!.w);
+  });
+
+  it('rankArticlesWithBackfill tops a thin context up from general, keeping the on-topic match first', () => {
+    // Only u1 matches "cbam"; backfill pulls in general carbon/energy articles to reach the minimum.
+    const got = rankArticlesWithBackfill(A, { context: 'cbam' }, 'zh-tw', 5, 3);
+    expect(got.length).toBeGreaterThanOrEqual(3);
+    expect(got[0].url).toBe('u1'); // the genuine CBAM match still leads
+    expect(new Set(got.map((a) => a.url)).size).toBe(got.length); // no duplicates after backfill
   });
 });

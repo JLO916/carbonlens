@@ -19,8 +19,14 @@ import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
 import InventoryBuilder from './InventoryBuilder';
 import Scope3Builder from './Scope3Builder';
 import InfoHint from '@/components/ui/InfoHint';
+import { SCORECARD_TEMPLATES, customerFromTemplate, DIMENSION_LABEL, type ScorecardDimension, type CustomerRequirement } from '@/lib/workbench/scorecard';
 import type { CompanyProfile, FacilityLine, CbamProductLine, ProductLine } from '@/lib/workbench/profile';
 import type { TargetDef, TargetScope } from '@/lib/workbench/target';
+
+const SC_DIMS: ScorecardDimension[] = ['scope12', 'scope3', 'target', 'sbti', 'netzero', 'renewable', 'assurance', 'pcf', 'cdp', 'ecovadis', 'spcsa', 'supplierEngagement'];
+const CDP_TIERS = ['A', 'A-', 'B', 'B-', 'C', 'C-', 'D'];
+const ECOVADIS_TIERS = ['platinum', 'gold', 'silver', 'bronze'];
+const SPCSA_TIERS = ['yearbook', 'assessed'];
 import type {
   BilingualText,
   CapitalTier,
@@ -114,6 +120,17 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
   const setProduct = (id: string, patch: Partial<ProductLine>) => set({ products: products.map((pr) => (pr.id === id ? { ...pr, ...patch } : pr)) });
   const addProduct = () => set({ products: [...products, { id: crypto.randomUUID(), name: t(`產品 ${products.length + 1}`, `Product ${products.length + 1}`), annualUnits: 1000 }] });
   const delProduct = (id: string) => set({ products: products.filter((pr) => pr.id !== id) });
+
+  // CS — customer scorecard (each customer's carbon/ESG requirements) + self-declared external ratings.
+  const scCustomers = profile.scorecardCustomers ?? [];
+  const ratings = profile.selfRatings ?? {};
+  const setRatings = (patch: Partial<typeof ratings>) => set({ selfRatings: { ...ratings, ...patch } });
+  const addCustomerFromTpl = (key: string) => { const tpl = SCORECARD_TEMPLATES.find((x) => x.key === key); if (tpl) set({ scorecardCustomers: [...scCustomers, customerFromTemplate(tpl, t(`客戶 ${scCustomers.length + 1}`, `Customer ${scCustomers.length + 1}`))] }); };
+  const setCustomer = (id: string, patch: Partial<(typeof scCustomers)[number]>) => set({ scorecardCustomers: scCustomers.map((c) => (c.id === id ? { ...c, ...patch } : c)) });
+  const delCustomer = (id: string) => set({ scorecardCustomers: scCustomers.filter((c) => c.id !== id) });
+  const setReq = (cid: string, rid: string, patch: Partial<CustomerRequirement>) => { const c = scCustomers.find((x) => x.id === cid); if (c) setCustomer(cid, { requirements: c.requirements.map((r) => (r.id === rid ? { ...r, ...patch } : r)) }); };
+  const delReq = (cid: string, rid: string) => { const c = scCustomers.find((x) => x.id === cid); if (c) setCustomer(cid, { requirements: c.requirements.filter((r) => r.id !== rid) }); };
+  const addReq = (cid: string, dim: ScorecardDimension) => { const c = scCustomers.find((x) => x.id === cid); if (c) setCustomer(cid, { requirements: [...c.requirements, { id: crypto.randomUUID(), dimension: dim, kind: 'gate' }] }); };
 
   const toggleFramework = (k: FrameworkKey) => {
     const cur = profile.customerFrameworks;
@@ -346,6 +363,68 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 <div className="space-y-1 sm:col-span-3"><Label className="text-xs">{(profile.pcfBasis === 'revenue') ? t('每單位售價', 'Price/unit') : t('每單位質量 kg', 'Mass/unit kg')}</Label><Input type="number" className="h-8" value={pr.weightPerUnit ?? ''} placeholder={t('每單位', 'per unit')} onChange={(e) => setProduct(pr.id, { weightPerUnit: e.target.value === '' ? undefined : nn(e.target.value) })} /></div>
               )}
               <div className="flex justify-end sm:col-span-1"><Button size="sm" variant="ghost" className="text-gray-400 hover:text-red-600" onClick={() => delProduct(pr.id)}>✕</Button></div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* ⑩ Customer scorecard (CS) — each brand customer's carbon/ESG requirements ("No ESG, No Order") */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t('⑩ 客戶記分卡', '⑩ Customer scorecard')}</CardTitle>
+          <p className="mt-1 text-xs leading-relaxed text-gray-500">{t('登記每個品牌客戶的碳/ESG 門檻,工具用你算好的數據逐客戶標達標/缺口、排接單風險。範本對映公開框架(CDP/EcoVadis/SBTi/RE100),為示意起點請依實際要求調整。', "Log each brand customer's carbon/ESG bar; the tool flags met/gaps per customer and ranks order risk. Templates map to public frameworks (CDP/EcoVadis/SBTi/RE100) — illustrative, edit to your real terms.")}</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* self-declared external ratings the tool can't compute */}
+          <div className="rounded-lg bg-gray-50 p-2.5">
+            <p className="text-[11px] font-medium text-gray-600">{t('你目前的外部評級(自評,工具無法代算)', 'Your current external ratings (self-declared)')}</p>
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="space-y-1"><Label className="text-[11px]">CDP</Label><Picker value={ratings.cdp ?? 'none'} onChange={(v) => setRatings({ cdp: v === 'none' ? undefined : v })} options={[...CDP_TIERS, 'none'].map((x) => ({ value: x, label: { zhTW: x === 'none' ? '未填' : x, en: x === 'none' ? '—' : x } }))} /></div>
+              <div className="space-y-1"><Label className="text-[11px]">EcoVadis</Label><Picker value={ratings.ecovadis ?? 'none'} onChange={(v) => setRatings({ ecovadis: v === 'none' ? undefined : v })} options={[...ECOVADIS_TIERS, 'none'].map((x) => ({ value: x, label: { zhTW: ({ platinum: '白金', gold: '金', silver: '銀', bronze: '銅', none: '未填' } as Record<string, string>)[x], en: x } }))} /></div>
+              <div className="space-y-1"><Label className="text-[11px]">S&amp;P CSA</Label><Picker value={ratings.spcsa ?? 'none'} onChange={(v) => setRatings({ spcsa: v === 'none' ? undefined : v })} options={[...SPCSA_TIERS, 'none'].map((x) => ({ value: x, label: { zhTW: ({ yearbook: '年鑑', assessed: '已評', none: '未填' } as Record<string, string>)[x], en: x } }))} /></div>
+              <div className="space-y-1"><Label className="text-[11px]">{t('供應商議合 %', 'Supplier eng. %')}</Label><Input type="number" className="h-9" value={ratings.supplierEngagementPct ?? ''} placeholder={t('如 50', 'e.g. 50')} onChange={(e) => setRatings({ supplierEngagementPct: e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} /></div>
+            </div>
+          </div>
+
+          {/* add a customer from a template */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-500">{t('新增客戶(範本):', 'Add customer (template):')}</span>
+            {SCORECARD_TEMPLATES.map((tpl) => (
+              <Button key={tpl.key} size="sm" variant="outline" onClick={() => addCustomerFromTpl(tpl.key)} title={tObj(tpl.blurb)}>＋ {tObj(tpl.name)}</Button>
+            ))}
+          </div>
+
+          {scCustomers.length === 0 && <p className="rounded-lg bg-gray-50 p-2.5 text-[11px] leading-relaxed text-gray-500">{t('尚無客戶。從上面選一個範本快速建立,再到「全貌」看逐客戶達標/缺口與接單風險。', 'No customers yet. Pick a template above, then see per-customer met/gaps and order risk in the overview.')}</p>}
+
+          {scCustomers.map((c) => (
+            <div key={c.id} className="space-y-2 rounded-xl border border-gray-200 p-3">
+              <div className="flex items-center gap-2">
+                <Input className="h-8 flex-1 text-sm" value={c.name} placeholder={t('客戶名稱', 'Customer name')} onChange={(e) => setCustomer(c.id, { name: e.target.value })} />
+                <Toggle value={c.importance ?? 'major'} onChange={(v) => setCustomer(c.id, { importance: v })} options={[{ value: 'key' as const, label: { zhTW: '重點', en: 'Key' } }, { value: 'major' as const, label: { zhTW: '一般', en: 'Major' } }, { value: 'minor' as const, label: { zhTW: '次要', en: 'Minor' } }]} />
+                <Button size="sm" variant="ghost" className="text-gray-400 hover:text-red-600" onClick={() => delCustomer(c.id)}>✕</Button>
+              </div>
+              <div className="space-y-1.5">
+                {c.requirements.map((rq) => {
+                  const needsPct = ['target', 'renewable', 'supplierEngagement'].includes(rq.dimension);
+                  const needsYear = ['target', 'renewable'].includes(rq.dimension);
+                  const tierOpts = rq.dimension === 'cdp' ? CDP_TIERS : rq.dimension === 'ecovadis' ? ECOVADIS_TIERS : rq.dimension === 'spcsa' ? SPCSA_TIERS : null;
+                  return (
+                    <div key={rq.id} className="flex flex-wrap items-center gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5 text-xs">
+                      <span className="min-w-[7.5rem] font-medium text-gray-700">{tObj(DIMENSION_LABEL[rq.dimension])}</span>
+                      <Toggle value={rq.kind} onChange={(v) => setReq(c.id, rq.id, { kind: v })} options={[{ value: 'gate' as const, label: { zhTW: '門票', en: 'Gate' } }, { value: 'scored' as const, label: { zhTW: '計分', en: 'Scored' } }]} />
+                      {needsPct && <span className="inline-flex items-center gap-1">≥<Input type="number" className="h-7 w-16" value={rq.minPct ?? ''} onChange={(e) => setReq(c.id, rq.id, { minPct: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })} />%</span>}
+                      {needsYear && <span className="inline-flex items-center gap-1">by<Input type="number" className="h-7 w-20" value={rq.byYear ?? ''} placeholder="2030" onChange={(e) => setReq(c.id, rq.id, { byYear: e.target.value === '' ? undefined : Math.max(2000, Number(e.target.value) || 0) })} /></span>}
+                      {tierOpts && <div className="w-28"><Picker value={rq.tier ?? tierOpts[0]} onChange={(v) => setReq(c.id, rq.id, { tier: v })} options={tierOpts.map((x) => ({ value: x, label: { zhTW: '≥ ' + x, en: '≥ ' + x } }))} /></div>}
+                      {rq.kind === 'scored' && <span className="inline-flex items-center gap-1">{t('分', 'pts')}<Input type="number" className="h-7 w-14" value={rq.points ?? ''} placeholder="1" onChange={(e) => setReq(c.id, rq.id, { points: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })} /></span>}
+                      <Button size="sm" variant="ghost" className="ml-auto h-7 px-2 text-gray-400 hover:text-red-600" onClick={() => delReq(c.id, rq.id)}>✕</Button>
+                    </div>
+                  );
+                })}
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-gray-400">＋ {t('加要求', 'Add requirement')}:</span>
+                  <div className="w-44"><Picker value={'' as ScorecardDimension | ''} onChange={(v) => v && addReq(c.id, v as ScorecardDimension)} options={[{ value: '' as ScorecardDimension, label: { zhTW: '選維度…', en: 'Pick dimension…' } }, ...SC_DIMS.filter((d) => !c.requirements.some((r) => r.dimension === d)).map((d) => ({ value: d, label: DIMENSION_LABEL[d] }))]} /></div>
+                </div>
+              </div>
             </div>
           ))}
         </CardContent>

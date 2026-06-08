@@ -63,6 +63,7 @@ export default function GuideContent() {
     { href: '#cycle', label: t('核心:七步年度週期', 'Core: the 7-step cycle') },
     { href: '#how', label: t('逐項使用說明', 'Feature-by-feature') },
     { href: '#walk', label: t('實例導覽:AI 伺服器代工廠', 'Worked example: AI-server ODM') },
+    { href: '#cases', label: t('新功能實例:四產業案例', 'New features: 4 industry cases') },
     { href: '#deliver', label: t('匯出與交付', 'Exports & deliverables') },
     { href: '#faq', label: t('常見問題', 'FAQ') },
   ];
@@ -137,11 +138,18 @@ export default function GuideContent() {
           <p>{t('海外廠會自動套該國電網係數:越南 0.6592、泰國 0.475、新加坡 0.402、台灣 0.474……(都可逐行覆寫為你的查證值)。', 'Overseas sites auto-use that country’s grid factor: Vietnam 0.6592, Thailand 0.475, Singapore 0.402, Taiwan 0.474… (each overridable).')}</p>
           <p>{t('填「綠電/PPA/REC 佔比」就會多算一個「市場基礎 Scope 2」與 RE100% (品牌客戶最看這個)。每行還能標數據品質(實測/發票/估算)與佐證來源,供查證留痕。', 'Enter your renewable % to also get market-based Scope 2 and RE100% (what brand customers check). Each line can carry a data-quality tier and evidence note for the audit trail.')}</p>
           <p>{t('Scope 3(⑦):代工/組裝業 90% 以上的碳在這裡。用「使用階段」算售出產品的用電(類別11)、用「支出基礎」估採購零件(類別1)。', 'Scope 3 (⑦): 90%+ of an assembler’s carbon is here. Use “use-phase” for sold-product electricity (Cat 11) and “spend-based” for purchased parts (Cat 1).')}</p>
+          <p>{t('不知從何填起?點「✨ 帶入行業典型源」,工具依你的產業(電子、金屬、化工、水泥、食品…)一鍵補上典型排放源,你只要填數字。', 'Not sure where to start? Click “✨ load industry sources” and the tool seeds the typical emission sources for your industry (electronics, metals, chemicals, cement, food…) — you just fill the numbers.')}</p>
+          <p>{t('半導體/面板/光電:製程含氟氣體(NF₃、CF₄、C₂F₆、SF₆)在「製程含氟氣體」類,係數採 IPCC AR5 GWP;若裝洗滌/燃燒設備,填「減排設備去除率 DRE %」,工具就以「毛排放 ×(1−DRE)」申報。水泥/化工的煅燒製程也有 IPCC 預設係數(熟料 0.52 等)。', 'Semiconductor/panel/PV: F-gases (NF₃, CF₄, C₂F₆, SF₆) live under “process F-gases” with IPCC AR5 GWP; if you run abatement, enter the “abatement DRE %” and the tool reports gross × (1 − DRE). Cement/chemicals calcination also has IPCC defaults (clinker 0.52, etc.).')}</p>
+          <p>{t('每行可填「± 不確定性」與「數據品質(實測/發票/估算)」;盤查下方的「查證就緒度」會把它們彙總成整體 ±% 與品質分布——這是查證最先看的兩件事。', 'Each line takes a “± uncertainty” and a “data quality (measured/invoice/estimate)”; the “assurance readiness” box below rolls them into an overall ±% and a quality mix — the first two things assurance checks.')}</p>
+          <Shot src="/guide/g-fgas.jpg" alt={t('半導體製程含氟氣體 NF₃ × IPCC AR5 GWP,經 95% 減排設備去除率後申報;下方查證就緒度彙總整體不確定性與數據品質', 'Semiconductor F-gas NF₃ × IPCC AR5 GWP reported after 95% abatement DRE; assurance-readiness rolls up uncertainty and data quality below')} />
           <p className="rounded bg-amber-50 px-2 py-1 text-[13px] text-amber-800">{t('提醒:切到「盤查」卻還沒填活動量時,碳費不會被歸零——會暫用你原填的總數,並提示你完成盤查。', 'Note: switching to inventory before entering data won’t zero your fee — it falls back to your typed total and flags it.')}</p>
         </Feature>
 
-        <Feature id="f-target" shot={{ src: '/guide/g-target.jpg', alt: t('目標管理:基準年到目標年的軌跡、今年是否在軌、SBTi 對齊', 'Target management: pathway, this-year on-track status, SBTi alignment') }} icon="🎯" title={t('目標管理:訂目標、看是否在軌', 'Targets: set them, see if you’re on track')} lead={t('填了基準年、基準年排放、目標年、目標% 之後,結果區會出現「減量目標管理」。', 'Once base year + base emissions + target year + target % are set, a “target management” panel appears.')}>
+        <Feature id="f-target" shot={{ src: '/guide/g-target.jpg', alt: t('目標管理:基準年到目標年的軌跡、今年是否在軌、SBTi 對齊', 'Target management: pathway, this-year on-track status, SBTi alignment') }} icon="🎯" title={t('目標管理:多條目標、各自範疇、看是否在軌', 'Targets: multiple, each on its own scope, on-track check')} lead={t('填了基準年、基準年排放、目標年、目標% 之後,結果區會出現「減量目標管理」。', 'Once base year + base emissions + target year + target % are set, a “target management” panel appears.')}>
           <p>{t('它畫出基準年到目標年的線性軌跡,標出今年「該降到多少」、實際排多少、差多少(在軌/落後),並把你的隱含年減% 跟 SBTi 1.5°C 最低 4.2%/年比對。', 'It draws the linear pathway, shows this year’s allowance vs actual (on track / behind), and compares your implied annual % to the SBTi 1.5°C minimum of 4.2%/yr.')}</p>
+          <p>{t('範疇一致很重要:在 ① 選「目標範疇」(Scope 1+2 / 1+2+3 / Scope 3),基準、目標與「今年實際」都會用同一範疇比較——避免拿 Scope 1+2 的基準去比全足跡而誤判嚴重落後。', 'Scope consistency matters: pick the “target scope” in ① (Scope 1+2 / 1+2+3 / Scope 3) and the base, target and “this-year actual” are all compared on that same scope — so a Scope 1+2 base isn’t mismeasured against the whole footprint.')}</p>
+          <p>{t('一個 SBTi 承諾通常是一組目標。在 ⑧「額外減量目標」可加「近期 Scope 3」「2050 淨零」,工作台會把每條目標各自於所屬範疇追軌、並列顯示。', 'An SBTi commitment is usually a set. Under ⑧ “extra targets” add a near-term Scope 3 and a 2050 net-zero — each is tracked on its own boundary and shown side by side.')}</p>
+          <p>{t('Scope 2 為主的公司(如晶圓廠):面板下方的「RE100 ↔ Scope 1+2 目標連動」會反推——要達成你的營運目標,綠電需到百分之幾(對照目前%);若連 100% 綠電都不夠,會提示須同步削減 Scope 1。', 'For Scope-2-heavy companies (e.g. fabs): the “RE100 ↔ Scope 1+2 target” line reverse-solves the renewable % needed to hit your operational target (vs your current %); if even 100% renewable falls short, it flags that you must also cut Scope 1.')}</p>
         </Feature>
 
         <Feature id="f-reduce" shot={{ src: '/guide/g-reduction.jpg', alt: t('減碳鏡:拉動目標減量%,同時看碳費與 CBAM 前後變化', 'Reduction lens: drag the target % to see fee + CBAM move together') }} icon="📉" title={t('減碳鏡:一個目標牽動三筆', 'Reduction lens: one target, three levers')} lead={t('拉動「目標減量%」滑桿(會自動帶入你設的目標),看同一個減量如何同時降低碳費與(有實際數據時的)CBAM。', 'Drag the “target reduction %” (seeded from your set target) to see one cut lower the carbon fee and — with actual data — CBAM together.')}>
@@ -161,6 +169,21 @@ export default function GuideContent() {
           <Shot src="/guide/g-footprint.jpg" alt={t('總碳足跡(Scope 1+2+3)領銜、Scope 3 占比、每台 PCF', 'Total footprint leads, with Scope 3 share and per-unit PCF')} />
           <p>{t('接著是碳 P&L 四卡(碳費/CBAM/IFRS/供應鏈)、碳費算式(可給查核員)、「先做哪件」優先序(依工作量與死線排,不只看金額)、CBAM 逐年暴露圖。', 'Then the carbon P&L (fee/CBAM/IFRS/supply-chain), an auditor-ready fee breakdown, a “do this first” priority list (by workload + deadline, not just money), and the CBAM ramp chart.')}</p>
           <Shot src="/guide/g-pnl.jpg" alt={t('「先做哪件」跨義務優先序(依工作量與死線排)', 'The “do this first” cross-obligation priority list (by workload + deadline)')} />
+        </Feature>
+
+        <Feature id="f-deduction" shot={{ src: '/guide/g-deduction.jpg', alt: t('碳費 × CBAM 交叉抵扣:原產國已付碳價抵掉部分 CBAM,得出淨 CBAM', 'Carbon fee × CBAM cross-deduction: origin carbon price nets down the gross CBAM') }} icon="💶" title={t('碳費 × CBAM 交叉抵扣(雙軌別重複付)', 'Carbon fee × CBAM cross-deduction')} lead={t('如果你既繳國內碳費、又出口 CBAM 清單貨品,別把同一份碳付兩次。', 'If you pay a domestic carbon fee AND export CBAM-listed goods, don’t pay for the same carbon twice.')}>
+          <p>{t('依 Reg (EU) 2023/956 §9,原產國已付的碳價可從 CBAM 義務抵扣。面板會列出:CBAM 毛額 −(原產國已付碳價 × 內含排放)= 淨 CBAM,並標各國認定信心(新加坡/韓國高、台灣/日本中、泰國低、越南無)。', 'Under Reg (EU) 2023/956 §9 the carbon price paid in origin is deductible from CBAM. The panel shows gross CBAM − (origin price × embedded) = net CBAM, with a per-country confidence (SG/KR high, TW/JP medium, TH low, VN none).')}</p>
+          <p>{t('注意:抵扣的受益者是歐盟進口商,你需提供已付碳價證明;且盤查→CBAM 內含排放可由你的廠區盤查自動分攤(在 ⑥ 選「盤查分攤」)。', 'Note: the EU importer benefits and needs your proof of payment; and the CBAM embedded emissions can be auto-allocated from your facility inventory (pick “allocated” in ⑥).')}</p>
+        </Feature>
+
+        <Feature id="f-pcf" shot={{ src: '/guide/g-pcf.jpg', alt: t('產品碳足跡(每料號):組織足跡依數量/質量/營收分攤,得每單位 kgCO₂e', 'Per-SKU PCF: org footprint allocated by units/mass/revenue → kgCO₂e per unit') }} icon="🏷️" title={t('產品碳足跡(每料號):給品牌客戶的硬通貨', 'Product carbon footprint (per SKU)')} lead={t('品牌客戶越來越要「每個產品多少碳」,不只組織總量。在 ⑨ 建立產品清單就能算。', 'Brands increasingly want carbon per product, not just an org total. List your products in ⑨ to get it.')}>
+          <p>{t('選「系統邊界」(營運 Scope 1+2 / 含價值鏈 Scope 1+2+3)與「分攤基礎」(數量/質量/營收),工具把總足跡分攤到各料號,算出每單位 kgCO₂e。質量或營收基礎能讓重/貴的產品分到較多碳。', 'Pick the boundary (operations / incl. value chain) and the allocation basis (units/mass/revenue); the tool splits the total across SKUs into per-unit kgCO₂e. Mass or revenue basis gives heavier/pricier products a larger share.')}</p>
+          <p>{t('用底部「⬇ 產品碳足跡聲明」匯出一頁聲明給客戶。這是「組織足跡分攤」的篩選級估算(ISO 14067 精神),不是第三方查證 LCA,聲明上會明確標示。', 'Export a one-page declaration via “⬇ PCF declaration”. It’s a screening allocation of the org footprint (ISO 14067-aligned), not a verified LCA, and says so.')}</p>
+        </Feature>
+
+        <Feature id="f-questionnaire" shot={{ src: '/guide/g-questionnaire.jpg', alt: t('客戶問卷回覆:盤查/目標對映 CDP/品牌/SBTi 欄位,標可回覆/部分/待補', 'Customer questionnaire: inventory/targets mapped to CDP/brand/SBTi fields with ready/partial/missing') }} icon="🔗" title={t('客戶問卷回覆:把數據變成交得出去的答案', 'Customer questionnaire: turn data into answers')} lead={t('中小供應商做碳,多半是因為客戶要你填問卷。這個面板直接幫你「交差」。', 'SMEs usually do carbon because a customer asked. This panel helps you actually answer.')}>
+          <p>{t('「客戶問卷回覆」把你算好的盤查、目標、查證狀態,對映成 CDP 供應鏈、品牌客戶 ESG 問卷、SBTi 供應商常問的欄位,逐欄標 ✅ 可直接回覆 / 🟡 部分 / ⬜ 待補,並把缺的列成清單(例如「Scope 3 只到類別1,多數客戶還要類別11」)。', 'It maps your inventory, targets and verification status to CDP Supply Chain, brand ESG forms and SBTi supplier asks — each marked ✅ ready / 🟡 partial / ⬜ to-do, with the gaps listed (e.g. “Scope 3 only to Cat 1; most customers also want Cat 11”).')}</p>
+          <p>{t('缺資料一律標「—」、不會幫你編數字。用底部「⬇ 客戶問卷回覆包」匯出純文字,直接貼進客戶的問卷或郵件。', 'Missing data shows “—”; nothing is fabricated. Export via “⬇ customer answer pack” and paste straight into the customer’s form or email.')}</p>
         </Feature>
 
         <Feature id="f-loop" shot={{ src: '/guide/g-snapshot.jpg', alt: t('快照歷史:總足跡與 vs 前次的 Δ%;旁邊可「結轉下一年」', 'Snapshot history: footprint and Δ% vs prior; “carry forward to next year” beside it') }} icon="🔁" title={t('年對年閉環:拍快照、結轉下一年', 'Close the loop: snapshot & carry forward')} lead={t('「拍下這次快照」把總額存進歷史;歷史表會顯示總足跡與 vs 前次的 Δ%。', '“Take a snapshot” saves totals to history; the table shows footprint and Δ% vs the prior one.')}>
@@ -218,14 +241,66 @@ export default function GuideContent() {
         </CardContent></Card>
       </section>
 
+      {/* 4.5 New-feature worked cases */}
+      <section id="cases" className="scroll-mt-20 space-y-4">
+        <h2 className="text-2xl font-bold text-gray-900">{t('⑤ 新功能實例:四個產業案例', '⑤ New features: four industry cases')}</h2>
+        <p className="leading-relaxed text-gray-600">{t('除了上面的 AI 伺服器代工廠,以下用四個不同產業的實例,示範各自最有感的新功能(數字皆為工具實算結果)。', 'Beyond the AI-server ODM above, here are four different industries showing the new features each cares about most (all figures are real tool outputs).')}</p>
+
+        <Card><CardContent className="space-y-3 py-5">
+          <p className="font-semibold text-gray-900">{t('🔩 金屬零件廠(鋼鋁出口歐盟,越南／泰國設廠)', '🔩 Metal-parts maker (steel/aluminium to the EU; VN/TH plants)')}</p>
+          <p className="text-sm leading-relaxed text-gray-600">{t('重點功能:目標範疇一致、碳費×CBAM 交叉抵扣、盤查→CBAM 分攤。', 'Key features: target-scope consistency, carbon fee × CBAM cross-deduction, inventory→CBAM allocation.')}</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <Num label={t('今年實際(Scope 1+2)', 'Actual (Scope 1+2)')} value="11,380" sub={t('落後目標僅 580 t', 'behind by only 580 t')} />
+            <Num label={t('淨 CBAM', 'Net CBAM')} value="€24,927" sub={t('抵掉已付碳價 −€369', 'less €369 carbon price')} />
+            <Num label={t('CBAM 內含排放(分攤)', 'Embedded SEE (allocated)')} value="0.216" sub="tCO₂e/t" />
+          </div>
+          <p className="text-sm leading-relaxed text-gray-600">{t('在 ① 把「目標範疇」設成 Scope 1+2 後,「今年實際」改以 Scope 1+2(11,380 t)和基準比較,落後幅度從誤判的 +84,880 修正為合理的 +580。碳費×CBAM 面板顯示台灣已付碳價可抵 €369、淨 CBAM €24,927(信心「中」)。CBAM 內含排放不必手填——在 ⑥ 選「盤查分攤」,由台灣廠盤查自動分攤出 0.216 tCO₂e/t。', 'Setting the “target scope” to Scope 1+2 in ① makes the “actual” compare on Scope 1+2 (11,380 t), correcting the gap from a mismeasured +84,880 to a realistic +580. The cross-deduction panel nets €369 of Taiwan carbon price already paid → net CBAM €24,927 (medium confidence). The CBAM embedded value needn’t be typed — “allocated” in ⑥ derives 0.216 tCO₂e/t from the Taiwan plant inventory.')}</p>
+        </CardContent></Card>
+
+        <Card><CardContent className="space-y-3 py-5">
+          <p className="font-semibold text-gray-900">{t('🧪 化工廠(肥料出口歐盟,含製程排放)', '🧪 Chemicals plant (fertilizer to the EU; process emissions)')}</p>
+          <p className="text-sm leading-relaxed text-gray-600">{t('重點功能:多重減量目標、不確定性與數據品質彙總、製程煅燒係數。', 'Key features: multiple targets, uncertainty + data-quality rollup, process calcination factors.')}</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <Num label={t('整體不確定性', 'Overall uncertainty')} value="±11.2%" sub={t('涵蓋 100% 排放', 'covers 100%')} />
+            <Num label={t('近期 Scope 3 目標', 'Near-term Scope 3')} value="−25%" sub={t('4.17%/年 ✗ 未達 SBTi', '4.17%/yr ✗ below SBTi')} />
+            <Num label={t('熟料煅燒製程排放', 'Clinker calcination')} value="15,600" sub={t('30,000 t × 0.52', '30,000 t × 0.52')} />
+          </div>
+          <p className="text-sm leading-relaxed text-gray-600">{t('在 ⑧ 加上「近期 Scope 3 −25%」與「2050 淨零 −90%」兩條目標,工作台把三條目標各自於所屬範疇並列追軌——並自動標出 Scope 3 目標的隱含年減 4.17%/年未達 SBTi 4.2%(單一目標看不到的洞察)。盤查逐行填 ± 不確定性後,「查證就緒度」彙總出整體 ±11.2%、數據品質「發票 57%／估算 43%」。製程排放用內建「水泥熟料煅燒 0.52」即可,不必表外手算。', 'Adding “near-term Scope 3 −25%” and “2050 net-zero −90%” in ⑧ tracks all three targets side by side on their own boundaries — and flags that the Scope 3 target’s 4.17%/yr implied cut is below the SBTi 4.2% (an insight a single target hides). With per-line ±% entered, “assurance readiness” rolls up to ±11.2% and a quality mix of “invoice 57% / estimate 43%”. Process emissions use the built-in “clinker calcination 0.52”, no off-sheet hand-calc.')}</p>
+        </CardContent></Card>
+
+        <Card><CardContent className="space-y-3 py-5">
+          <p className="font-semibold text-gray-900">{t('🔌 半導體晶圓廠(Scope 2 為主,越南封測)', '🔌 Semiconductor fab (Scope-2 heavy; VN packaging/test)')}</p>
+          <p className="text-sm leading-relaxed text-gray-600">{t('重點功能:製程含氟氣體、減排設備 DRE、RE100 ↔ Scope 1+2 目標反推。', 'Key features: process F-gases, abatement DRE, RE100 ↔ Scope 1+2 reverse-solve.')}</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <Num label={t('NF₃ 毛排放', 'NF₃ gross')} value="80,500" sub={t('5,000 kg × 16,100', '5,000 kg × 16,100')} />
+            <Num label={t('經 95% DRE 後', 'After 95% DRE')} value="4,025" sub={t('×(1−0.95)', '× (1 − 0.95)')} />
+            <Num label={t('達標所需綠電', 'Renewable for target')} value="25.1%" sub={t('目前 25%', 'now 25%')} />
+          </div>
+          <p className="text-sm leading-relaxed text-gray-600">{t('蝕刻/清潔的 NF₃ 在「製程含氟氣體」類選得到,GWP 16,100:5,000 kg → 毛 80,500 t;填「減排設備去除率 95%」後,申報排放 = 80,500 ×(1−0.95)= 4,025 t,計算式直接顯示。目標面板下方的「RE100 連動」反推:要讓 Scope 1+2 達 −42%,綠電需到 25.1%(目前 25%,只差一點)——把 RE100 直接接上減量目標。', 'Etch/clean NF₃ is selectable under “process F-gases”, GWP 16,100: 5,000 kg → gross 80,500 t; enter “abatement DRE 95%” and reported = 80,500 × (1 − 0.95) = 4,025 t, with the formula shown. The “RE100 linkage” below the target reverse-solves: hitting −42% on Scope 1+2 needs 25.1% renewable (now 25%, just shy) — tying RE100 straight to the target.')}</p>
+        </CardContent></Card>
+
+        <Card><CardContent className="space-y-3 py-5">
+          <p className="font-semibold text-gray-900">{t('🏭 中小供應商(電子代工,被品牌客戶要碳數據)', '🏭 SME supplier (electronics; pushed by brand customers)')}</p>
+          <p className="text-sm leading-relaxed text-gray-600">{t('重點功能:行業範本帶入、客戶問卷回覆、每料號產品碳足跡。', 'Key features: industry templates, customer questionnaire, per-SKU PCF.')}</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <Num label={t('一鍵帶入排放源', 'Sources loaded')} value="+5" sub={t('電子典型源', 'electronics template')} />
+            <Num label={t('客戶問卷可回覆', 'Questionnaire ready')} value="12/17" sub={t('其餘列為缺口', 'rest listed as gaps')} />
+            <Num label={t('每料號 PCF', 'Per-SKU PCF')} value="35.72 / 892.9" sub={t('連接器／模組 kgCO₂e', 'connector/module kgCO₂e')} />
+          </div>
+          <p className="text-sm leading-relaxed text-gray-600">{t('沒有專職 ESG?在盤查點「✨ 帶入行業典型源」,電子廠一鍵補上 5 個典型源(含 NF₃/CF₄/SF₆),只要填數字。算完後「客戶問卷回覆」顯示「可回覆 12/17」,Scope 2 自動給地點 1,422 與市場 1,280 兩個值,缺的(如查證等級)列成待補。在 ⑨ 建兩個產品、用「質量」分攤,得連接器 35.72、模組 892.9 kgCO₂e/單位——較重的模組分到較多碳。最後匯出「客戶問卷回覆包」與「產品碳足跡聲明」貼給客戶。', 'No dedicated ESG staff? Click “✨ load industry sources” and the electronics template seeds 5 typical sources (incl. NF₃/CF₄/SF₆) — just fill numbers. After computing, “customer questionnaire” shows “ready 12/17”, Scope 2 auto-gives location 1,422 and market 1,280, and the gaps (e.g. assurance level) are listed. Build two products in ⑨ on a mass basis → connector 35.72, module 892.9 kgCO₂e/unit (the heavier module carries more). Finally export the “customer answer pack” and “PCF declaration” to send the customer.')}</p>
+        </CardContent></Card>
+      </section>
+
       {/* 5. Deliverables */}
       <section id="deliver" className="scroll-mt-20 space-y-3">
-        <h2 className="text-2xl font-bold text-gray-900">{t('⑤ 匯出與交付', '⑤ Exports & deliverables')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t('⑥ 匯出與交付', '⑥ Exports & deliverables')}</h2>
         <ul className="space-y-2 text-sm leading-relaxed text-gray-600">
           <li>{t('• 側寫 JSON:換電腦或多廠彙整用——匯出存檔、之後匯入即還原。', '• Profile JSON: for switching machines / merging plants — export then import to restore.')}</li>
           <li>{t('• 盤查清冊 CSV:逐排放源含係數、來源、Scope、數據品質、佐證、tCO₂e——Excel 可開,交查證的工作底稿。', '• Inventory sheet CSV: every source with factor, source, scope, data quality, evidence, tCO₂e — opens in Excel, the assurance working paper.')}</li>
           <li>{t('• 揭露報告段落:IFRS S1/S2 四支柱草稿,已用你的實算數字預填,定性內容留空待你補。', '• Disclosure draft: an IFRS S1/S2 four-pillar draft pre-filled with your numbers; qualitative parts left to complete.')}</li>
           <li>{t('• CBAM 設施溝通範本:依 Reg (EU) 2023/956 欄位整理,給歐盟買家所需的設施資料。', '• CBAM communication template: per Reg (EU) 2023/956, the installation data your EU buyer needs.')}</li>
+          <li>{t('• 客戶問卷回覆包:盤查/目標對映 CDP 供應鏈、品牌客戶、SBTi 供應商欄位,標可回覆/缺口的純文字,直接貼進客戶問卷。', '• Customer answer pack: your inventory/targets mapped to CDP, brand and SBTi fields with ready/gap flags — paste straight into the customer’s form.')}</li>
+          <li>{t('• 每料號產品碳足跡聲明:各料號的邊界、分攤基礎、每單位 kgCO₂e 與篩選級聲明,給品牌客戶的一頁文件。', '• Per-SKU PCF declaration: each SKU’s boundary, allocation basis, kgCO₂e/unit and screening statement — a one-page document for brands.')}</li>
         </ul>
         <p className="text-sm text-gray-500">{t('所有匯出都在前端產生、直接下載,不經伺服器。', 'All exports are generated in your browser and downloaded directly — nothing leaves your device.')}</p>
         <Shot src="/guide/g-exports.jpg" alt={t('工作台底部的匯出列:側寫 JSON、盤查清冊、CBAM 範本、報告草稿', 'Export row at the bottom: profile JSON, inventory sheet, CBAM template, report draft')} />
@@ -233,7 +308,7 @@ export default function GuideContent() {
 
       {/* 6. FAQ */}
       <section id="faq" className="scroll-mt-20 space-y-3">
-        <h2 className="text-2xl font-bold text-gray-900">{t('⑥ 常見問題', '⑥ FAQ')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t('⑦ 常見問題', '⑦ FAQ')}</h2>
         {[
           { q: t('我的資料會被上傳嗎?', 'Is my data uploaded?'), a: t('不會。側寫、快照、凍結版本都只存在你的瀏覽器(localStorage),不經伺服器、免註冊。換電腦請用「匯出側寫 JSON」搬移。', 'No. Your profile, snapshots and locked versions live only in your browser (localStorage) — no server, no signup. Use “export profile JSON” to move machines.')},
           { q: t('海外廠的用電碳排怎麼算才對?', 'How are overseas plants’ electricity emissions calculated?'), a: t('工具依廠區國別自動套該國電網係數(如越南 0.6592、泰國 0.475),不會誤用台灣值。係數逐年公布、可逐行覆寫為你查證的最新值。', 'The tool auto-applies each country’s grid factor (e.g. Vietnam 0.6592, Thailand 0.475), not Taiwan’s. Factors are updated yearly and overridable per line.')},
@@ -241,6 +316,10 @@ export default function GuideContent() {
           { q: t('地點基礎與市場基礎 Scope 2 有什麼差?', 'Location- vs market-based Scope 2?'), a: t('地點基礎用當地電網平均;市場基礎把你買的綠電/PPA/REC 算進去(RE100 看的是這個)。填「綠電佔比」即可同時得到兩個數。', 'Location-based uses the grid average; market-based counts your green-power contracts (RE100 looks at this). Enter your renewable % to get both.')},
           { q: t('CBAM 是我要繳嗎?成品伺服器要報嗎?', 'Do I pay CBAM? Do finished servers count?'), a: t('CBAM 憑證由歐盟進口商購買,不是你。且成品電子/伺服器不在 CBAM 清單上(清單僅鋼/鋁/水泥/肥料/氫/電力)——只有你出口這些清單貨品時才在 ⑥ 申報。', 'CBAM certificates are bought by the EU importer, not you. And finished electronics/servers aren’t on the CBAM list (only steel/al/cement/fertilizer/H₂/power) — file in ⑥ only for those list goods.')},
           { q: t('SBTi 的 4.2% 是怎麼來的?', 'Where does the SBTi 4.2% come from?'), a: t('SBTi 1.5°C 近期目標準則要求約每年線性絕對減 4.2%。工具把你「目標% ÷ 年數」的隱含年減和它比對,標示是否對齊。', 'SBTi’s 1.5°C near-term criteria require ≈4.2%/yr linear absolute reduction. The tool compares your implied annual cut (target % ÷ years) and flags alignment.')},
+          { q: t('半導體製程含氟氣體(NF₃/CF₄)與洗滌設備怎麼填?', 'How do I enter semiconductor F-gases (NF₃/CF₄) and abatement?'), a: t('在盤查的「製程含氟氣體」類選 NF₃、CF₄、C₂F₆、SF₆ 等(GWP 採 IPCC AR5),活動量填鋼瓶用量(kg)。若該氣體經洗滌/燃燒處理,填「減排設備去除率 DRE %」,工具就以「毛排放 ×(1−DRE)」申報(IPCC Tier 2b);DRE 須有查證之破壞效率,未填則保守用毛排放。', 'Under “process F-gases” pick NF₃, CF₄, C₂F₆, SF₆… (GWP per IPCC AR5) and enter cylinder use (kg). If the gas is scrubbed/burned, enter “abatement DRE %” and the tool reports gross × (1 − DRE) (IPCC Tier 2b); DRE needs a verified destruction efficiency — blank means the conservative gross.')},
+          { q: t('客戶要我填他們的 ESG 問卷 / CDP,工具能幫我準備嗎?', 'Can the tool prep my customer’s ESG form / CDP?'), a: t('能。算完後看「客戶問卷回覆」,它把你的盤查、目標、查證狀態對映成 CDP 供應鏈、品牌客戶、SBTi 供應商常問的欄位,逐欄標可回覆/部分/待補,缺的列成清單;底部「⬇ 客戶問卷回覆包」匯出純文字直接貼給客戶。缺資料一律標「—」不編造。', 'Yes. After computing, see “customer questionnaire” — it maps your inventory, targets and verification to CDP, brand and SBTi fields, marks each ready/partial/missing and lists the gaps; “⬇ customer answer pack” exports text to paste to the customer. Missing data shows “—”, never fabricated.')},
+          { q: t('品牌客戶要每個產品的碳足跡,工具能出嗎?', 'Brands want a per-product footprint — can the tool produce it?'), a: t('能。在 ⑨ 建立產品/料號清單,選邊界與分攤基礎(數量/質量/營收),工具把組織足跡分攤到各料號、算每單位 kgCO₂e,並用「⬇ 產品碳足跡聲明」匯出一頁文件。這是篩選級分攤估算(ISO 14067 精神),非第三方查證 LCA,聲明會明確標示。', 'Yes. List products/SKUs in ⑨, pick the boundary and allocation basis (units/mass/revenue); the tool splits the org footprint per SKU into kgCO₂e/unit and exports a one-page “⬇ PCF declaration”. It’s a screening allocation (ISO 14067-aligned), not a verified LCA, and says so.')},
+          { q: t('我在台灣繳的碳費能抵 CBAM 嗎?', 'Can my Taiwan carbon fee offset CBAM?'), a: t('可部分抵扣。「碳費 × CBAM 交叉抵扣」面板依 Reg (EU) 2023/956 §9,把你原產國已付碳價從 CBAM 義務扣掉,得出淨 CBAM,並標各國認定信心。受益者是歐盟進口商,你需提供已付碳價證明。', 'Partly. The “carbon fee × CBAM” panel applies Reg (EU) 2023/956 §9, netting the origin carbon price you already paid against the CBAM obligation → net CBAM, with per-country confidence. The EU importer benefits and needs your proof of payment.')},
         ].map((f, i) => (
           <details key={i} className="rounded-lg border border-gray-200 bg-white p-4">
             <summary className="cursor-pointer text-sm font-semibold text-gray-800">{f.q}</summary>

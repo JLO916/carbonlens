@@ -57,8 +57,8 @@ export default function LandingContent() {
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-gray-600">
             {t(
-              '為出口歐盟、面對品牌客戶碳要求、或須依 IFRS 編製永續資訊的台灣及 APAC 製造業而設計。填一份公司側寫,即完成 Scope 1／2／3 盤查、國內碳費與 CBAM 試算、減量目標與查證管理、義務行事曆與報告匯出——每筆數字標註一手法源、可追溯查核。資料僅存於你的瀏覽器,免註冊。',
-              'Built for Taiwan & APAC manufacturers that export to the EU, face brand-customer carbon demands, or file IFRS sustainability information. One company profile completes Scope 1/2/3 inventory, domestic carbon-fee and CBAM estimates, reduction targets and assurance, an obligation calendar and report exports — every figure cites primary law and is traceable for audit. Data stays in your browser, no signup.',
+              '為出口歐盟、面對品牌客戶碳要求、或須依 IFRS 編製永續資訊的台灣及 APAC 製造業而設計。填一份公司側寫,即完成 Scope 1／2／3 盤查(含半導體製程含氟氣體、減排設備效率、整體不確定性與數據品質彙總)、國內碳費與 CBAM 試算(含原產國碳價交叉抵扣)、近期／Scope 3／淨零多重減量目標與查證管理,並一鍵生成客戶問卷回覆與每料號產品碳足跡。每筆數字標一手法源、可追溯;資料僅存你的瀏覽器,免註冊。',
+              'Built for Taiwan & APAC manufacturers that export to the EU, face brand-customer carbon demands, or file IFRS sustainability information. One company profile completes Scope 1/2/3 inventory (incl. semiconductor F-gases, abatement efficiency, and an uncertainty + data-quality rollup), domestic carbon-fee and CBAM estimates (with origin carbon-price cross-deduction), near-term/Scope 3/net-zero targets and assurance — and generates customer-questionnaire answers and per-SKU product footprints in one click. Every figure cites primary law and is traceable; data stays in your browser, no signup.',
             )}
           </p>
           <div className="flex flex-wrap justify-center gap-3">

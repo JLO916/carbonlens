@@ -43,6 +43,24 @@ export const GLOSSARY: GlossaryTerm[] = [
     pro: { zhTW: '依 ISO 14064-1／GHG Protocol 建立組織溫室氣體清冊,含邊界、活動數據、係數與不確定性。', en: 'An organizational GHG inventory per ISO 14064-1 / GHG Protocol (boundary, activity data, factors, uncertainty).' },
   },
   {
+    key: 'fgas',
+    term: { zhTW: '製程含氟氣體（F-gas）', en: 'Fluorinated process gases' },
+    plain: { zhTW: '半導體、面板蝕刻/清潔用的氣體——排得不多但暖化威力極強。', en: 'Etch/clean gases in chips & panels — small volume, huge warming power.' },
+    pro: { zhTW: 'NF₃、CF₄、C₂F₆、SF₆ 等,GWP 達數千至上萬倍(IPCC AR5);屬 Scope 1 製程排放,是半導體/光電最大直接排放源。', en: 'NF₃, CF₄, C₂F₆, SF₆ etc. with GWP of thousands–tens-of-thousands (IPCC AR5); Scope 1 process emissions, the top direct source for semiconductors/PV.' },
+  },
+  {
+    key: 'dre',
+    term: { zhTW: '減排設備去除率（DRE）', en: 'Abatement DRE' },
+    plain: { zhTW: '廢氣經洗滌/燃燒設備「銷掉」多少比例,排放就少多少。', en: 'How much an exhaust scrubber/burner destroys — that share isn’t emitted.' },
+    pro: { zhTW: '破壞去除效率;申報排放 = 用量 × 係數 ×(1−DRE),IPCC Tier 2b;含氟氣體常達 90–99%,須附查證之效率值。', en: 'Destruction/removal efficiency; reported = use × factor × (1 − DRE), IPCC Tier 2b; F-gases often 90–99% — requires a verified value.' },
+  },
+  {
+    key: 'uncertainty',
+    term: { zhTW: '盤查不確定性', en: 'Inventory uncertainty' },
+    plain: { zhTW: '你的總排放數字「±幾%」——查證最先看這個。', en: 'The “±%” around your total — the first thing assurance checks.' },
+    pro: { zhTW: '各活動數據 ±% 以平方和開根號(quadrature)合併、假設來源獨立;搭配數據品質分級(實測/發票/估算)構成查證就緒度。', en: 'Per-line ±% combined in quadrature (independent sources), with a data-quality tier mix (measured/invoice/estimate) — your assurance readiness.' },
+  },
+  {
     key: 'assurance',
     term: { zhTW: '查證（Assurance）', en: 'Assurance' },
     plain: { zhTW: '請第三方檢查你的數字可信。', en: 'A third party checks your numbers are trustworthy.' },
@@ -61,6 +79,12 @@ export const GLOSSARY: GlossaryTerm[] = [
     pro: { zhTW: '免費配額遞減比例:2026 2.5% → 2034 100%(Reg 2023/956 §31、Dir 2003/87 §10a)。', en: 'Free-allocation phase-out: 2026 2.5% → 2034 100% (Reg 2023/956 §31, Dir 2003/87 §10a).' },
   },
   {
+    key: 'crossDeduction',
+    term: { zhTW: '碳費×CBAM 交叉抵扣', en: 'Carbon price ↔ CBAM deduction' },
+    plain: { zhTW: '你在原產國已繳的碳費，可從 CBAM 帳單扣掉。', en: 'The carbon price you already paid at home can be deducted from the CBAM bill.' },
+    pro: { zhTW: '原產國已付碳價可抵 CBAM(Reg (EU) 2023/956 §9);受益者是進口商,各國認定程度不同(新/韓高、台/日中、泰低、越無)。', en: 'Carbon price paid in origin is deductible from CBAM (Reg (EU) 2023/956 §9); the importer benefits, recognition varies by country (SG/KR high, TW/JP medium, TH low, VN none).' },
+  },
+  {
     key: 'sbti',
     term: { zhTW: 'SBTi（科學減碳目標）', en: 'SBTi' },
     plain: { zhTW: '依科學定「減多少才夠」的減碳目標。', en: 'Science-based targets for how much to cut.' },
@@ -75,8 +99,8 @@ export const GLOSSARY: GlossaryTerm[] = [
   {
     key: 'pcf',
     term: { zhTW: 'PCF（產品碳足跡）', en: 'PCF' },
-    plain: { zhTW: '一個產品從頭到尾排了多少碳。', en: 'How much carbon one product is responsible for.' },
-    pro: { zhTW: '產品碳足跡(ISO 14067／GHG Product);本工具以「組織足跡 ÷ 產量」估算,非完整 LCA。', en: 'Product carbon footprint (ISO 14067); here estimated as org footprint ÷ units — not a full LCA.' },
+    plain: { zhTW: '一個產品從頭到尾排了多少碳——品牌客戶常要每料號的數字。', en: 'The carbon one product carries — brands often want it per SKU.' },
+    pro: { zhTW: '產品碳足跡(ISO 14067);本工具把組織足跡依數量/質量/營收分攤到各料號,為篩選級估算、非查證 LCA,可匯出一頁聲明。', en: 'Product carbon footprint (ISO 14067); here the org footprint is allocated per SKU by units/mass/revenue — a screening estimate, not a verified LCA, with a one-page declaration export.' },
   },
   {
     key: 'spendBased',

@@ -7,6 +7,9 @@ import { CITATION_TW_CARBON_FEE, CITATION_CBAM_SCOPE, CITATION_ASSURANCE } from 
 import { CITATION_CBAM_LEGAL, CITATION_CBAM_DEFAULTS, CITATION_CBAM_FACTOR } from '@/lib/diagnose/data/cbam';
 import { CITATION_GRI, CITATION_IFRS } from '@/lib/diagnose/data/listed-disclosure';
 import { CITATION_SCOPE3_CATEGORIES } from '@/lib/diagnose/data/scope3-categories';
+import { CITATION_EMISSION_FACTORS } from '@/lib/workbench/emission-factors';
+import { CITATION_CBAM_DEDUCTION } from '@/lib/workbench/cbam-deduction';
+import { CITATION_SBTI } from '@/lib/workbench/target';
 
 function Section({ title, desc, cites }: { title: string; desc: string; cites: Citation[] }) {
   return (
@@ -50,9 +53,14 @@ export default function MethodologyContent() {
         cites={[CITATION_TW_CARBON_FEE]}
       />
       <Section
-        title={t('歐盟 CBAM', 'EU CBAM')}
-        desc={t('法規時程、官方預設值、CBAM 因子(免費配額遞減)與範圍(鋼鋁僅直接排放),均引 Regulation (EU) 2023/956 與其附則(EUR-Lex 一手)。', 'Timeline, official defaults, the CBAM factor (free-allocation phase-out) and scope (steel/aluminium direct-only) cite Regulation (EU) 2023/956 and its annexes (EUR-Lex primary).')}
-        cites={[CITATION_CBAM_LEGAL, CITATION_CBAM_DEFAULTS, CITATION_CBAM_FACTOR, CITATION_CBAM_SCOPE]}
+        title={t('排放係數(盤查)', 'Emission factors (inventory)')}
+        desc={t('電力採經濟部能源署電力排碳係數、各國電網採各國主管機關公布值;燃料採環境部「溫室氣體排放係數管理表 6.0.4」;冷媒、SF₆ 與製程含氟氣體(NF₃/CF₄/C₂F₆…)採 IPCC AR5 GWP(環境部 113/2/5 公告採用);製程煅燒(水泥熟料 0.52、石灰 0.75、石灰石 0.440 tCO₂/t)採 IPCC 2006 指南 Tier 1／化學計量。每筆皆可逐行覆寫為你的查證值。', 'Electricity uses the Energy Administration grid factor and national grids for overseas plants; fuels use the MOENV factor table 6.0.4; refrigerants, SF₆ and fluorinated process gases (NF₃/CF₄/C₂F₆…) use IPCC AR5 GWP (MOENV-adopted); process calcination (clinker 0.52, lime 0.75, limestone 0.440 tCO₂/t) uses IPCC 2006 GL Tier 1 / stoichiometric. Every value is overridable per line.')}
+        cites={[CITATION_EMISSION_FACTORS]}
+      />
+      <Section
+        title={t('歐盟 CBAM 與碳價交叉抵扣', 'EU CBAM & carbon-price cross-deduction')}
+        desc={t('法規時程、官方預設值、CBAM 因子(免費配額遞減)與範圍(鋼鋁僅直接排放),均引 Regulation (EU) 2023/956 與其附則;原產國已付碳價可自 CBAM 抵扣依該規則第 9 條,各國認定信心依雙邊協商而定。', 'Timeline, official defaults, the CBAM factor and scope (steel/aluminium direct-only) cite Regulation (EU) 2023/956 and its annexes; the deduction of the carbon price already paid in origin follows Art. 9, with per-country recognition depending on bilateral settlement.')}
+        cites={[CITATION_CBAM_LEGAL, CITATION_CBAM_DEFAULTS, CITATION_CBAM_FACTOR, CITATION_CBAM_SCOPE, CITATION_CBAM_DEDUCTION]}
       />
       <Section
         title={t('永續報告書 / IFRS S1/S2', 'Sustainability report / IFRS S1/S2')}
@@ -65,8 +73,13 @@ export default function MethodologyContent() {
         cites={[CITATION_SCOPE3_CATEGORIES]}
       />
       <Section
+        title={t('減量目標 / SBTi', 'Reduction targets / SBTi')}
+        desc={t('近期目標對齊 SBTi 1.5°C 線性絕對路徑(最低約 4.2%／年);近期 Scope 1+2、近期 Scope 3 與長期淨零各為一條目標,門檻為一般指引,正式目標須經 SBTi 方法與驗證。', 'Near-term targets align to the SBTi 1.5°C linear absolute pathway (min ≈4.2%/yr); near-term Scope 1+2, near-term Scope 3 and long-term net-zero are each a separate target. The threshold is general guidance — official targets require SBTi methods and validation.')}
+        cites={[CITATION_SBTI]}
+      />
+      <Section
         title={t('查證 / 確信', 'Verification / assurance')}
-        desc={t('IFRS S2 確信時程、CBAM 經認證查證、ISO 14064-1 + TAF 認證查驗的銜接路徑。', 'The pathway for IFRS S2 assurance, CBAM accredited verification, and ISO 14064-1 + TAF-accredited verification.')}
+        desc={t('IFRS S2 確信時程、CBAM 經認證查證、ISO 14064-1 + TAF 認證查驗的銜接路徑;盤查不確定性以 quadrature(平方和開根號、假設來源獨立)彙總,屬指示性、非完整蒙地卡羅分析。', 'The pathway for IFRS S2 assurance, CBAM accredited verification, and ISO 14064-1 + TAF-accredited verification; inventory uncertainty is rolled up by quadrature (root-sum-of-squares, assuming independent sources) — indicative, not a full Monte-Carlo analysis.')}
         cites={[CITATION_ASSURANCE]}
       />
 

@@ -142,7 +142,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
       </Card>
 
       {/* Disclosure */}
-      <Card>
+      <Card id="wb-disclosure" className="scroll-mt-24">
         <CardHeader className="pb-3"><CardTitle className="text-base">{t('② 揭露（上市櫃）', '② Disclosure (listed)')}</CardTitle><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('你是上市櫃嗎、資本額多大?——決定你哪一年起要編 IFRS 永續／氣候揭露。', 'listed? capital tier? — sets which year you must file IFRS sustainability/climate disclosure.')}</p></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -191,7 +191,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
       </Card>
 
       {/* Facilities */}
-      <Card>
+      <Card id="wb-inventory" className="scroll-mt-24">
         <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑤ 廠區（國內碳費／碳稅）', '⑤ Facilities (domestic carbon price)')}</CardTitle><Button size="sm" variant="outline" onClick={addFacility}>＋ {t('新增廠區', 'Add')}</Button></div><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('你各廠一年排多少碳(自己燒的+外購電力)。這是國內碳費／碳稅的基礎,也是 Scope 1+2。', 'each site’s annual emissions (what you burn + purchased electricity). This is the carbon-fee base, and your Scope 1+2.')}</p></CardHeader>
         <CardContent className="space-y-3">
           {profile.facilities.map((f) => (
@@ -257,7 +257,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
       </Card>
 
       {/* CBAM products */}
-      <Card>
+      <Card id="wb-cbam" className="scroll-mt-24">
         <CardHeader className="pb-3"><div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑥ CBAM 出口品項', '⑥ CBAM export lines')}</CardTitle><Button size="sm" variant="outline" onClick={addCbam}>＋ {t('新增品項', 'Add')}</Button></div><p className="mt-1 text-xs leading-relaxed text-gray-500">{t('出口歐盟、且在 CBAM 清單上的貨品(鋼／鋁／水泥／肥料／氫／電力)。成品電子、紡織不在清單上。', 'goods you export to the EU that are ON the CBAM list (steel/al/cement/fertilizer/H₂/power). Finished electronics/textiles are not.')}</p></CardHeader>
         <CardContent className="space-y-3">
           <p className="rounded-lg bg-blue-50 p-2.5 text-[11px] leading-relaxed text-blue-800">ℹ️ {t('只填「在 CBAM 清單上」的貨品(鋼鐵/鋁/水泥/肥料/氫/電力)。成品電子/伺服器不在清單上——其鋼鋁零件的 CBAM 成本是上游供應商轉嫁(屬你的 Scope 3,見下方 ⑦),不是你自己的 CBAM 申報。', 'List only goods ON the CBAM list (steel/aluminium/cement/fertilizer/hydrogen/electricity). Finished electronics/servers are NOT on the list — the CBAM cost of their steel/aluminium parts is passed through by upstream suppliers (your Scope 3, see ⑦ below), not your own CBAM filing.')}</p>
@@ -301,7 +301,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
       </Card>
 
       {/* ⑧ Extra reduction targets (E1) — a real SBTi commitment is a SET of targets */}
-      <Card>
+      <Card id="wb-targets" className="scroll-mt-24">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between"><CardTitle className="text-base">{t('⑧ 額外減量目標', '⑧ Extra reduction targets')}</CardTitle><Button size="sm" variant="outline" onClick={addTarget}>＋ {t('新增目標', 'Add target')}</Button></div>
           <p className="mt-1 text-xs leading-relaxed text-gray-500">{t('① 是你的主要目標。SBTi 承諾通常還有「近期 Scope 3」與「2050 淨零」——在此加列,各自於所屬範疇追軌(在「全貌」的減量目標管理一起顯示)。', '① is your primary target. An SBTi commitment usually also carries a near-term Scope 3 target and a 2050 net-zero target — add them here; each is tracked on its own boundary (shown together in Target management).')}</p>

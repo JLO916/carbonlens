@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import InfoTip from '@/components/ui/info-tip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useI18n } from '@/lib/i18n/context';
 import type { BilingualText, CapitalTier, ListedInput, ListingType } from '@/lib/diagnose/types';
@@ -66,7 +67,7 @@ export default function ListedForm({ onSubmit }: { onSubmit: (input: ListedInput
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t('上市／上櫃別', 'Listing type')}</Label>
+          <Label className="text-sm font-medium">{t('上市／上櫃別', 'Listing type')}<InfoTip zhTW="你的股票掛牌在哪：上市＝台灣證券交易所（TWSE）；上櫃＝證券櫃檯買賣中心（TPEx）。兩者的永續報告書與 IFRS 永續揭露時程依各自規範，工具據此判定你的接軌階段。" en="Where your shares are listed: Listed = Taiwan Stock Exchange (TWSE); OTC = Taipei Exchange (TPEx). Each has its own sustainability-report and IFRS-disclosure timeline — the tool uses this to determine your adoption phase." /></Label>
           <ToggleRow<ListingType>
             value={listingType}
             onChange={setListingType}
@@ -95,7 +96,7 @@ export default function ListedForm({ onSubmit }: { onSubmit: (input: ListedInput
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t('是否已編永續報告書？', 'Already prepared a sustainability report?')}</Label>
+          <Label className="text-sm font-medium">{t('是否已編永續報告書？', 'Already prepared a sustainability report?')}<InfoTip zhTW="是否已依 GRI 等準則編製過永續（ESG）報告書。已編＝你已有揭露基礎，接軌 IFRS S1/S2 氣候揭露較順；未編＝建議從建立碳排基準線與盤查開始。" en="Whether you've already published a sustainability (ESG) report under GRI etc. Yes = you have a disclosure base and IFRS S1/S2 alignment is smoother; No = start from a baseline inventory." /></Label>
           <ToggleRow<boolean>
             value={hasReport}
             onChange={setHasReport}

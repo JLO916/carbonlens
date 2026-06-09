@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
 import { productFootprints, PCF_BASIS_LABEL, PCF_BOUNDARY_LABEL, PCF_DISCLAIMER } from '@/lib/workbench/pcf';
+import InfoHint from '@/components/ui/InfoHint';
 import type { CompanyProfile } from '@/lib/workbench/profile';
 
 const fmt = (n: number) => n.toLocaleString('en-US');
@@ -17,7 +18,7 @@ export default function ProductPcf({ profile }: { profile: CompanyProfile }) {
   return (
     <Card className="border-[#89B56C]/30">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">🏷️ {t('產品碳足跡（每料號）', 'Product carbon footprint (per SKU)')}</CardTitle>
+        <CardTitle className="text-base">🏷️ <InfoHint termKey="pcf" label={t('產品碳足跡（每料號）', 'Product carbon footprint (per SKU)')} /></CardTitle>
         <p className="mt-1 text-[11px] leading-relaxed text-gray-400">
           {t('邊界', 'Boundary')}: {tObj(PCF_BOUNDARY_LABEL[res.boundary])} · {fmt(res.footprintTonnes)} tCO₂e · {t('分攤', 'Basis')}: {tObj(PCF_BASIS_LABEL[res.basis])}。{t('用上方「⬇ 產品碳足跡聲明」匯出一頁給客戶。', 'Export a one-page declaration via “PCF declaration” above.')}
         </p>

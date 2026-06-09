@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import InfoTip from '@/components/ui/info-tip';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useI18n } from '@/lib/i18n/context';
@@ -115,7 +116,7 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t('產品類別', 'Product category')}</Label>
+          <Label className="text-sm font-medium">{t('產品類別', 'Product category')}<InfoTip zhTW="CBAM 清單僅涵蓋鋼鐵、鋁、水泥、肥料、氫、電力（含鋼／鋁扣件）。成品電子、伺服器、紡織不在清單上——其零件的 CBAM 成本由上游供應商轉嫁（屬你的 Scope 3）。" en="The CBAM list covers only steel, aluminium, cement, fertilizer, hydrogen and electricity (incl. steel/aluminium fasteners). Finished electronics, servers and textiles are NOT on the list — their parts' CBAM cost is passed through by upstream suppliers (your Scope 3)." /></Label>
           <Select value={product} onValueChange={(v) => v && setProduct(v as CbamProductKey)}>
             <SelectTrigger className="w-full">
               <SelectValue>{() => (productLabel ? tObj(productLabel) : '')}</SelectValue>
@@ -132,7 +133,7 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t('出口來源國', 'Origin country')}</Label>
+            <Label className="text-sm font-medium">{t('出口來源國', 'Origin country')}<InfoTip zhTW="貨品的生產國。決定原產國已付碳價能否抵 CBAM（Reg 2023/956 §9）的認定信心：新加坡／韓國高、台灣／日本中、泰國低、越南無（無正式碳價＝全額負擔）。" en="Where the goods are produced. Sets the confidence that the carbon price paid there can be deducted from CBAM (Reg 2023/956 §9): SG/KR high, TW/JP medium, TH low, VN none (no formal price = full exposure)." /></Label>
             <Select value={originCountry} onValueChange={(v) => v && setOriginCountry(v)}>
               <SelectTrigger className="w-full">
                 <SelectValue>{() => (countryLabel ? tObj(countryLabel) : '')}</SelectValue>
@@ -197,7 +198,7 @@ export default function CbamForm({ onSubmit }: { onSubmit: (input: CbamInput) =>
 
         {emissionsSource === 'actual' && (
           <div className="space-y-2">
-            <Label className="text-sm font-medium">{t('單位內含排放（tCO₂e/噸，您的實際數據）', 'Specific embedded emissions (tCO₂e/t, your actual)')}</Label>
+            <Label className="text-sm font-medium">{t('單位內含排放（tCO₂e/噸，您的實際數據）', 'Specific embedded emissions (tCO₂e/t, your actual)')}<InfoTip zhTW="每生產一噸該貨品，製程直接排放的溫室氣體（tCO₂e／噸）。鋼／鋁／氫依 CBAM 附則 II 僅計直接排放（Scope 1）；水泥／肥料另計外購電力等間接。若不知道，改用「官方預設值」。" en="The GHGs emitted per tonne of the good produced (tCO₂e/t). For steel/aluminium/hydrogen, CBAM Annex II counts direct (Scope 1) only; cement/fertilizer also count indirect (e.g. purchased power). If unknown, switch to the official default." /></Label>
             <Input type="number" value={specificEmissions || ''} min={0} step={0.01} placeholder={t('輸入您的實際數據', 'enter your actual value')} onChange={(e) => setSpecificEmissions(Number(e.target.value))} />
           </div>
         )}

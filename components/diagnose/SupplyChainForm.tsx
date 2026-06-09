@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import InfoTip from '@/components/ui/info-tip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useI18n } from '@/lib/i18n/context';
 import { INDUSTRIES } from '@/lib/diagnose/data/industries';
@@ -91,7 +92,7 @@ export default function SupplyChainForm({ onSubmit }: { onSubmit: (input: Supply
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t('主要品牌客戶已公開承諾的框架（可複選）', 'Frameworks your key brand customers have committed to (multi-select)')}</Label>
+          <Label className="text-sm font-medium">{t('主要品牌客戶已公開承諾的框架（可複選）', 'Frameworks your key brand customers have committed to (multi-select)')}<InfoTip zhTW="勾選你的大客戶公開承諾了哪些：RE100＝100% 綠電（會要你的廠也用綠電）；SBTi＝科學減碳目標（會要你設目標、降它的 Scope 3）；CDP＝碳揭露（會透過 CDP 供應鏈計畫要你填問卷）。客戶承諾越多，對你的碳數據要求越高。" en="Tick what your big customers have publicly pledged: RE100 = 100% renewable (they'll want your sites on green power); SBTi = science-based targets (they'll want you to set targets and cut their Scope 3); CDP = disclosure (they'll request your data via the CDP Supply Chain program). More pledges = more pressure on your carbon data." /></Label>
           <div className="flex flex-wrap gap-2">
             {FRAMEWORK_OPTIONS.map((o) => {
               const selected = frameworks.includes(o.value);
@@ -147,7 +148,7 @@ export default function SupplyChainForm({ onSubmit }: { onSubmit: (input: Supply
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t('員工規模', 'Employee size')}</Label>
+          <Label className="text-sm font-medium">{t('員工規模', 'Employee size')}<InfoTip zhTW="公司人數。較大的供應商更可能被客戶優先要求碳數據，也較可能落入歐盟 CSRD／供應鏈盡職調查（CSDDD）等規範的間接影響範圍。" en="Headcount. Larger suppliers are more likely to be pushed first for carbon data, and more likely to fall within the indirect reach of EU CSRD / supply-chain due-diligence (CSDDD)." /></Label>
           <Select value={employeeBand} onValueChange={(v) => v && setEmployeeBand(v as EmployeeBand)}>
             <SelectTrigger className="w-full">
               <SelectValue>{() => (bandLabel ? tObj(bandLabel) : '')}</SelectValue>

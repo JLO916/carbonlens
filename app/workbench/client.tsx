@@ -1,6 +1,7 @@
 'use client';
 
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/context';
 import ProfileForm from '@/components/workbench/ProfileForm';
@@ -207,6 +208,22 @@ export default function WorkbenchClient() {
           {t('——直接按下方「計算我的合規全貌」即可看結果,再依你的實際數據逐欄調整。約 1 分鐘。', '— just hit “Compute” below to see results, then adjust each field to your real data. ~1 minute.')}
         </div>
       )}
+
+      <details className="rounded-xl border border-gray-200 bg-white p-4">
+        <summary className="cursor-pointer list-none text-sm font-medium text-gray-700">🧭 {t('怎麼用?哪些區段我要填?(點開看)', 'How to use this — which sections do I fill? (open)')}</summary>
+        <div className="mt-3 space-y-2.5 text-sm leading-relaxed text-gray-600">
+          <p>{t('流程很簡單:① 填下方側寫(只填用得到的區段)→ ② 按「計算我的合規全貌」→ ③ 看「全貌」結果(總足跡、目標、碳費、CBAM、客戶記分卡、客戶問卷…)→ ④ 匯出或結轉下一年。', 'It’s four steps: ① fill the profile below (only the sections that apply) → ② hit “Compute” → ③ read the results (footprint, targets, carbon fee, CBAM, customer scorecard, questionnaire…) → ④ export or carry forward.')}</p>
+          <ul className="space-y-1 text-[13px]">
+            <li>{t('① 公司基本 — 必填(產業、年度;要管目標再填基準/目標)。', '① Basics — required (industry, year; add base/target to manage a goal).')}</li>
+            <li>{t('②–④ 你的身份 — 上市櫃/資本額、供應鏈位置、是否出口歐盟。', '②–④ Who you are — listed/capital, supply-chain position, EU export.')}</li>
+            <li>{t('⑤ 廠區盤查 — 核心。逐廠填活動量(用電、燃料…),系統算出 Scope 1+2 與碳費。', '⑤ Facility inventory — the core. Enter activity data per site; it computes Scope 1+2 and the fee.')}</li>
+            <li>{t('⑥ CBAM — 只有出口歐盟「清單貨品」(鋼/鋁/水泥/肥料/氫/電力)才填。', '⑥ CBAM — only if you export EU-listed goods (steel/al/cement/fertilizer/H₂/power).')}</li>
+            <li>{t('⑦ Scope 3 / ⑧ 多重目標 / ⑨ 產品碳足跡 / ⑩ 客戶記分卡 — 用得到再填(客戶要每料號碳數據→⑨;客戶會打分→⑩)。', '⑦ Scope 3 / ⑧ targets / ⑨ per-SKU PCF / ⑩ customer scorecard — fill if relevant (brands want per-SKU → ⑨; customers score you → ⑩).')}</li>
+          </ul>
+          <p className="text-[13px] text-gray-500">{t('小提醒:看到不懂的術語,點旁邊的 ⓘ 會給白話說明+標準定義;每筆數字都標來源、可逐行覆寫成你的查證值。', 'Tip: tap the ⓘ next to any term for a plain explanation + the standard definition; every figure is sourced and overridable.')}</p>
+          <Link href="/guide" className="inline-block text-[13px] font-medium text-[#5d7d44] underline-offset-2 hover:underline">{t('看完整圖文指南與實例 →', 'Full illustrated guide + examples →')}</Link>
+        </div>
+      </details>
 
       <ProfileForm profile={profile} onChange={(p) => setProfile(p)} />
 

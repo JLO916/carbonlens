@@ -29,6 +29,7 @@ export default function Scorecard({ profile }: { profile: CompanyProfile }) {
           </span>
         </div>
         <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{t('每個客戶的碳/ESG 門檻 vs 你目前的狀態(讀自你算好的盤查、目標與自評評級)。✅ 達標 · 🟡 部分 · ⬜ 未達。', "Each customer's carbon/ESG bar vs your current status (from your computed inventory, targets and self-declared ratings). ✅ met · 🟡 partial · ⬜ unmet.")}</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{t('「門票」=必達,任一未達即列抽單風險;「計分」=加權加分。風險:🔴 抽單風險(門票失) · 🟡 需補強(僅計分缺) · 🟢 首選供應商(全達)。', '“Gate” = must-pass; any miss flags order risk. “Scored” = weighted points. Risk: 🔴 at-risk (a gate fails) · 🟡 needs work (only scored gaps) · 🟢 preferred (all met).')}</p>
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Highest-leverage gap — fix one thing, unblock the most customers */}

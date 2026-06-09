@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
 import { cbamCrossDeduction, DEDUCTION_CONFIDENCE_LABEL, CBAM_DEDUCTION_NOTE, CITATION_CBAM_DEDUCTION, type DeductionConfidence } from '@/lib/workbench/cbam-deduction';
 import CitationTag from '@/components/diagnose/CitationTag';
+import InfoHint from '@/components/ui/InfoHint';
 import type { CompanyProfile } from '@/lib/workbench/profile';
 import type { WorkbenchResult } from '@/lib/workbench/aggregate';
 
@@ -18,7 +19,7 @@ export default function CbamDeduction({ profile, result }: { profile: CompanyPro
   if (!d) {
     return (
       <Card className="border-dashed">
-        <CardHeader className="pb-3"><CardTitle className="text-base">{t('💶 碳費 × CBAM 交叉抵扣', '💶 Carbon fee × CBAM deduction')}</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">💶 <InfoHint termKey="crossDeduction" label={t('碳費 × CBAM 交叉抵扣', 'Carbon fee × CBAM deduction')} /></CardTitle></CardHeader>
         <CardContent><p className="text-xs leading-relaxed text-gray-500">{t('填入 ④ 的 EU ETS 價,並有「可定價」的 CBAM 出口品項(實際數據或已解鎖官方值),即可看到原產國已付碳價如何抵扣 CBAM。', 'Set the EU ETS price in ④ and add a priced CBAM line (actual data or an unlocked default) to see how the origin carbon price already paid offsets CBAM.')}</p></CardContent>
       </Card>
     );
@@ -26,7 +27,7 @@ export default function CbamDeduction({ profile, result }: { profile: CompanyPro
 
   return (
     <Card className="border-[#89B56C]/30">
-      <CardHeader className="pb-3"><CardTitle className="text-base">{t('💶 碳費 × CBAM 交叉抵扣', '💶 Carbon fee × CBAM deduction')}</CardTitle></CardHeader>
+      <CardHeader className="pb-3"><CardTitle className="text-base">💶 <InfoHint termKey="crossDeduction" label={t('碳費 × CBAM 交叉抵扣', 'Carbon fee × CBAM deduction')} /></CardTitle></CardHeader>
       <CardContent className="space-y-3">
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-lg bg-gray-50 p-2"><p className="text-[11px] text-gray-500">{t('CBAM 義務(毛)', 'CBAM (gross)')}</p><p className="font-mono text-sm font-semibold">{eur(d.totalObligationEUR)}</p></div>

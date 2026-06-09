@@ -112,7 +112,7 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
                 </div>
                 {abatable && (
                   <div className="sm:col-span-2">
-                    <Label className="text-[10px] text-gray-400">{t('減排 DRE %', 'Abate DRE %')}</Label>
+                    <Label className="text-[10px] text-gray-400"><InfoHint termKey="dre" label={t('減排 DRE %', 'Abate DRE %')} /></Label>
                     <Input type="number" className="h-8 text-xs" placeholder={t('選填', 'opt')} value={a.abatementPct ?? ''} onChange={(e) => setLine(a.id, { abatementPct: e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value) || 0)) })} />
                   </div>
                 )}
@@ -134,8 +134,8 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
           {templateAdds > 0 && <Button size="sm" variant="outline" onClick={loadTemplate} className="text-[#5d7d44]">✨ {t('帶入行業典型源', 'Load industry sources')}{` (+${templateAdds})`}</Button>}
         </div>
         <div className="text-right text-xs text-gray-600">
-          <span className="mr-3">Scope 1: <span className="font-semibold">{fmt(inv.scope1Tonnes)}</span></span>
-          <span className="mr-3">Scope 2{inv.renewablePct > 0 ? t('（地點）', ' (loc.)') : ''}: <span className="font-semibold">{fmt(inv.scope2Tonnes)}</span></span>
+          <span className="mr-3"><InfoHint termKey="scope1" label="Scope 1" />: <span className="font-semibold">{fmt(inv.scope1Tonnes)}</span></span>
+          <span className="mr-3"><InfoHint termKey="scope2" label="Scope 2" />{inv.renewablePct > 0 ? t('（地點）', ' (loc.)') : ''}: <span className="font-semibold">{fmt(inv.scope2Tonnes)}</span></span>
           <span className="font-semibold text-gray-900">{t('合計', 'Total')} {fmt(inv.totalTonnes)} tCO₂e</span>
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function InventoryBuilder({ activities, countryCode, renewablePct
 
       {inv.totalTonnes > 0 && (
         <div className="space-y-1.5 rounded-lg border border-gray-200 bg-gray-50/60 p-2.5 text-[11px]">
-          <p className="font-medium text-gray-700">📋 {t('查證就緒度（彙總）', 'Assurance readiness (rollup)')}</p>
+          <p className="font-medium text-gray-700">📋 <InfoHint termKey="uncertainty" label={t('查證就緒度（彙總）', 'Assurance readiness (rollup)')} /></p>
           {inv.uncertainty ? (
             <p className="text-gray-600">{t('整體不確定性', 'Overall uncertainty')}: <span className="font-mono font-semibold">±{inv.uncertainty.pct}%</span> <span className="text-gray-400">({t('涵蓋', 'covers')} {Math.round(inv.uncertainty.coveragePct)}% {t('排放量', 'of emissions')})</span></p>
           ) : (

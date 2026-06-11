@@ -102,4 +102,15 @@ describe('E1 — multiple targets (a set of SBTi commitments)', () => {
     expect(all[0].id).toBe('x');
     expect(all[0].sbtiAligned).toBe(true); // 42%/6yr = 7%/yr ≥ 4.2
   });
+
+  it('R4 #2 — a typo year like 2000050 is clamped to 2100, never a multi-million-point series', () => {
+    const p = targeted();
+    p.extraTargets = [{ id: 'typo', scope: 'scope12', baseYear: 2024, baseEmissionsTonnes: 34000, targetYear: 2000050, targetReductionPct: 90 }];
+    const all = allTargetTrajectories(p);
+    const typo = all.find((t) => t.id === 'typo')!;
+    expect(typo).toBeDefined();
+    expect(typo.targetYear).toBe(2100);
+    expect(typo.series.length).toBe(2100 - 2024 + 1); // 77 points, bounded
+    expect(typo.series[typo.series.length - 1].year).toBe(2100);
+  });
 });

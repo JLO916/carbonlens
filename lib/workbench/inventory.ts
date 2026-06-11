@@ -158,6 +158,22 @@ export function facilityEmissionsTonnes(facility: FacilityLine): number {
   return facility.annualEmissionsTonnes;
 }
 
+/** Petroleum-product factor keys — the Thai carbon tax (excise-embedded) reaches ONLY these.
+ *  Natural gas / coal / electricity / process / fugitive sources are outside that tax base, so they
+ *  are deliberately excluded; `fuel_other` is excluded too (can't verify it's an oil product). */
+export const PETROLEUM_FUEL_KEYS = ['diesel', 'gasoline', 'lpg', 'fuel_oil'] as const;
+
+/** Petroleum-fuel combustion emissions (tCO₂e) from a facility's built inventory — the Thai carbon
+ *  tax base. Returns null when the facility has no usable inventory (typed total only): a lump-sum
+ *  S1+S2 figure CANNOT be split into its oil share, so callers must not guess (data red line). */
+export function petroleumFuelTonnes(facility: FacilityLine): number | null {
+  if (!facility.useInventory) return null;
+  const inv = computeInventory(facility.activities ?? [], facility.countryCode as CountryCode);
+  if (inv.totalTonnes <= 0) return null; // inventory started but empty → typed-total fallback applies
+  const keys = new Set<string>(PETROLEUM_FUEL_KEYS);
+  return round(inv.lines.filter((l) => keys.has(l.line.factorKey)).reduce((a, l) => a + l.tonnes, 0));
+}
+
 /** Emissions-basis status — drives the UI warning when inventory mode is on but the built total is
  *  still 0, so the fee transparently falls back to the typed total instead of silently dropping to 0. */
 export interface FacilityEmissionsStatus {

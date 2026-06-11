@@ -2,8 +2,9 @@
 
 import { useI18n } from '@/lib/i18n/context';
 import { feeBreakdown } from '@/lib/workbench/fee-breakdown';
-import { TW_FEE_GATING_NOTE, CITATION_TW_CARBON_FEE } from '@/lib/workbench/data';
+import { TW_FEE_GATING_NOTE, TH_TAX_BASE_NOTE, TH_TAX_BASE_UNSPLIT_NOTE, CITATION_TW_CARBON_FEE } from '@/lib/workbench/data';
 import { feeGated } from '@/lib/workbench/derive';
+import { petroleumFuelTonnes } from '@/lib/workbench/inventory';
 import CitationTag from '@/components/diagnose/CitationTag';
 import type { WorkbenchResult } from '@/lib/workbench/aggregate';
 import type { CompanyProfile } from '@/lib/workbench/profile';
@@ -38,11 +39,21 @@ export default function CarbonFeeBreakdown({ result, profile }: { result: Workbe
                   </tbody>
                 </table>
               ) : (
-                <p className="text-xs text-gray-600">
-                  {t('該國引擎估算(預設參數):', 'Country engine estimate (default params): ')}
-                  <span className="font-mono font-semibold text-gray-900">{r.currency} {Math.round(r.totalCarbonCost).toLocaleString('en-US')}</span>
-                  <span className="text-gray-400"> · ≈ US$ {Math.round(r.totalCarbonCostUSD).toLocaleString('en-US')}／yr</span>
-                </p>
+                <>
+                  <p className="text-xs text-gray-600">
+                    {t('該國引擎估算(預設參數):', 'Country engine estimate (default params): ')}
+                    <span className="font-mono font-semibold text-gray-900">{r.currency} {Math.round(r.totalCarbonCost).toLocaleString('en-US')}</span>
+                    <span className="text-gray-400"> · ≈ US$ {Math.round(r.totalCarbonCostUSD).toLocaleString('en-US')}／yr</span>
+                    {facility.countryCode === 'th' && petroleumFuelTonnes(facility) != null && (
+                      <span className="text-gray-400"> · {t('稅基（油品燃燒）', 'tax base (oil combustion)')} {r.chargeableEmissions.toLocaleString('en-US')} tCO₂e</span>
+                    )}
+                  </p>
+                  {facility.countryCode === 'th' && (
+                    <p className="mt-1.5 rounded bg-amber-50 px-2 py-1 text-[11px] leading-relaxed text-amber-800">
+                      {tObj(petroleumFuelTonnes(facility) == null ? TH_TAX_BASE_UNSPLIT_NOTE : TH_TAX_BASE_NOTE)}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           );

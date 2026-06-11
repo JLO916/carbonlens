@@ -87,17 +87,21 @@ describe('Thailand Carbon Tax — Validation Cases', () => {
     expect(result.totalCarbonCost).toBeCloseTo(520_000);
   });
 
-  // TH-02: 辦公大樓 500,000 kWh → 259.5 tCO₂ × THB200 = THB 51,900
-  it('TH-02: office 500K kWh → 259.5 tCO₂ × THB200 = THB 51,900', () => {
+  // TH-02 (R4 #1): 泰國碳稅內含於油品消費稅,僅及石油產品——外購電力不在稅基,
+  // 辦公大樓 500,000 kWh 應為 THB 0(電力以「不課稅」列示,非課稅排放)。
+  it('TH-02: office 500K kWh → THB 0 (electricity outside the oil-excise tax base)', () => {
     const result = thailandCalculator.calculate({
       annualEmissions: 0,
       industryType: 'other',
       year: 2025,
       countrySpecific: { inputMode: 'fuel', electricityKwh: 500_000 },
     });
-    // 500,000 × 0.000519 = 259.5 tCO₂
-    expect(result.chargeableEmissions).toBeCloseTo(259.5);
-    expect(result.totalCarbonCost).toBeCloseTo(51_900);
+    expect(result.chargeableEmissions).toBe(0);
+    expect(result.totalCarbonCost).toBe(0);
+    expect(result.notes).toContain('th_tax_base_oil_only');
+    // 500,000 × 0.000519 = 259.5 tCO₂ still shown for context, marked excluded
+    const excluded = result.breakdown.find((b) => b.step === 'th_step_electricity_excluded');
+    expect(excluded?.value).toBeCloseTo(259.5);
   });
 });
 

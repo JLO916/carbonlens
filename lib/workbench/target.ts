@@ -57,10 +57,20 @@ function actualForScope(fp: ReturnType<typeof footprintSummary>, scope: TargetSc
   return fp.scope12;
 }
 
+/** Hard bounds for trajectory years. Clamping here (not only in the form) means a bad persisted
+ *  value — e.g. the pre-fix "2000050" typo artefact still sitting in localStorage — can never
+ *  explode the series into millions of points and freeze the page (R4 #2). */
+const YEAR_MIN = 1990;
+const YEAR_MAX = 2100;
+const clampYear = (y: number) => Math.min(YEAR_MAX, Math.max(YEAR_MIN, y));
+
 /** Build a trajectory for one target definition, or null if it isn't set coherently. */
 export function trajectoryFor(def: TargetDef, fp: ReturnType<typeof footprintSummary>, thisYear: number): TargetTrajectory | null {
-  const { baseYear, targetYear, targetReductionPct: pct } = def;
-  if (!baseYear || !targetYear || pct == null || pct <= 0 || targetYear <= baseYear) return null;
+  const pct = def.targetReductionPct;
+  if (!def.baseYear || !def.targetYear || pct == null || pct <= 0 || def.targetYear <= def.baseYear) return null;
+  const baseYear = clampYear(def.baseYear);
+  const targetYear = clampYear(def.targetYear);
+  if (targetYear <= baseYear) return null;
 
   const scope = def.scope;
   const actual = actualForScope(fp, scope);

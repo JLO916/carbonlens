@@ -100,9 +100,17 @@ describe('FULL VERIFICATION — 驗證總表', () => {
     const r = thailandCalculator.calculate({ annualEmissions: 0, industryType: 'power', year: 2025, countrySpecific: { inputMode: 'fuel', dieselLitres: 1_000_000 } });
     expect(Math.round(r.totalCarbonCost)).toBe(520_000);
   });
-  test('TH-02: electricity 500K kWh → THB 51,900', () => {
+  test('TH-02: electricity 500K kWh → THB 0 (oil-products-only tax base; electricity excluded)', () => {
     const r = thailandCalculator.calculate({ annualEmissions: 0, industryType: 'other', year: 2025, countrySpecific: { inputMode: 'fuel', electricityKwh: 500_000 } });
-    expect(Math.round(r.totalCarbonCost)).toBe(51_900);
+    expect(Math.round(r.totalCarbonCost)).toBe(0);
+    expect(r.notes).toContain('th_tax_base_oil_only');
+    expect(r.breakdown.some((b) => b.step === 'th_step_electricity_excluded')).toBe(true);
+  });
+  test('TH-03: workbench taxable-tonnes path → tax on oil share, blended effective rate', () => {
+    const r = thailandCalculator.calculate({ annualEmissions: 4_275, industryType: 'other', year: 2025, countrySpecific: { taxableEmissionsTonnes: 260.63 } });
+    expect(Math.round(r.totalCarbonCost)).toBe(52_126);
+    expect(r.chargeableEmissions).toBeCloseTo(260.63, 2);
+    expect(r.effectiveRate).toBeCloseTo(52_126 / 4_275, 1);
   });
 
   // ======== VIETNAM ========

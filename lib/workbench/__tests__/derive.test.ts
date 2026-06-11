@@ -72,4 +72,44 @@ describe('workbench derive — one profile → the existing *Input shapes', () =
     expect(sgResult.totalCarbonCost).toBeGreaterThan(0);
     expect(sgResult.currency).toBe('SGD');
   });
+
+  it('R4 #1 — TH facility: electricity-only inventory → THB 0 (oil-products-only tax base)', () => {
+    const th = {
+      ...p.facilities[0], countryCode: 'th' as const, useInventory: true, annualEmissionsTonnes: 0,
+      activities: [{ id: 'e', factorKey: 'electricity', amount: 9_000_000 }],
+    };
+    const di = toDomesticInput(th, p);
+    expect(di.countrySpecific.taxableEmissionsTonnes).toBe(0); // no petroleum lines
+    const r = getCalculator('th').calculate(di);
+    expect(r.totalCarbonCost).toBe(0);
+    expect(r.chargeableEmissions).toBe(0);
+    expect(r.effectiveRate).toBe(0); // → CBAM deduction can no longer be polluted by a phantom rate
+    expect(r.notes).toContain('th_tax_base_oil_only');
+  });
+
+  it('R4 #1 — TH facility: diesel + electricity → only the diesel tonnes are taxed, rate blended', () => {
+    const th = {
+      ...p.facilities[0], countryCode: 'th' as const, useInventory: true, annualEmissionsTonnes: 0,
+      activities: [
+        { id: 'e', factorKey: 'electricity', amount: 9_000_000 },
+        { id: 'd', factorKey: 'diesel', amount: 100_000 }, // L × 2.6063 kg/L = 260.63 t
+      ],
+    };
+    const di = toDomesticInput(th, p);
+    expect(di.countrySpecific.taxableEmissionsTonnes).toBeCloseTo(260.63, 1);
+    const r = getCalculator('th').calculate(di);
+    expect(Math.round(r.totalCarbonCost)).toBe(Math.round(260.63 * 200)); // ≈ THB 52,126
+    expect(r.chargeableEmissions).toBeCloseTo(260.63, 1);
+    // blended per-tonne price over the FACILITY total (what CBAM deduction multiplies), not 200
+    expect(r.effectiveRate).toBeGreaterThan(0);
+    expect(r.effectiveRate).toBeLessThan(200);
+  });
+
+  it('R4 #1 — TH facility: typed lump-sum total cannot be split → taxed 0, never guessed', () => {
+    const th = { ...p.facilities[0], countryCode: 'th' as const, useInventory: false, annualEmissionsTonnes: 4_275 };
+    const di = toDomesticInput(th, p);
+    expect(di.annualEmissions).toBe(4_275); // total still reported for context
+    expect(di.countrySpecific.taxableEmissionsTonnes).toBe(0);
+    expect(getCalculator('th').calculate(di).totalCarbonCost).toBe(0);
+  });
 });

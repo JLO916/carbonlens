@@ -4,7 +4,7 @@
 
 import type { CompanyProfile, FacilityLine } from './profile';
 import { taiwanPeriodForYear } from './profile';
-import { facilityEmissionsTonnes } from './inventory';
+import { facilityEmissionsTonnes, petroleumFuelTonnes } from './inventory';
 import { getCalculator } from '@/lib/calculators/domestic';
 import { allocatedCbamSEE } from './cbam-allocation';
 import type { CountryCode } from '@/lib/types';
@@ -64,11 +64,16 @@ export function toDomesticInput(facility: FacilityLine, p: CompanyProfile): Dome
   // P2c — non-Taiwan facilities run their own country's engine with that engine's default params
   // (indicative; the Taiwan-specific A1 gating / rate / leakage do not apply abroad).
   if (cc !== 'tw') {
+    const countrySpecific: Record<string, unknown> = { ...getCalculator(cc).getDefaultParams() };
+    // R4 #1 — Thailand's excise-embedded carbon tax reaches ONLY oil products: tax base = the
+    // facility's petroleum-fuel combustion emissions from its inventory. A typed lump-sum total
+    // cannot be split into its oil share, so it contributes 0 (the UI explains, never guesses).
+    if (cc === 'th') countrySpecific.taxableEmissionsTonnes = petroleumFuelTonnes(facility) ?? 0;
     return {
       annualEmissions,
       industryType: p.industry,
       year: p.year,
-      countrySpecific: getCalculator(cc).getDefaultParams(),
+      countrySpecific,
     };
   }
   const gated = !facility.hasApprovedReductionPlan;

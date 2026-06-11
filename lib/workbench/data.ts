@@ -25,6 +25,18 @@ export const TW_FEE_GATING_NOTE: BilingualText = {
   en: 'Under the Climate Change Response Act Art. 29, preferential rates (NT$50/100) and the carbon-leakage coefficient (0.2/0.4/0.6) apply only with an MOENV-approved voluntary reduction plan meeting the 2030 targets (e.g. steel 25.2%, cement 22.3%, general 42%). Without approval the general NT$300 rate applies on emissions minus the 25,000 t threshold (high-leakage firms forgo that threshold).',
 };
 
+// R4 #1 — Thailand's carbon tax is embedded in the OIL excise: only petroleum-product combustion
+// is in the tax base. The two variants tell the user exactly what was (not) counted.
+export const TH_TAX_BASE_NOTE: BilingualText = {
+  zhTW: '泰國碳稅（THB 200/tCO₂e）內含於油品消費稅,僅及石油產品（柴油/汽油/LPG/燃料油）;外購電力、天然氣與製程排放不在課稅範圍。本估算稅基＝此廠盤查中的油品燃燒排放。',
+  en: 'Thailand’s carbon tax (THB 200/tCO₂e) is embedded in the oil excise and reaches only petroleum products (diesel/gasoline/LPG/fuel oil); purchased electricity, natural gas and process emissions are outside the tax base. This estimate taxes the facility’s petroleum-combustion emissions from its inventory.',
+};
+
+export const TH_TAX_BASE_UNSPLIT_NOTE: BilingualText = {
+  zhTW: '泰國碳稅僅及油品,但此廠以「直接填總數」輸入,無法拆分油品占比——故未列計（顯示 THB 0）。改用「從活動數據建模」填入油品用量後即可估算。',
+  en: 'Thailand’s carbon tax reaches only oil products, but this facility uses a typed lump-sum total that cannot be split into its oil share — so no tax is counted (THB 0). Switch to activity-data modelling and enter fuel volumes to estimate it.',
+};
+
 // ---- CBAM scope by product (A2) ----
 // Definitive period: iron/steel, aluminium, hydrogen, electricity = DIRECT emissions only;
 // cement & fertilizers = direct + indirect. So green power (Scope 2) does NOT lower steel/

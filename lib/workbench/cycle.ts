@@ -4,6 +4,8 @@
 
 import type { CompanyProfile } from './profile';
 import type { BilingualText } from '@/lib/diagnose/types';
+import { CBAM_ANNUAL_DECLARATION } from '@/lib/diagnose/data/cbam';
+import { GRI_UNIVERSAL_OBLIGATION, GRI_REPORT_DUE_MONTHDAY } from '@/lib/diagnose/data/listed-disclosure';
 
 export type CycleStage = NonNullable<CompanyProfile['cycleStage']>;
 
@@ -41,19 +43,23 @@ export function obligationCalendar(profile: CompanyProfile, nowISO: string): Obl
     });
   }
   if (profile.exportsToEU && profile.cbamProducts.length > 0) {
+    // R4 #4 — date + source come from the diagnose data layer (Omnibus-amended 30 Sep), so the
+    // calendar can never drift from the CBAM module shown on the same page again.
     items.push({
       key: 'cbam',
       label: { zhTW: `${Y} 年度 CBAM 申報`, en: `FY${Y} CBAM declaration` },
-      dueDate: `${Y + 1}-05-31`,
-      source: { zhTW: 'Reg (EU) 2023/956:確定期每年 5/31 申報', en: 'Reg (EU) 2023/956: annual declaration by 31 May' },
+      dueDate: `${Y + 1}-${CBAM_ANNUAL_DECLARATION.monthDay}`,
+      source: CBAM_ANNUAL_DECLARATION.source,
     });
   }
   if (profile.listingType === 'listed' || profile.listingType === 'otc') {
+    // R4 #4 — all listed/OTC companies file the sustainability report by 31 Aug (§6A-1 universal
+    // obligation), NOT with the 31 Mar annual report; date + wording come from the data layer.
     items.push({
       key: 'report',
       label: { zhTW: `${Y} 永續報告書／氣候揭露`, en: `FY${Y} sustainability report / climate disclosure` },
-      dueDate: `${Y + 1}-03-31`,
-      source: { zhTW: '與年報同步申報(金管會／證交所)', en: 'Filed with the annual report (FSC/TWSE)' },
+      dueDate: `${Y + 1}-${GRI_REPORT_DUE_MONTHDAY}`,
+      source: GRI_UNIVERSAL_OBLIGATION.annualDeadlineLabel,
     });
   }
   if (profile.customerFrameworks.includes('cdp')) {

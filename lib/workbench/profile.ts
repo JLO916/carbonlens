@@ -60,6 +60,10 @@ export interface CbamProductLine {
   emissionsSource: EmissionsSource | 'allocated';
   actualSpecificEmissions?: number; // tCO₂e/t (actual path)
   facilityId?: string; // which facility produces this good (for inventory allocation)
+  // R4 #3 — the facility's TOTAL annual production of this good (t). Reg (EU) 2023/1773 allocates
+  // embedded emissions over the activity level (total output), NOT the EU export volume; without
+  // this the SEE is overstated by total÷exports (≈7× for a 15%-export fastener plant).
+  facilityAnnualOutputTonnes?: number;
 }
 
 export interface CompanyProfile {
@@ -107,6 +111,10 @@ export interface CompanyProfile {
   products?: ProductLine[];
   pcfBasis?: 'equal' | 'mass' | 'revenue'; // what weightPerUnit means (allocation key)
   pcfBoundary?: 'scope12' | 'total'; // operations only (S1+2) vs incl. value chain (+ Scope 3)
+  // R4 #3 — how much of the year's total output the product list covers (%). The allocation pool is
+  // org footprint × this share; leaving it blank assumes 100% and the UI/declaration say so — a
+  // 2-SKU list covering 5% of output otherwise overstates per-unit PCF ~20×.
+  pcfCoveragePct?: number;
   // C4 — where this profile is in the annual ESG cycle:
   cycleStage?: 'measure' | 'review' | 'assure' | 'assured' | 'filed' | 'disclosed';
   // CS — customer scorecard: each brand customer's carbon/ESG requirements (the "No ESG, No Order"

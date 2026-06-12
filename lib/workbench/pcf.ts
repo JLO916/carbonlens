@@ -24,7 +24,10 @@ export interface ProductPcf {
 export interface PcfResult {
   basis: PcfBasis;
   boundary: PcfBoundary;
-  footprintTonnes: number; // the org footprint being allocated (on the chosen boundary)
+  orgFootprintTonnes: number; // the full org footprint on the chosen boundary
+  footprintTonnes: number; // the ALLOCATION POOL = org footprint × coverage share (R4 #3)
+  coveragePct: number; // % of annual output the product list covers (100 when not entered)
+  coverageAssumed: boolean; // true when the user left coverage blank (assumed full coverage)
   totalWeight: number;
   products: ProductPcf[];
 }
@@ -47,7 +50,12 @@ export function productFootprints(profile: CompanyProfile): PcfResult | null {
 
   const fp = footprintSummary(profile);
   const boundary: PcfBoundary = profile.pcfBoundary ?? 'total';
-  const footprintTonnes = boundary === 'scope12' ? fp.scope12 : fp.total;
+  const orgFootprintTonnes = boundary === 'scope12' ? fp.scope12 : fp.total;
+  // R4 #3 — the pool is org footprint × the share of annual output this list covers. A 2-SKU list
+  // covering 5% of output must NOT absorb 100% of the org footprint (per-unit ~20× overstated).
+  const coverageAssumed = profile.pcfCoveragePct == null;
+  const coveragePct = coverageAssumed ? 100 : Math.min(100, Math.max(1, profile.pcfCoveragePct as number));
+  const footprintTonnes = round(orgFootprintTonnes * (coveragePct / 100));
   const basis: PcfBasis = profile.pcfBasis ?? 'equal';
 
   const weightOf = (p: ProductLine) => Math.max(0, p.annualUnits) * (basis === 'equal' ? 1 : Math.max(0, p.weightPerUnit ?? 0));
@@ -61,8 +69,14 @@ export function productFootprints(profile: CompanyProfile): PcfResult | null {
     return { product: p, allocationWeight: round(w), sharePct: round(share * 100), allocatedTonnes, pcfPerUnit };
   });
 
-  return { basis, boundary, footprintTonnes, totalWeight: round(totalWeight), products: rows };
+  return { basis, boundary, orgFootprintTonnes, footprintTonnes, coveragePct, coverageAssumed, totalWeight: round(totalWeight), products: rows };
 }
+
+/** Coverage line for cards/exports — states the share allocated, or that full coverage was ASSUMED. */
+export const PCF_COVERAGE_ASSUMED_NOTE: BilingualText = {
+  zhTW: '未填「產出涵蓋比例」,以下視同此清單涵蓋全年 100% 產出分攤全組織足跡——若實際僅涵蓋部分產量,每單位數字會被高估;請在 ⑨ 填入涵蓋比例。',
+  en: 'No output-coverage % entered — the list is treated as covering 100% of annual output and absorbs the full organisation footprint. If it covers only part of production, per-unit figures are overstated; enter the coverage share in ⑨.',
+};
 
 export const PCF_DISCLAIMER: BilingualText = {
   zhTW: '本產品碳足跡為「組織盤查足跡分攤」之篩選級估算(方法參考 ISO 14067 精神),非經第三方查證之完整生命週期評估(LCA);邊界與分攤基礎如下所列,數值屬自行宣告。供應商與品牌客戶溝通與初步揭露用途。',
@@ -78,8 +92,13 @@ export function pcfDeclarationText(profile: CompanyProfile, lang: 'zhTW' | 'en' 
   const out: string[] = [];
   out.push(`# ${lang === 'en' ? 'Product Carbon Footprint — declaration' : '產品碳足跡 — 聲明'}${profile.company ? ` (${profile.company})` : ''}`);
   out.push(`${lang === 'en' ? 'Reporting year' : '報告年度'}: ${profile.year}`);
-  out.push(`${lang === 'en' ? 'System boundary' : '系統邊界'}: ${L(PCF_BOUNDARY_LABEL[res.boundary])} — ${res.footprintTonnes.toLocaleString('en-US')} tCO₂e`);
+  out.push(`${lang === 'en' ? 'System boundary' : '系統邊界'}: ${L(PCF_BOUNDARY_LABEL[res.boundary])} — ${res.orgFootprintTonnes.toLocaleString('en-US')} tCO₂e`);
   out.push(`${lang === 'en' ? 'Allocation basis' : '分攤基礎'}: ${L(PCF_BASIS_LABEL[res.basis])}`);
+  out.push(
+    res.coverageAssumed
+      ? (lang === 'en' ? 'Output coverage: assumed 100% (not entered) — if the list covers only part of production, per-unit figures are overstated' : '產出涵蓋比例:未填,視同 100%——若清單僅涵蓋部分產量,每單位數字會被高估')
+      : `${lang === 'en' ? 'Output coverage' : '產出涵蓋比例'}: ${res.coveragePct}% — ${lang === 'en' ? 'allocation pool' : '分攤池'} ${res.footprintTonnes.toLocaleString('en-US')} tCO₂e`,
+  );
   out.push('');
   out.push(lang === 'en' ? 'Product | Annual units | Share | Allocated tCO₂e | kgCO₂e/unit' : '產品 | 年產量 | 占比 | 分攤 tCO₂e | kgCO₂e/單位');
   for (const r of res.products) {

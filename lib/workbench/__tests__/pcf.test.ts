@@ -58,4 +58,29 @@ describe('S3 — per-SKU product carbon footprint (screening allocation)', () =>
     expect(txt).toContain('非經第三方查證');
     expect(txt).toContain('kgCO₂e');
   });
+
+  it('R4 #3 — output coverage scales the allocation pool (no more 100% footprint on a partial list)', () => {
+    const p = withProducts();
+    p.pcfCoveragePct = 10; // the 2-SKU list covers 10% of annual output
+    const res = productFootprints(p)!;
+    expect(res.orgFootprintTonnes).toBe(50000);
+    expect(res.footprintTonnes).toBe(5000); // pool = 50,000 × 10%
+    expect(res.coveragePct).toBe(10);
+    expect(res.coverageAssumed).toBe(false);
+    // per-unit shrinks 10×: A = 5,000×25% ×1000 / 1000 units = 1,250 kg/unit
+    expect(res.products[0].pcfPerUnit).toBeCloseTo(1250, 0);
+  });
+
+  it('R4 #3 — blank coverage assumes 100% and says so (flag + declaration line)', () => {
+    const p = withProducts();
+    const res = productFootprints(p)!;
+    expect(res.coverageAssumed).toBe(true);
+    expect(res.coveragePct).toBe(100);
+    expect(res.footprintTonnes).toBe(50000);
+    const txt = pcfDeclarationText(p, 'zhTW');
+    expect(txt).toContain('視同 100%');
+    const p2 = withProducts();
+    p2.pcfCoveragePct = 10;
+    expect(pcfDeclarationText(p2, 'zhTW')).toContain('產出涵蓋比例: 10%');
+  });
 });

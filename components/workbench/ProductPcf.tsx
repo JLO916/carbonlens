@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/lib/i18n/context';
-import { productFootprints, PCF_BASIS_LABEL, PCF_BOUNDARY_LABEL, PCF_DISCLAIMER } from '@/lib/workbench/pcf';
+import { productFootprints, PCF_BASIS_LABEL, PCF_BOUNDARY_LABEL, PCF_DISCLAIMER, PCF_COVERAGE_ASSUMED_NOTE } from '@/lib/workbench/pcf';
 import InfoHint from '@/components/ui/InfoHint';
 import type { CompanyProfile } from '@/lib/workbench/profile';
 
@@ -20,7 +20,7 @@ export default function ProductPcf({ profile }: { profile: CompanyProfile }) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base">🏷️ <InfoHint termKey="pcf" label={t('產品碳足跡（每料號）', 'Product carbon footprint (per SKU)')} /></CardTitle>
         <p className="mt-1 text-[11px] leading-relaxed text-gray-400">
-          {t('邊界', 'Boundary')}: {tObj(PCF_BOUNDARY_LABEL[res.boundary])} · {fmt(res.footprintTonnes)} tCO₂e · {t('分攤', 'Basis')}: {tObj(PCF_BASIS_LABEL[res.basis])}。{t('用上方「⬇ 產品碳足跡聲明」匯出一頁給客戶。', 'Export a one-page declaration via “PCF declaration” above.')}
+          {t('邊界', 'Boundary')}: {tObj(PCF_BOUNDARY_LABEL[res.boundary])} · {fmt(res.orgFootprintTonnes)} tCO₂e · {t('分攤', 'Basis')}: {tObj(PCF_BASIS_LABEL[res.basis])} · {t('涵蓋', 'Coverage')}: {res.coverageAssumed ? t('假設 100%', 'assumed 100%') : `${res.coveragePct}% → ${fmt(res.footprintTonnes)} tCO₂e`}。{t('用上方「⬇ 產品碳足跡聲明」匯出一頁給客戶。', 'Export a one-page declaration via “PCF declaration” above.')}
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -50,6 +50,9 @@ export default function ProductPcf({ profile }: { profile: CompanyProfile }) {
         </div>
         {res.basis !== 'equal' && res.products.every((r) => !r.allocationWeight) && (
           <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] leading-relaxed text-amber-700">{t('已選依質量／營收分攤,但各產品的每單位質量／售價尚未填,目前無法分攤。請在 ⑨ 填入。', 'Mass/revenue basis selected but per-unit weight/price is blank — fill it in ⑨ to allocate.')}</p>
+        )}
+        {res.coverageAssumed && (
+          <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] leading-relaxed text-amber-700">⚠️ {tObj(PCF_COVERAGE_ASSUMED_NOTE)}</p>
         )}
         <p className="text-[11px] leading-relaxed text-gray-400">{tObj(PCF_DISCLAIMER)}</p>
       </CardContent>

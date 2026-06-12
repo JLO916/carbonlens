@@ -8,8 +8,19 @@ import { countsIndirect } from './reduction';
 import type { CompanyProfile, CbamProductLine } from './profile';
 import type { CountryCode } from '@/lib/types';
 
-/** SEE (tCO₂e per tonne of product) allocated from the linked facility's inventory, or undefined. */
-export function allocatedCbamSEE(profile: CompanyProfile, line: CbamProductLine): number | undefined {
+export interface AllocatedSEEInfo {
+  see: number; // tCO₂e per tonne of product
+  denominatorTonnes: number; // the allocation denominator actually used
+  /** true when ANY pooled line lacks 廠年總產量 and fell back to its EU export volume — the correct
+   *  denominator is the activity level (total output, Reg (EU) 2023/1773), so the SEE is likely
+   *  OVERSTATED whenever exports are only part of production. */
+  exportVolumeFallback: boolean;
+}
+
+/** SEE allocated from the linked facility's inventory, with the denominator actually used.
+ *  Denominator per pooled line = its facility annual OUTPUT when given (never below its export
+ *  volume — exports can't exceed production), else its export volume (flagged as fallback). */
+export function allocatedCbamSEEInfo(profile: CompanyProfile, line: CbamProductLine): AllocatedSEEInfo | undefined {
   if (!line.facilityId) return undefined;
   const f = profile.facilities.find((x) => x.id === line.facilityId);
   if (!f || !f.useInventory || !f.activities || f.activities.length === 0) return undefined;
@@ -19,11 +30,25 @@ export function allocatedCbamSEE(profile: CompanyProfile, line: CbamProductLine)
   // cement/fertilizer also count indirect (Scope 1+2).
   const facilityEmbedded = countsIndirect(line.product) ? inv.totalTonnes : inv.scope1Tonnes;
 
-  // allocate across all CBAM lines that draw from this facility on the 'allocated' basis, by volume
-  const totalVol = profile.cbamProducts
-    .filter((c) => c.facilityId === f.id && c.emissionsSource === 'allocated')
-    .reduce((a, c) => a + Math.max(0, c.annualVolumeTonnes), 0);
-  if (totalVol <= 0) return undefined;
+  // pool = all CBAM lines drawing from this facility on the 'allocated' basis
+  let denominator = 0;
+  let exportVolumeFallback = false;
+  for (const c of profile.cbamProducts.filter((x) => x.facilityId === f.id && x.emissionsSource === 'allocated')) {
+    const vol = Math.max(0, c.annualVolumeTonnes);
+    const output = c.facilityAnnualOutputTonnes;
+    if (output != null && output > 0) denominator += Math.max(output, vol);
+    else { denominator += vol; exportVolumeFallback = true; }
+  }
+  if (denominator <= 0) return undefined;
 
-  return Math.round((facilityEmbedded / totalVol) * 1000) / 1000;
+  return {
+    see: Math.round((facilityEmbedded / denominator) * 1000) / 1000,
+    denominatorTonnes: Math.round(denominator * 1000) / 1000,
+    exportVolumeFallback,
+  };
+}
+
+/** SEE (tCO₂e per tonne of product) allocated from the linked facility's inventory, or undefined. */
+export function allocatedCbamSEE(profile: CompanyProfile, line: CbamProductLine): number | undefined {
+  return allocatedCbamSEEInfo(profile, line)?.see;
 }

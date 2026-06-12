@@ -55,6 +55,17 @@ export const CBAM_TIMELINE: { label: BilingualText; value: BilingualText }[] = [
   },
 ];
 
+// Machine-readable due date for the annual CBAM declaration & surrender (single source of truth —
+// the workbench obligation calendar derives from THIS, not its own hardcoded date). Omnibus
+// Reg (EU) 2025/2083 moved the original 31 May to 30 September of the following year.
+export const CBAM_ANNUAL_DECLARATION = {
+  monthDay: '09-30',
+  source: {
+    zhTW: 'Reg (EU) 2023/956 經 Omnibus Reg (EU) 2025/2083 修正:年度申報與繳交於次年 9/30（首次 2027/9/30,涵蓋 2026 進口）',
+    en: 'Reg (EU) 2023/956 as amended by Omnibus Reg (EU) 2025/2083: annual declaration & surrender by 30 Sep of the following year (first: 30 Sep 2027, covering 2026 imports)',
+  } as BilingualText,
+};
+
 export const CBAM_PENALTY_NOTE: BilingualText = {
   zhTW: '逾量未繳每噸 €100；2026、2027 合格產業免費 EUA 配額每年遞減 2.5%。',
   en: 'Excess unsurrendered: €100 per tonne; eligible sectors’ free EUA allocation falls 2.5%/yr in 2026 and 2027.',

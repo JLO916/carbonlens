@@ -1,4 +1,4 @@
-import { allocatedCbamSEE } from '@/lib/workbench/cbam-allocation';
+import { allocatedCbamSEE, allocatedCbamSEEInfo } from '@/lib/workbench/cbam-allocation';
 import { toCbamInputs } from '@/lib/workbench/derive';
 import { emptyProfile, type CompanyProfile } from '@/lib/workbench/profile';
 
@@ -53,5 +53,31 @@ describe('D3 — CBAM SEE allocated from inventory', () => {
     const input = toCbamInputs(p)[0];
     expect(input.emissionsSource).toBe('actual');
     expect(input.actualSpecificEmissions).toBeCloseTo(0.216, 3);
+  });
+
+  it('R4 #3 — facility annual OUTPUT becomes the denominator (activity level, Reg 2023/1773)', () => {
+    const p = withFacilityInventory();
+    p.cbamProducts = [{ id: 'c', label: '鋼件', product: 'steel', originCountry: 'tw', annualVolumeTonnes: 1000, emissionsSource: 'allocated', facilityId: 'f1', facilityAnnualOutputTonnes: 8000 }];
+    const info = allocatedCbamSEEInfo(p, p.cbamProducts[0])!;
+    // Scope 1 (216.22) ÷ 8,000 t output = 0.027 — NOT ÷1,000 exports (0.216, ~7× overstated)
+    expect(info.see).toBeCloseTo(0.027, 3);
+    expect(info.denominatorTonnes).toBe(8000);
+    expect(info.exportVolumeFallback).toBe(false);
+  });
+
+  it('R4 #3 — missing output falls back to export volume and FLAGS it', () => {
+    const p = withFacilityInventory();
+    p.cbamProducts = [{ id: 'c', label: '鋼件', product: 'steel', originCountry: 'tw', annualVolumeTonnes: 1000, emissionsSource: 'allocated', facilityId: 'f1' }];
+    const info = allocatedCbamSEEInfo(p, p.cbamProducts[0])!;
+    expect(info.see).toBeCloseTo(0.216, 3);
+    expect(info.exportVolumeFallback).toBe(true);
+  });
+
+  it('R4 #3 — an output below the export volume is floored at the export volume (exports ≤ production)', () => {
+    const p = withFacilityInventory();
+    p.cbamProducts = [{ id: 'c', label: '鋼件', product: 'steel', originCountry: 'tw', annualVolumeTonnes: 1000, emissionsSource: 'allocated', facilityId: 'f1', facilityAnnualOutputTonnes: 500 }];
+    const info = allocatedCbamSEEInfo(p, p.cbamProducts[0])!;
+    expect(info.denominatorTonnes).toBe(1000);
+    expect(info.exportVolumeFallback).toBe(false);
   });
 });

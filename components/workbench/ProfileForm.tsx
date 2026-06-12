@@ -13,7 +13,7 @@ import { getAvailableCountries } from '@/lib/calculators/domestic';
 import type { CountryCode } from '@/lib/types';
 import { ifrsPhaseFromCapital, FRAMEWORK_LOOKUP_HINT } from '@/lib/workbench/classify';
 import { feeGated } from '@/lib/workbench/derive';
-import { allocatedCbamSEE } from '@/lib/workbench/cbam-allocation';
+import { allocatedCbamSEE, allocatedCbamSEEInfo } from '@/lib/workbench/cbam-allocation';
 import { facilityEmissionsStatus } from '@/lib/workbench/inventory';
 import { TW_FEE_GATING_NOTE } from '@/lib/workbench/data';
 import InventoryBuilder from './InventoryBuilder';
@@ -296,7 +296,9 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                 ) : c.emissionsSource === 'allocated' ? (
                   <>
                     <div className="space-y-1"><Label className="text-xs">{t('生產廠別', 'Facility')}</Label><Picker value={c.facilityId ?? ''} onChange={(v) => setCbam(c.id, { facilityId: v })} options={profile.facilities.map((f) => ({ value: f.id, label: { zhTW: f.label, en: f.label } }))} /></div>
-                    <div className="space-y-1"><Label className="text-xs">{t('分攤 SEE tCO₂e/t', 'Alloc. SEE')}</Label>{(() => { const see = allocatedCbamSEE(profile, c); return <div className={`rounded-md border px-3 py-2 text-sm ${see != null ? 'bg-[#89B56C]/5 font-mono font-semibold text-[#5d7d44]' : 'bg-amber-50 text-[11px] text-amber-700'}`}>{see != null ? see.toFixed(3) : t('需該廠開盤查', 'needs facility inventory')}</div>; })()}</div>
+                    <div className="space-y-1"><Label className="text-xs">{t('該廠此貨品年總產量 t', 'Annual output t')}</Label><Input type="number" value={c.facilityAnnualOutputTonnes ?? ''} placeholder={t('分攤分母', 'denominator')} onChange={(e) => setCbam(c.id, { facilityAnnualOutputTonnes: e.target.value === '' ? undefined : nn(e.target.value) })} /></div>
+                    <div className="space-y-1"><Label className="text-xs">{t('分攤 SEE tCO₂e/t', 'Alloc. SEE')}</Label>{(() => { const info = allocatedCbamSEEInfo(profile, c); return <div className={`rounded-md border px-3 py-2 text-sm ${info ? 'bg-[#89B56C]/5 font-mono font-semibold text-[#5d7d44]' : 'bg-amber-50 text-[11px] text-amber-700'}`}>{info ? info.see.toFixed(3) : t('需該廠開盤查', 'needs facility inventory')}</div>; })()}</div>
+                    {(() => { const info = allocatedCbamSEEInfo(profile, c); return info?.exportVolumeFallback ? <p className="col-span-2 rounded bg-amber-50 px-2 py-1 text-[11px] leading-relaxed text-amber-700 sm:col-span-4">⚠️ {t('未填年總產量:目前以「年出口量」當分攤分母——CBAM 規則(Reg 2023/1773)分母應為該貨品全年總產量,出口僅占產量一部分時 SEE 會被高估。', 'No annual output entered: the EU export volume is used as the denominator — Reg (EU) 2023/1773 allocates over TOTAL annual production, so the SEE is overstated whenever exports are only part of output.')}</p> : null; })()}
                   </>
                 ) : (
                   <div className="space-y-1"><Label className="text-xs">{t('CN 碼（選填）', 'CN code (opt)')}</Label><Input value={c.cnCode ?? ''} placeholder={t('如 7208；空白=範圍', 'e.g. 7208; blank=range')} onChange={(e) => setCbam(c.id, { cnCode: e.target.value || undefined })} /></div>
@@ -358,6 +360,7 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1"><Label className="text-xs">{t('系統邊界', 'System boundary')}</Label><Toggle value={profile.pcfBoundary ?? 'total'} onChange={(v) => set({ pcfBoundary: v })} options={[{ value: 'total' as const, label: { zhTW: '含價值鏈', en: 'Incl. chain' } }, { value: 'scope12' as const, label: { zhTW: '營運 S1+2', en: 'Ops S1+2' } }]} /></div>
             <div className="space-y-1"><Label className="text-xs">{t('分攤基礎', 'Allocation basis')}</Label><Toggle value={profile.pcfBasis ?? 'equal'} onChange={(v) => set({ pcfBasis: v })} options={[{ value: 'equal' as const, label: { zhTW: '數量', en: 'Units' } }, { value: 'mass' as const, label: { zhTW: '質量', en: 'Mass' } }, { value: 'revenue' as const, label: { zhTW: '營收', en: 'Revenue' } }]} /></div>
+            <div className="space-y-1"><Label className="text-xs">{t('產出涵蓋比例 %（選填）', 'Output coverage % (opt)')}</Label><Input type="number" className="h-8" value={profile.pcfCoveragePct ?? ''} placeholder={t('此清單占全年產出 %', '% of annual output')} onChange={(e) => set({ pcfCoveragePct: e.target.value === '' ? undefined : Math.min(100, Math.max(1, nn(e.target.value))) })} /><p className="text-[10px] text-gray-400">{t('清單僅涵蓋部分產量時必填,否則每單位會被高估', 'fill when the list covers only part of output, or per-unit is overstated')}</p></div>
           </div>
           {products.length === 0 && <p className="rounded-lg bg-gray-50 p-2.5 text-[11px] leading-relaxed text-gray-500">{t('尚無產品。新增後,系統把總足跡依「數量／質量／營收」分攤到各料號,算出每單位 kgCO₂e,並可在「全貌」匯出一頁聲明。', 'No products yet. Add one and the total footprint is split across SKUs by units/mass/revenue → kgCO₂e per unit, with a one-page declaration export in the overview.')}</p>}
           {products.map((pr) => (

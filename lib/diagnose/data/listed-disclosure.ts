@@ -59,6 +59,10 @@ export const GRI_UNIVERSAL_OBLIGATION: GriObligationInfo = {
   citation: CITATION_GRI,
 };
 
+// Machine-readable due date for the annual sustainability report (single source of truth for the
+// workbench obligation calendar): ALL listed/OTC companies file the prior-year report by 31 Aug.
+export const GRI_REPORT_DUE_MONTHDAY = '08-31';
+
 // ---- §6A-2　IFRS S1/S2（ISSB 接軌）— 依資本額分三階段 ----
 // Input bins follow §3A (≥100億 / 50–100億 / <50億); the 100億 boundary uses §3A's ≥.
 

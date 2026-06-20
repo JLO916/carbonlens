@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   description: "免費、免註冊的企業碳管理工作台。一份側寫完成 Scope 1/2/3 盤查(含製程含氟氣體、減排設備 DRE、不確定性彙總)、台灣與亞太六國碳費/碳稅、歐盟 CBAM 與原產國碳價交叉抵扣、IFRS S1/S2 揭露、SBTi 多重目標、RE100、每料號產品碳足跡與客戶問卷回覆——每筆數字標一手法源、資料只存本機。",
   keywords: [
     "企業碳管理", "碳盤查", "溫室氣體盤查", "Scope 1 2 3", "碳費計算", "碳費試算", "台灣碳費", "CBAM計算器", "CBAM試算", "碳關稅計算", "碳費抵扣 CBAM", "歐盟碳邊境調整機制",
+    "台灣 ETS", "總量管制與排放交易", "排放交易制度", "碳費轉 ETS", "碳市場 三軌並進", "碳權", "國際碳權", "巴黎協定 第六條", "Article 6", "碳資產管理",
     "IFRS S2 永續揭露", "SBTi 減量目標", "RE100", "市場基礎 Scope 2", "產品碳足跡", "每料號 PCF", "製程含氟氣體", "NF3 CF4 SF6", "半導體碳盤查", "減排設備去除率 DRE", "盤查不確定性", "客戶碳問卷 CDP", "亞太碳價",
     "corporate carbon management", "GHG inventory Scope 1 2 3", "CBAM calculator", "carbon fee calculator Taiwan", "IFRS S2 disclosure", "SBTi targets", "product carbon footprint", "semiconductor F-gases", "APAC carbon pricing",
   ],

@@ -9,6 +9,7 @@ import CarbonPnL from '@/components/workbench/CarbonPnL';
 import FootprintSummary from '@/components/workbench/FootprintSummary';
 import TargetTracker from '@/components/workbench/TargetTracker';
 import CyclePanel from '@/components/workbench/CyclePanel';
+import TransitionOutlook from '@/components/workbench/TransitionOutlook';
 import type { CycleStage } from '@/lib/workbench/cycle';
 import CarbonFeeBreakdown from '@/components/workbench/CarbonFeeBreakdown';
 import PriorityList from '@/components/workbench/PriorityList';
@@ -262,6 +263,7 @@ export default function WorkbenchClient() {
         <div className="space-y-5">
           <h2 className="text-lg font-semibold text-gray-900">{t('碳合規 P&L', 'Carbon-compliance P&L')}</h2>
           <CyclePanel profile={profile} onStageChange={setStage} />
+          <TransitionOutlook profile={snap.profile} result={snap.result} />
           <FootprintSummary profile={snap.profile} />
           <TargetTracker profile={snap.profile} />
           <CarbonPnL result={snap.result} />

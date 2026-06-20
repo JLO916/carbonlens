@@ -120,6 +120,18 @@ export const GLOSSARY: GlossaryTerm[] = [
     plain: { zhTW: '拿來當「比較起點」的那一年。', en: 'The reference year you measure progress against.' },
     pro: { zhTW: '減量目標之參考年;重大變動需依重算門檻調整基準年排放。', en: 'The reference year for targets; recalculated when significant changes cross the threshold.' },
   },
+  {
+    key: 'ets',
+    term: { zhTW: 'ETS（總量管制與排放交易）', en: 'ETS (cap-and-trade)' },
+    plain: { zhTW: '政府定一個排放總量,發/賣「排放額度」,企業之間買賣;排得少的可賣、排得多的要買。', en: 'A government caps total emissions and issues tradable allowances; low emitters sell, high emitters buy.' },
+    pro: { zhTW: '總量管制與排放交易制度:設定排放上限(cap)、分配免費／拍賣配額,受管制者須持有等量配額履約,價格由市場決定。台灣規劃自碳費逐步轉向 ETS,2028 試行交易(無官方總量／配額／價格)。', en: 'Cap-and-trade: an emissions cap, free/auctioned allowances, surrender obligations, market-set price. Taiwan plans to phase from a carbon fee toward an ETS, trial trading 2028 (no official cap/allocation/price yet).' },
+  },
+  {
+    key: 'carbonCredit',
+    term: { zhTW: '碳權／碳信用（含 Article 6）', en: 'Carbon credit (incl. Art. 6)' },
+    plain: { zhTW: '減碳專案(造林、能效…)產生、可拿去抵自己排放的「額度」。', en: 'A credit from a reduction project (afforestation, efficiency…) you can use to offset your own emissions.' },
+    pro: { zhTW: '經認證的減量／移除額度;國內為環境部自願減量/抵換專案,國際依《巴黎協定》第六條(6.2 合作方法、6.4 機制)移轉,需相應調整避免重複計算。減量優先、抵換為輔,過度依賴可能不被 SBTi／客戶認可。', en: 'A certified reduction/removal credit; domestically via MOENV voluntary/offset projects, internationally transferred under Paris Art. 6 (6.2 cooperative approaches, 6.4 mechanism) with corresponding adjustments. Reduce first; over-reliance on offsets may not be accepted by SBTi/customers.' },
+  },
 ];
 
 export const GLOSSARY_BY_KEY: Record<string, GlossaryTerm> = Object.fromEntries(GLOSSARY.map((g) => [g.key, g]));

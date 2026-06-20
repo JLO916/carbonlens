@@ -10,6 +10,7 @@ import { CITATION_SCOPE3_CATEGORIES } from '@/lib/diagnose/data/scope3-categorie
 import { CITATION_EMISSION_FACTORS } from '@/lib/workbench/emission-factors';
 import { CITATION_CBAM_DEDUCTION } from '@/lib/workbench/cbam-deduction';
 import { CITATION_SBTI } from '@/lib/workbench/target';
+import { CITATION_TW_ETS } from '@/lib/diagnose/data/taiwan-ets';
 
 function Section({ title, desc, cites }: { title: string; desc: string; cites: Citation[] }) {
   return (
@@ -51,6 +52,11 @@ export default function MethodologyContent() {
         title={t('台灣碳費', 'Taiwan carbon fee')}
         desc={t('費率、起徵額、優惠費率與碳洩漏係數的核定門檻,均依氣候變遷因應法第 29 條與碳費收費辦法(全國法規資料庫一手條文)。', 'Rates, threshold, and the gating of preferential rates & the leakage coefficient follow Climate Change Response Act Art. 29 and the Carbon Fee Collection Regulations (primary statute).')}
         cites={[CITATION_TW_CARBON_FEE]}
+      />
+      <Section
+        title={t('台灣碳市場:三軌並進(碳費 → ETS → 國際碳權)', 'Taiwan carbon market: three tracks (fee → ETS → credits)')}
+        desc={t('環境部規劃以碳費、ETS(總量管制與排放交易)、國際碳權三軌並進:2026 下半年提 ETS 試行計畫、2026 年底交易平台上線(臺灣碳權交易所×歐洲能源交易所 EEX)、2028 試行總量管制交易;國際碳權依《巴黎協定》第六條(如台灣與巴拉圭合作)。資料紅線:ETS 目前尚無官方總量、免費配額比例與額度價格,本工具「轉型前瞻」以你設定的假設情境試算、明標非預測,絕不編造 ETS 帳單。', 'MOENV plans three tracks: carbon fee, an ETS (cap-and-trade), and international credits — ETS trial plan H2 2026, trading platform end-2026 (TCSE × EEX), trial trading 2028; international credits under Paris Art. 6 (e.g. Taiwan–Paraguay). Red line: no official ETS cap, free-allocation ratio or allowance price exists yet, so the transition outlook is an assumption-driven scenario, clearly not a prediction — no fabricated ETS bill.')}
+        cites={[CITATION_TW_ETS]}
       />
       <Section
         title={t('排放係數(盤查)', 'Emission factors (inventory)')}

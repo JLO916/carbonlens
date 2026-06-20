@@ -11,15 +11,31 @@ export default function CarbonPnL({ result }: { result: WorkbenchResult }) {
   const { t, tObj } = useI18n();
   const { domestic, cbam, listed, supplyChain } = result;
   const pressure = supplyChain.pressureLevel;
+  const twSites = domestic.facilities.filter((f) => f.facility.countryCode === 'tw').length;
+  const overseasSites = domestic.facilities.length - twSites;
+  const hasOverseasFee = domestic.overseasFeeUSD > 0.5;
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {/* Domestic carbon fee — cash now */}
+      {/* Domestic carbon fee — cash now. R4 #5: TWD pairs only with its own USD equivalent; overseas
+          carbon pricing (Thai tax, K-ETS…) is a SEPARATE USD line, never bundled into the TW number. */}
       <Card className="border-l-4 border-l-[#89B56C]">
         <CardContent className="p-4">
-          <p className="text-xs font-medium text-gray-500">{t('國內碳費（現在）', 'Domestic carbon fee (now)')}</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">NT${fmt(domestic.totalFeeTWD)}</p>
-          <p className="text-xs text-gray-400">≈ US${fmt(domestic.totalFeeUSD)}／{t('年', 'yr')} · {domestic.facilities.length} {t('廠區', domestic.facilities.length === 1 ? 'site' : 'sites')}</p>
+          <p className="text-xs font-medium text-gray-500">{t('國內碳費／碳稅（現在）', 'Domestic carbon pricing (now)')}</p>
+          {twSites > 0 ? (
+            <>
+              <p className="mt-1 text-2xl font-bold text-gray-900">NT${fmt(domestic.totalFeeTWD)}</p>
+              <p className="text-xs text-gray-400">{t('台灣', 'Taiwan')} {twSites} {t('廠', twSites === 1 ? 'site' : 'sites')} · ≈ US${fmt(domestic.taiwanFeeUSD)}／{t('年', 'yr')}</p>
+              {hasOverseasFee && (
+                <p className="text-xs text-gray-400">＋ {t('海外', 'Overseas')} {overseasSites} {t('廠', overseasSites === 1 ? 'site' : 'sites')} ≈ US${fmt(domestic.overseasFeeUSD)}／{t('年', 'yr')}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-2xl font-bold text-gray-900">≈ US${fmt(domestic.overseasFeeUSD)}</p>
+              <p className="text-xs text-gray-400">{t('海外', 'Overseas')} {overseasSites} {t('廠合計（無台灣廠）', overseasSites === 1 ? 'site (no Taiwan site)' : 'sites (no Taiwan site)')}</p>
+            </>
+          )}
         </CardContent>
       </Card>
 

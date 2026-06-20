@@ -7,8 +7,28 @@ describe('computeWorkbench — unified P&L over one profile', () => {
     // 50,000 − 25,000 = 25,000 × 1.0 × NT$300 = 7,500,000
     expect(r.domestic.totalFeeTWD).toBe(7_500_000);
     expect(r.domestic.totalFeeUSD).toBeGreaterThan(0);
+    // R4 #5 — single TW facility: all USD is the Taiwan equivalent, none overseas
+    expect(r.domestic.taiwanFeeUSD).toBeCloseTo(r.domestic.totalFeeUSD, 6);
+    expect(r.domestic.overseasFeeUSD).toBe(0);
     expect(r.listed.ifrs.phase).toBe(3); // under50
     expect(['low', 'medium', 'high']).toContain(r.supplyChain.pressureLevel);
+  });
+
+  it('R4 #5 — splits domestic USD into Taiwan vs overseas (no NT$0 ≈ US$x conflation)', () => {
+    const p: CompanyProfile = {
+      ...emptyProfile(),
+      facilities: [
+        // TW facility below the 25,000 t K threshold → fee NT$0
+        { ...emptyProfile().facilities[0], id: 'tw', countryCode: 'tw', annualEmissionsTonnes: 10_000 },
+        // Singapore facility → a real SGD tax, contributes only to overseas USD
+        { ...emptyProfile().facilities[0], id: 'sg', countryCode: 'sg', annualEmissionsTonnes: 100_000 },
+      ],
+    };
+    const r = computeWorkbench(p);
+    expect(r.domestic.totalFeeTWD).toBe(0); // TW below threshold
+    expect(r.domestic.taiwanFeeUSD).toBe(0); // → its USD equivalent is also 0 (no phantom conflation)
+    expect(r.domestic.overseasFeeUSD).toBeGreaterThan(0); // all USD comes from Singapore
+    expect(r.domestic.totalFeeUSD).toBeCloseTo(r.domestic.overseasFeeUSD, 6);
   });
 
   it('CBAM portfolio total = sum of the individual line obligations (actual-data lines)', () => {

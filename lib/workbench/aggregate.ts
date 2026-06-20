@@ -27,8 +27,12 @@ export interface WorkbenchResult {
   };
   domestic: {
     facilities: { facility: FacilityLine; result: DomesticResult }[];
-    totalFeeTWD: number; // sum of Taiwan facilities (same currency)
+    totalFeeTWD: number; // sum of Taiwan facilities (TWD — the NT$ headline)
     totalFeeUSD: number; // sum of ALL facilities in USD (cross-currency comparable)
+    // R4 #5 — split the USD by scope so the P&L card never reads "NT$0 ≈ US$24,783" (Taiwan TWD
+    // conflated with overseas USD). taiwanFeeUSD is the honest USD equivalent of totalFeeTWD.
+    taiwanFeeUSD: number; // sum of Taiwan facilities in USD
+    overseasFeeUSD: number; // sum of NON-Taiwan facilities in USD
   };
 }
 
@@ -54,10 +58,11 @@ export function computeWorkbench(profile: CompanyProfile, cbamLookups: (CbamDefa
     facility,
     result: getCalculator(facility.countryCode as CountryCode).calculate(toDomesticInput(facility, profile)),
   }));
-  const totalFeeTWD = domesticFacilities
-    .filter((f) => f.facility.countryCode === 'tw')
-    .reduce((a, f) => a + f.result.totalCarbonCost, 0);
+  const twFacilities = domesticFacilities.filter((f) => f.facility.countryCode === 'tw');
+  const totalFeeTWD = twFacilities.reduce((a, f) => a + f.result.totalCarbonCost, 0);
+  const taiwanFeeUSD = twFacilities.reduce((a, f) => a + f.result.totalCarbonCostUSD, 0);
   const totalFeeUSD = domesticFacilities.reduce((a, f) => a + f.result.totalCarbonCostUSD, 0);
+  const overseasFeeUSD = totalFeeUSD - taiwanFeeUSD;
 
   return {
     year: profile.year,
@@ -71,6 +76,6 @@ export function computeWorkbench(profile: CompanyProfile, cbamLookups: (CbamDefa
       pricedLines,
       lockedLines,
     },
-    domestic: { facilities: domesticFacilities, totalFeeTWD, totalFeeUSD },
+    domestic: { facilities: domesticFacilities, totalFeeTWD, totalFeeUSD, taiwanFeeUSD, overseasFeeUSD },
   };
 }

@@ -4,7 +4,7 @@ import { useI18n } from '@/lib/i18n/context';
 import { feeBreakdown } from '@/lib/workbench/fee-breakdown';
 import { TW_FEE_GATING_NOTE, TH_TAX_BASE_NOTE, TH_TAX_BASE_UNSPLIT_NOTE, CITATION_TW_CARBON_FEE } from '@/lib/workbench/data';
 import { feeGated } from '@/lib/workbench/derive';
-import { petroleumFuelTonnes } from '@/lib/workbench/inventory';
+import { petroleumFuelTonnes, facilityEmissionsStatus } from '@/lib/workbench/inventory';
 import CitationTag from '@/components/diagnose/CitationTag';
 import type { WorkbenchResult } from '@/lib/workbench/aggregate';
 import type { CompanyProfile } from '@/lib/workbench/profile';
@@ -14,7 +14,27 @@ export default function CarbonFeeBreakdown({ result, profile }: { result: Workbe
   const { t, tObj } = useI18n();
   const anyGated = profile.facilities.some(feeGated);
 
+  // R4 #6 — facilities whose built inventory is materially below the earlier typed total. Surfaced
+  // ABOVE the collapsed panel so a NT$0 headline never goes to a report unchecked.
+  const underCounted = profile.facilities
+    .map((f) => ({ f, st: facilityEmissionsStatus(f) }))
+    .filter((x) => x.st.inventoryBelowTyped);
+
   return (
+    <>
+    {underCounted.length > 0 && (
+      <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-[12px] leading-relaxed text-amber-900">
+        <p className="font-semibold">⚠️ {t('碳費可能偏低:盤查合計低於你原填的估計', 'Carbon fee may be understated: inventory total is below your typed estimate')}</p>
+        <ul className="mt-1.5 space-y-1">
+          {underCounted.map(({ f, st }) => (
+            <li key={f.id}>
+              <span className="font-medium">{f.label}</span>:{t('盤查', 'inventory')} {Math.round(st.inventoryTotalTonnes).toLocaleString('en-US')} t {t('比原填', 'vs typed')} {Math.round(st.typedTotalTonnes).toLocaleString('en-US')} t {t('少', 'lower by')} {Math.round(st.shortfallTonnes).toLocaleString('en-US')} t（−{st.shortfallPct}%）{st.crossesFeeThreshold && <span className="font-semibold text-amber-950">{t('・已跌破 2.5 萬噸碳費門檻(碳費 → NT$0)', '· now below the 25,000 t fee threshold (fee → NT$0)')}</span>}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-1.5">{t('常見原因:製程／逸散排放源尚未填入(如鍛造、熱處理、含氟氣體)。完成這些來源後碳費可能改變——交報告前請先確認。', 'Common cause: process/fugitive sources not yet entered (e.g. forging, heat-treatment, F-gases). The fee may change once they are added — verify before filing.')}</p>
+      </div>
+    )}
     <details className="rounded-xl border border-gray-200 bg-white p-4">
       <summary className="cursor-pointer list-none text-sm font-medium text-gray-700">
         ▸ {t('碳費計算過程（可給 CFO／查核員）', 'Carbon fee — show your work (for CFO/auditor)')}
@@ -62,5 +82,6 @@ export default function CarbonFeeBreakdown({ result, profile }: { result: Workbe
         <CitationTag citation={CITATION_TW_CARBON_FEE} />
       </div>
     </details>
+    </>
   );
 }

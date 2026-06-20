@@ -149,3 +149,44 @@ describe('F2 — abatement DRE (destruction/removal efficiency)', () => {
     expect(computeInventory([{ id: 'g', factorKey: 'nf3', amount: 100, abatementPct: -10 }]).lines[0].abatementPct).toBe(0);
   });
 });
+
+describe('R4 #6 — inventory materially below the typed total (missing-source flag)', () => {
+  const tw = (typed: number, activities: ActivityLine[]) => ({ ...emptyProfile().facilities[0], annualEmissionsTonnes: typed, useInventory: true, activities });
+
+  it('flags a ~50% under-count that crosses the 25,000 t fee threshold', () => {
+    // 28,000,000 kWh × 0.474 = 13,272 t + 1,200,000 m³ gas × 2.1622 = 2,594.64 t ≈ 15,867 t vs typed 32,000
+    const st = facilityEmissionsStatus(tw(32_000, [{ id: 'e', factorKey: 'electricity', amount: 28_000_000 }, { id: 'g', factorKey: 'natural_gas', amount: 1_200_000 }]));
+    expect(st.inventoryBelowTyped).toBe(true);
+    expect(Math.round(st.inventoryTotalTonnes)).toBe(15_867);
+    expect(Math.round(st.shortfallTonnes)).toBe(16_133);
+    expect(st.shortfallPct).toBeGreaterThan(49);
+    expect(st.crossesFeeThreshold).toBe(true);
+    expect(st.feeBasisTonnes).toBeCloseTo(15_866.64, 0); // fee still uses the inventory, not the typed value
+  });
+
+  it('flags a ≥20% under-count even when it does NOT cross the fee threshold', () => {
+    // 1,476,000 kWh × 0.474 = 699.6 t vs typed 1,000 → 30% below, both sides below threshold
+    const st = facilityEmissionsStatus(tw(1_000, [{ id: 'e', factorKey: 'electricity', amount: 1_476_000 }]));
+    expect(st.inventoryBelowTyped).toBe(true);
+    expect(st.crossesFeeThreshold).toBe(false);
+  });
+
+  it('does NOT flag normal estimate-vs-actual variance (< 20% below)', () => {
+    // 1,200,000 kWh × 0.474 = 568.8 t vs typed 600 → 5.2% below → no flag
+    const st = facilityEmissionsStatus(tw(600, [{ id: 'e', factorKey: 'electricity', amount: 1_200_000 }]));
+    expect(st.inventoryBelowTyped).toBe(false);
+    expect(st.shortfallTonnes).toBe(0);
+  });
+
+  it('does not flag when the inventory is ABOVE the typed total', () => {
+    const st = facilityEmissionsStatus(tw(500, [{ id: 'e', factorKey: 'electricity', amount: 1_200_000 }]));
+    expect(st.inventoryBelowTyped).toBe(false);
+  });
+
+  it('a non-TW facility never sets crossesFeeThreshold (the 25,000 t threshold is Taiwan-only)', () => {
+    const sg = { ...emptyProfile().facilities[0], countryCode: 'sg' as const, annualEmissionsTonnes: 40_000, useInventory: true, activities: [{ id: 'e', factorKey: 'electricity', amount: 28_000_000 }] };
+    const st = facilityEmissionsStatus(sg);
+    expect(st.inventoryBelowTyped).toBe(true); // still an under-count flag
+    expect(st.crossesFeeThreshold).toBe(false); // but not the TW fee-threshold flavour
+  });
+});

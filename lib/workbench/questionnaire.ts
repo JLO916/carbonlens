@@ -58,8 +58,9 @@ function facts(profile: CompanyProfile) {
 }
 
 /** Build the answer pack across CDP Supply Chain / brand ESG / SBTi supplier frameworks. */
-export function buildQuestionnaire(profile: CompanyProfile, _result?: WorkbenchResult): QuestionnairePack {
+export function buildQuestionnaire(profile: CompanyProfile, lang: 'zhTW' | 'en' = 'zhTW', _result?: WorkbenchResult): QuestionnairePack {
   const f = facts(profile);
+  const en = lang === 'en';
   const hasInventory = f.fp.scope12 > 0;
   const hasScope3 = f.s3.totalTonnes > 0;
 
@@ -77,7 +78,7 @@ export function buildQuestionnaire(profile: CompanyProfile, _result?: WorkbenchR
   };
   const scope3Item: QItem = {
     question: { zhTW: 'Scope 3 價值鏈排放(及分類)', en: 'Scope 3 value-chain emissions (by category)' },
-    value: hasScope3 ? `${fmtT(f.s3.totalTonnes)} · ${f.cats.length} ${'類'} (Cat ${f.cats.join(', ')})` : '—',
+    value: hasScope3 ? `${fmtT(f.s3.totalTonnes)} · ${f.cats.length} ${en ? (f.cats.length === 1 ? 'cat' : 'cats') : '類'} (Cat ${f.cats.join(', ')})` : '—',
     status: hasScope3 ? (f.cats.length >= 2 ? 'ready' : 'partial') : 'missing',
     gap: hasScope3 ? (f.cats.length >= 2 ? undefined : { zhTW: '多數客戶至少要 Cat 1(採購)+ Cat 11(售出使用)', en: 'Most customers want at least Cat 1 (purchased) + Cat 11 (use of sold)' }) : { zhTW: '在「⑦ Scope 3」量化至少類別 1', en: 'Quantify at least Category 1 under Scope 3' },
   };
@@ -85,17 +86,17 @@ export function buildQuestionnaire(profile: CompanyProfile, _result?: WorkbenchR
     question: { zhTW: '減量目標(年期、範疇、是否 SBTi 對齊)', en: 'Reduction target (year, scope, SBTi alignment)' },
     value: f.tr ? `−${f.tr.targetReductionPct}% by ${f.tr.targetYear} (${f.tr.scope === 'scope123' ? 'S1+2+3' : f.tr.scope === 'scope3' ? 'S3' : 'S1+2'})` : '—',
     status: f.tr ? (f.tr.sbtiAligned ? 'ready' : 'partial') : 'missing',
-    gap: f.tr ? (f.tr.sbtiAligned ? undefined : { zhTW: '隱含年減未達 SBTi 1.5°C 最低 4.2%/年', en: 'Implied annual cut is below the SBTi 1.5°C minimum 4.2%/yr' }) : { zhTW: '在「① 公司基本」設定基準年＋目標年＋減量 %', en: 'Set base year + target year + reduction % under company basics' },
+    gap: f.tr ? (f.tr.sbtiAligned ? undefined : (f.tr.sbtiKind === 'netzero' ? { zhTW: '淨零目標需減 ≥90%', en: 'A net-zero target needs a ≥90% cut' } : { zhTW: `隱含年減未達 SBTi ${f.tr.scope === 'scope3' ? 'Scope 3' : '1.5°C'} 最低 ${f.tr.sbtiBasisPct}%/年`, en: `Implied annual cut is below the SBTi ${f.tr.scope === 'scope3' ? 'Scope 3' : '1.5°C'} minimum ${f.tr.sbtiBasisPct}%/yr` })) : { zhTW: '在「① 公司基本」設定基準年＋目標年＋減量 %', en: 'Set base year + target year + reduction % under company basics' },
   };
   const verifyItem: QItem = {
     question: { zhTW: '查證／保證等級', en: 'Verification / assurance level' },
-    value: f.assuredStage ? (profile.cycleStage === 'assured' ? '已查證 (assured)' : profile.cycleStage ?? '') : f.inProgress ? '查證中 (in progress)' : '—',
+    value: f.assuredStage ? (profile.cycleStage === 'assured' ? (en ? 'Assured' : '已查證 (assured)') : profile.cycleStage ?? '') : f.inProgress ? (en ? 'In progress' : '查證中 (in progress)') : '—',
     status: f.assuredStage ? 'ready' : f.inProgress ? 'partial' : 'missing',
     gap: f.assuredStage ? undefined : { zhTW: '完成查證後在「週期」標記;或先凍結定版作為內部基準', en: 'Mark assured under the cycle once verified; or freeze a version as an internal baseline' },
   };
   const methodItem: QItem = {
     question: { zhTW: '盤查方法與排放係數來源', en: 'Methodology & emission-factor sources' },
-    value: 'GHG Protocol · ' + (profile.facilities.some((x) => x.countryCode !== 'tw') ? '各國電網係數 / ' : '') + '環境部係數表 6.0.4 · IPCC AR5 GWP',
+    value: 'GHG Protocol · ' + (profile.facilities.some((x) => x.countryCode !== 'tw') ? (en ? 'national grid factors / ' : '各國電網係數 / ') : '') + (en ? 'MOENV factor table 6.0.4 · IPCC AR5 GWP' : '環境部係數表 6.0.4 · IPCC AR5 GWP'),
     status: 'ready',
   };
   const baseYearItem: QItem = {
@@ -159,7 +160,7 @@ const STATUS_MARK: Record<QStatus, string> = { ready: '✅', partial: '🟡', mi
 
 /** Plain-text export the SME can paste straight into the customer's email / portal. */
 export function questionnaireText(profile: CompanyProfile, lang: 'zhTW' | 'en' = 'zhTW'): string {
-  const pack = buildQuestionnaire(profile);
+  const pack = buildQuestionnaire(profile, lang);
   const L = (b: BilingualText) => (lang === 'en' ? b.en : b.zhTW);
   const out: string[] = [];
   const title = lang === 'en' ? 'Customer questionnaire — answer pack' : '客戶問卷回覆包';

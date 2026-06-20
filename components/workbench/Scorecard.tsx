@@ -63,7 +63,7 @@ export default function Scorecard({ profile }: { profile: CompanyProfile }) {
                       {MARK[row.status]} {tObj(DIMENSION_LABEL[row.req.dimension])}
                       {row.req.kind === 'gate' ? <span className="ml-1 text-[10px] text-gray-400">{t('門票', 'gate')}</span> : <span className="ml-1 text-[10px] text-gray-400">{row.req.points ?? 1}{t('分', 'pt')}</span>}
                     </span>
-                    <span className="font-mono text-[11px] text-gray-500">{row.have} / {t('需', 'need')} {row.need}</span>
+                    <span className="font-mono text-[11px] text-gray-500">{tObj(row.have)} / {t('需', 'need')} {tObj(row.need)}</span>
                     {row.gap && row.status !== 'met' && <span className="w-full text-[11px] leading-relaxed text-amber-700">↳ {tObj(row.gap)}</span>}
                   </div>
                 ))}

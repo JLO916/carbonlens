@@ -31,7 +31,8 @@ describe('CS — customer scorecard engine', () => {
     expect(s.hasScope3).toBe(true);
     expect(s.scope3Categories).toBe(2);
     expect(s.reductionPct).toBe(42);
-    expect(s.sbtiAligned).toBe(true); // 42%/6yr = 7%/yr ≥ 4.2
+    expect(s.sbtiAligned).toBe(true); // 42%/6yr = 7%/yr ≥ 4.2 (rate qualifies)
+    expect(s.sbtiCommitment).toBe('none'); // R4 #8 — but no SBTi commitment self-declared
     expect(s.renewablePct).toBeCloseTo(40, 0);
     expect(s.assured).toBe(true);
     expect(s.hasPcf).toBe(true);
@@ -46,7 +47,13 @@ describe('CS — customer scorecard engine', () => {
     expect(evaluateRequirement(r('renewable', 'gate', { minPct: 100, byYear: 2030 }), s).status).toBe('partial'); // 40 < 100, has some
     expect(evaluateRequirement(r('cdp', 'scored', { tier: 'C' }), s).status).toBe('met'); // B ≥ C
     expect(evaluateRequirement(r('cdp', 'gate', { tier: 'A' }), s).status).toBe('unmet'); // B < A
-    expect(evaluateRequirement(r('sbti', 'gate'), s).status).toBe('met');
+    // R4 #8 — rate qualifies but no commitment → PARTIAL, never a green met (no false "we're SBTi")
+    expect(evaluateRequirement(r('sbti', 'gate'), s).status).toBe('partial');
+    const committed = currentStatus({ ...supplier(), selfRatings: { ...supplier().selfRatings, sbti: 'committed' } });
+    expect(evaluateRequirement(r('sbti', 'gate'), committed).status).toBe('met');
+    expect(evaluateRequirement(r('sbti', 'gate'), committed).have.en).toBe('Committed'); // R4 #9 — bilingual have/need
+    const noRate = currentStatus({ ...supplier(), targetReductionPct: 6 }); // 6%/6yr = 1%/yr < 4.2, no commitment
+    expect(evaluateRequirement(r('sbti', 'gate'), noRate).status).toBe('unmet');
     expect(evaluateRequirement(r('netzero', 'gate'), s).status).toBe('unmet'); // 42% target, no ≥90 net-zero
     expect(evaluateRequirement(r('ecovadis', 'gate', { tier: 'gold' }), s).status).toBe('unmet'); // silver < gold
   });

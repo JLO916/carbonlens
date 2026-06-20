@@ -48,6 +48,10 @@ export interface SelfRatings {
   ecovadis?: string; // 'platinum'|'gold'|'silver'|'bronze'|'none'
   spcsa?: string; // 'yearbook'|'assessed'|'none'
   supplierEngagementPct?: number; // % of own suppliers with a reduction target
+  // R4 #8 — SBTi is an EXTERNAL commitment/validation the tool can't compute (only the implied RATE
+  // can be checked). A customer's "SBTi" gate asks whether you've committed/validated — so the
+  // commitment is self-declared and a rate-aligned-but-uncommitted target must NOT read as met.
+  sbti?: 'validated' | 'committed' | 'none';
 }
 
 export const DIMENSION_LABEL: Record<ScorecardDimension, BilingualText> = {
@@ -94,7 +98,8 @@ export interface CurrentStatus {
   scope3Categories: number;
   reductionPct: number; // best target's reduction %
   reductionTargetYear?: number;
-  sbtiAligned: boolean;
+  sbtiAligned: boolean; // implied RATE meets the SBTi criterion (computed) — not a commitment
+  sbtiCommitment: 'validated' | 'committed' | 'none'; // self-declared external status
   hasNetZero: boolean;
   renewablePct: number;
   assured: boolean; // self-attested freeze in the tool (assured/filed/disclosed)
@@ -121,6 +126,7 @@ export function currentStatus(profile: CompanyProfile): CurrentStatus {
     reductionPct: best.pct,
     reductionTargetYear: best.year,
     sbtiAligned: trs.some((t) => t.sbtiAligned),
+    sbtiCommitment: (profile.selfRatings?.sbti as CurrentStatus['sbtiCommitment']) ?? 'none',
     hasNetZero: trs.some((t) => t.targetReductionPct >= 90),
     renewablePct,
     assured: ['assured', 'filed', 'disclosed'].includes(profile.cycleStage ?? ''),
@@ -132,63 +138,87 @@ export function currentStatus(profile: CompanyProfile): CurrentStatus {
 export interface RequirementResult {
   req: CustomerRequirement;
   status: ReqStatus;
-  have: string; // your current value, human-readable
-  need: string; // what's required
+  have: BilingualText; // your current value, human-readable (R4 #9 — bilingual so EN exports are clean)
+  need: BilingualText; // what's required
   gap?: BilingualText;
 }
 
 /** Evaluate one requirement against the supplier's current status. */
 export function evaluateRequirement(req: CustomerRequirement, s: CurrentStatus): RequirementResult {
-  const ok = (have: string, need: string): RequirementResult => ({ req, status: 'met', have, need });
-  const no = (have: string, need: string, gap: BilingualText): RequirementResult => ({ req, status: 'unmet', have, need, gap });
-  const part = (have: string, need: string, gap: BilingualText): RequirementResult => ({ req, status: 'partial', have, need, gap });
+  const B = (zhTW: string, en: string): BilingualText => ({ zhTW, en });
+  const ok = (have: BilingualText, need: BilingualText): RequirementResult => ({ req, status: 'met', have, need });
+  const no = (have: BilingualText, need: BilingualText, gap: BilingualText): RequirementResult => ({ req, status: 'unmet', have, need, gap });
+  const part = (have: BilingualText, need: BilingualText, gap: BilingualText): RequirementResult => ({ req, status: 'partial', have, need, gap });
+  const dash = B('—', '—');
 
   switch (req.dimension) {
     case 'scope12':
-      return s.hasScope12 ? ok('已揭露', '揭露') : no('—', '揭露', { zhTW: '建立 Scope 1+2 盤查', en: 'Build a Scope 1+2 inventory' });
+      return s.hasScope12 ? ok(B('已揭露', 'Disclosed'), B('揭露', 'Disclose')) : no(dash, B('揭露', 'Disclose'), { zhTW: '建立 Scope 1+2 盤查', en: 'Build a Scope 1+2 inventory' });
     case 'scope3':
-      if (!s.hasScope3) return no('—', '揭露', { zhTW: '在 ⑦ 量化 Scope 3(至少類別1)', en: 'Quantify Scope 3 (at least Cat 1) in ⑦' });
-      return s.scope3Categories >= 2 ? ok(`${s.scope3Categories} 類`, '揭露') : part(`${s.scope3Categories} 類`, '≥2 類', { zhTW: '多數客戶要類別1(採購)+類別11(使用)', en: 'Most want Cat 1 + Cat 11' });
+      if (!s.hasScope3) return no(dash, B('揭露', 'Disclose'), { zhTW: '在 ⑦ 量化 Scope 3(至少類別1)', en: 'Quantify Scope 3 (at least Cat 1) in ⑦' });
+      return s.scope3Categories >= 2
+        ? ok(B(`${s.scope3Categories} 類`, `${s.scope3Categories} cats`), B('揭露', 'Disclose'))
+        : part(B(`${s.scope3Categories} 類`, `${s.scope3Categories} cat`), B('≥2 類', '≥2 cats'), { zhTW: '多數客戶要類別1(採購)+類別11(使用)', en: 'Most want Cat 1 + Cat 11' });
     case 'target': {
-      const need = `−${req.minPct ?? 0}%${req.byYear ? ` by ${req.byYear}` : ''}`;
-      const have = s.reductionPct > 0 ? `−${s.reductionPct}%${s.reductionTargetYear ? ` by ${s.reductionTargetYear}` : ''}` : '—';
+      const needStr = `−${req.minPct ?? 0}%${req.byYear ? ` by ${req.byYear}` : ''}`;
+      const need = B(needStr, needStr);
+      const haveStr = s.reductionPct > 0 ? `−${s.reductionPct}%${s.reductionTargetYear ? ` by ${s.reductionTargetYear}` : ''}` : '—';
+      const have = B(haveStr, haveStr);
       if (s.reductionPct <= 0) return no(have, need, { zhTW: '設定減量目標(基準年+目標年+%)', en: 'Set a reduction target' });
       const pctOk = s.reductionPct >= (req.minPct ?? 0);
       const yearOk = !req.byYear || (s.reductionTargetYear != null && s.reductionTargetYear <= req.byYear);
       return pctOk && yearOk ? ok(have, need) : part(have, need, { zhTW: '目標幅度或目標年未達客戶門檻', en: 'Target depth or year below the threshold' });
     }
-    case 'sbti':
-      return s.sbtiAligned ? ok('已對齊 1.5°C', 'SBTi 對齊') : no(s.reductionPct > 0 ? '未達 4.2%/年' : '—', 'SBTi 對齊', { zhTW: '隱含年減未達 SBTi 1.5°C(≈4.2%/年)', en: 'Implied annual cut is below SBTi 1.5°C' });
+    case 'sbti': {
+      // R4 #8 — the gate is met only on a self-declared SBTi commitment/validation. A rate-aligned but
+      // uncommitted target is PARTIAL (close, not yet formally committed), never a green ✅ — a sales
+      // rep must not tell a customer "we're SBTi" off the implied rate alone.
+      const need = B('SBTi 對齊', 'SBTi-aligned');
+      if (s.sbtiCommitment === 'validated') return ok(B('已驗證', 'Validated'), need);
+      if (s.sbtiCommitment === 'committed') return ok(B('已承諾', 'Committed'), need);
+      if (s.sbtiAligned) return part(B('未承諾（速率已達）', 'Not committed (rate qualifies)'), need, { zhTW: '隱含年減已達標,但尚未向 SBTi 提交/驗證目標——在 ⑩ 自評填寫承諾狀態', en: 'The implied rate qualifies, but no target is committed/validated with SBTi — set the commitment status in ⑩' });
+      return no(s.reductionPct > 0 ? B('未承諾·未達速率', 'Not committed; rate short') : dash, need, { zhTW: '設定符合 SBTi 的減量目標,並向 SBTi 承諾/驗證', en: 'Set an SBTi-conforming target and commit/validate it with SBTi' });
+    }
     case 'netzero':
-      return s.hasNetZero ? ok('已設淨零', '淨零承諾') : no('—', '淨零承諾', { zhTW: '在 ⑧ 加一條長期淨零目標(減≥90%)', en: 'Add a long-term net-zero target (≥90%) in ⑧' });
+      return s.hasNetZero ? ok(B('已設淨零', 'Net-zero set'), B('淨零承諾', 'Net-zero')) : no(dash, B('淨零承諾', 'Net-zero'), { zhTW: '在 ⑧ 加一條長期淨零目標(減≥90%)', en: 'Add a long-term net-zero target (≥90%) in ⑧' });
     case 'renewable': {
-      const need = `≥${req.minPct ?? 100}%${req.byYear ? ` by ${req.byYear}` : ''}`;
-      if (s.renewablePct >= (req.minPct ?? 100)) return ok(`${s.renewablePct}%`, need);
-      return s.renewablePct > 0 ? part(`${s.renewablePct}%`, need, { zhTW: '提高綠電/PPA/REC 佔比', en: 'Raise renewable/PPA/REC share' }) : no('0%', need, { zhTW: '在廠區填再生能源 %(綠電/PPA/REC)', en: 'Enter renewable % on a facility' });
+      const needStr = `≥${req.minPct ?? 100}%${req.byYear ? ` by ${req.byYear}` : ''}`;
+      const need = B(needStr, needStr);
+      if (s.renewablePct >= (req.minPct ?? 100)) return ok(B(`${s.renewablePct}%`, `${s.renewablePct}%`), need);
+      return s.renewablePct > 0
+        ? part(B(`${s.renewablePct}%`, `${s.renewablePct}%`), need, { zhTW: '提高綠電/PPA/REC 佔比', en: 'Raise renewable/PPA/REC share' })
+        : no(B('0%', '0%'), need, { zhTW: '在廠區填再生能源 %(綠電/PPA/REC)', en: 'Enter renewable % on a facility' });
     }
     case 'assurance':
-      return s.assured ? ok('已定版', '第三方查證') : no('—', '第三方查證', { zhTW: '完成查證後標記;工具內為自我定版,正式查證須外部機構', en: 'Mark once verified; the tool freeze is self-attested — real assurance needs an external body' });
+      return s.assured ? ok(B('已定版', 'Frozen'), B('第三方查證', 'Third-party assurance')) : no(dash, B('第三方查證', 'Third-party assurance'), { zhTW: '完成查證後標記;工具內為自我定版,正式查證須外部機構', en: 'Mark once verified; the tool freeze is self-attested — real assurance needs an external body' });
     case 'pcf':
-      return s.hasPcf ? ok('已建', '產品碳足跡') : no('—', '產品碳足跡', { zhTW: '在 ⑨ 建立每料號產品碳足跡', en: 'Build per-SKU PCF in ⑨' });
+      return s.hasPcf ? ok(B('已建', 'Built'), B('產品碳足跡', 'PCF')) : no(dash, B('產品碳足跡', 'PCF'), { zhTW: '在 ⑨ 建立每料號產品碳足跡', en: 'Build per-SKU PCF in ⑨' });
     case 'cdp': {
-      const need = `≥${req.tier ?? 'B'}`;
+      const tier = req.tier ?? 'B';
+      const need = B(`≥${tier}`, `≥${tier}`);
       const have = s.ratings.cdp ?? 'none';
-      return (CDP_RANK[have] ?? 0) >= (CDP_RANK[req.tier ?? 'B'] ?? 6) ? ok(have, need) : no(have === 'none' ? '未填' : have, need, { zhTW: '提升 CDP 評級(揭露→管理→領導)', en: 'Improve your CDP band' });
+      const haveLabel = have === 'none' ? B('未填', '—') : B(have, have);
+      return (CDP_RANK[have] ?? 0) >= (CDP_RANK[tier] ?? 6) ? ok(B(have, have), need) : no(haveLabel, need, { zhTW: '提升 CDP 評級(揭露→管理→領導)', en: 'Improve your CDP band' });
     }
     case 'ecovadis': {
       const need = req.tier ?? 'gold';
       const have = s.ratings.ecovadis ?? 'none';
-      return (ECOVADIS_RANK[have] ?? 0) >= (ECOVADIS_RANK[need] ?? 3) ? ok(have, `≥${need}`) : no(have === 'none' ? '未填' : have, `≥${need}`, { zhTW: '提升 EcoVadis 獎章(百分位)', en: 'Raise your EcoVadis medal (percentile)' });
+      const haveLabel = have === 'none' ? B('未填', '—') : B(have, have);
+      return (ECOVADIS_RANK[have] ?? 0) >= (ECOVADIS_RANK[need] ?? 3) ? ok(B(have, have), B(`≥${need}`, `≥${need}`)) : no(haveLabel, B(`≥${need}`, `≥${need}`), { zhTW: '提升 EcoVadis 獎章(百分位)', en: 'Raise your EcoVadis medal (percentile)' });
     }
     case 'spcsa': {
       const need = req.tier ?? 'assessed';
       const have = s.ratings.spcsa ?? 'none';
-      return (SPCSA_RANK[have] ?? 0) >= (SPCSA_RANK[need] ?? 1) ? ok(have, `≥${need}`) : no(have === 'none' ? '未填' : have, `≥${need}`, { zhTW: '參與 S&P CSA(年鑑=同業前15%)', en: 'Take the S&P CSA (Yearbook = top 15%)' });
+      const haveLabel = have === 'none' ? B('未填', '—') : B(have, have);
+      return (SPCSA_RANK[have] ?? 0) >= (SPCSA_RANK[need] ?? 1) ? ok(B(have, have), B(`≥${need}`, `≥${need}`)) : no(haveLabel, B(`≥${need}`, `≥${need}`), { zhTW: '參與 S&P CSA(年鑑=同業前15%)', en: 'Take the S&P CSA (Yearbook = top 15%)' });
     }
     case 'supplierEngagement': {
-      const need = `≥${req.minPct ?? 50}%`;
+      const needStr = `≥${req.minPct ?? 50}%`;
+      const need = B(needStr, needStr);
       const have = s.ratings.supplierEngagementPct ?? 0;
-      return have >= (req.minPct ?? 50) ? ok(`${have}%`, need) : (have > 0 ? part(`${have}%`, need, { zhTW: '要求更多供應商設減量目標', en: 'Get more suppliers to set targets' }) : no('—', need, { zhTW: '要求供應商碳盤查/設目標(SBTi Scope 3)', en: 'Ask suppliers to inventory/set targets (SBTi Scope 3)' }));
+      return have >= (req.minPct ?? 50)
+        ? ok(B(`${have}%`, `${have}%`), need)
+        : (have > 0 ? part(B(`${have}%`, `${have}%`), need, { zhTW: '要求更多供應商設減量目標', en: 'Get more suppliers to set targets' }) : no(dash, need, { zhTW: '要求供應商碳盤查/設目標(SBTi Scope 3)', en: 'Ask suppliers to inventory/set targets (SBTi Scope 3)' }));
     }
   }
 }
@@ -315,7 +345,7 @@ export function scorecardText(profile: CompanyProfile, lang: 'zhTW' | 'en' = 'zh
   if (sum.leverage[0]?.unblocks >= 2) out.push((lang === 'en' ? 'Highest leverage: closing ' : '最高槓桿:補上「') + L(DIMENSION_LABEL[sum.leverage[0].dimension]) + (lang === 'en' ? ` unblocks ${sum.leverage[0].unblocks} customers.` : `」可解鎖 ${sum.leverage[0].unblocks} 個客戶。`));
   for (const cr of sum.customers) {
     out.push('', `## ${cr.customer.name || '—'} — ${L(RISK_LABEL[cr.risk])} (${lang === 'en' ? 'gates' : '門票'} ${cr.gatesMet}/${cr.gatesTotal}${cr.scoredTotal > 0 ? `, ${lang === 'en' ? 'scored' : '計分'} ${cr.scoredEarned}/${cr.scoredTotal}` : ''})`);
-    for (const r of cr.rows) out.push(`${MARK[r.status]} ${L(DIMENSION_LABEL[r.req.dimension])} [${r.req.kind === 'gate' ? (lang === 'en' ? 'gate' : '門票') : `${r.req.points ?? 1}${lang === 'en' ? 'pt' : '分'}`}]: ${r.have} / ${lang === 'en' ? 'need' : '需'} ${r.need}${r.gap && r.status !== 'met' ? `  — ${L(r.gap)}` : ''}`);
+    for (const r of cr.rows) out.push(`${MARK[r.status]} ${L(DIMENSION_LABEL[r.req.dimension])} [${r.req.kind === 'gate' ? (lang === 'en' ? 'gate' : '門票') : `${r.req.points ?? 1}${lang === 'en' ? 'pt' : '分'}`}]: ${L(r.have)} / ${lang === 'en' ? 'need' : '需'} ${L(r.need)}${r.gap && r.status !== 'met' ? `  — ${L(r.gap)}` : ''}`);
   }
   out.push('', L(SCORECARD_NOTE));
   return out.join('\n');

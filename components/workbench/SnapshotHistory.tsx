@@ -19,6 +19,7 @@ export default function SnapshotHistory({ snapshots }: { snapshots: Snapshot[] }
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-gray-100 text-left text-gray-400">
+                <th className="py-1.5 pr-3 font-medium">{t('年度', 'Year')}</th>
                 <th className="py-1.5 pr-3 font-medium">{t('日期', 'Date')}</th>
                 <th className="py-1.5 pr-3 font-medium">{t('總足跡 tCO₂e', 'Footprint tCO₂e')}</th>
                 <th className="py-1.5 pr-3 font-medium">{t('碳費/年', 'Fee/yr')}</th>
@@ -32,9 +33,11 @@ export default function SnapshotHistory({ snapshots }: { snapshots: Snapshot[] }
                 const aged = monthsSince(s.at.slice(0, 7));
                 const stale = aged !== null && aged >= STALE_MONTHS;
                 const prior = snapshots[i + 1]; // newest-first → next item is the earlier period
-                const delta = s.footprintTonnes != null && prior?.footprintTonnes ? ((s.footprintTonnes - prior.footprintTonnes) / prior.footprintTonnes) * 100 : null;
+                const delta = s.footprintTonnes != null && prior?.footprintTonnes && prior.year === s.year ? ((s.footprintTonnes - prior.footprintTonnes) / prior.footprintTonnes) * 100 : null;
+                const isYearBoundary = prior == null || prior.year !== s.year;
                 return (
-                  <tr key={i} className="border-b border-gray-50 text-gray-700">
+                  <tr key={i} className={`border-b text-gray-700 ${isYearBoundary ? 'border-gray-200' : 'border-gray-50'}`}>
+                    <td className="py-1.5 pr-3 font-semibold text-gray-800">{s.year ?? '—'}</td>
                     <td className="py-1.5 pr-3">
                       {s.at.slice(0, 10)}
                       {aged !== null && aged >= 1 && <span className={stale ? 'ml-1 text-amber-600' : 'ml-1 text-gray-400'}>· {aged}{t('月前', 'mo')}</span>}

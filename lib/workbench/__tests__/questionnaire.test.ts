@@ -65,3 +65,33 @@ describe('S2 — customer questionnaire answer pack', () => {
     expect(txt).not.toContain('還差這些');
   });
 });
+
+describe('R4 #9 — EN questionnaire values are not mixed with Chinese', () => {
+  function multiCountry() {
+    const p = ready();
+    p.cycleStage = 'assured';
+    p.facilities = [
+      { ...p.facilities[0], countryCode: 'tw' },
+      { ...p.facilities[0], id: 'sg', countryCode: 'sg' },
+    ];
+    return p;
+  }
+  it('verify + method + scope3 values use English under lang=en', () => {
+    const pack = buildQuestionnaire(multiCountry(), 'en');
+    const cdp = pack.sections.find((s) => s.key === 'cdp')!;
+    const verify = cdp.items.find((i) => i.question.en.startsWith('Verification'))!;
+    expect(verify.value).toBe('Assured');
+    expect(verify.value).not.toMatch(/[一-龥]/); // no CJK
+    const method = cdp.items.find((i) => i.question.en.startsWith('Methodology'))!;
+    expect(method.value).toContain('national grid factors');
+    expect(method.value).not.toMatch(/[一-龥]/);
+    const scope3 = cdp.items.find((i) => i.question.en.startsWith('Scope 3'))!;
+    expect(scope3.value).not.toMatch(/類/);
+  });
+  it('zhTW still reads 已查證 / 環境部係數表', () => {
+    const pack = buildQuestionnaire(multiCountry(), 'zhTW');
+    const cdp = pack.sections.find((s) => s.key === 'cdp')!;
+    expect(cdp.items.find((i) => i.question.zhTW.startsWith('查證'))!.value).toContain('已查證');
+    expect(cdp.items.find((i) => i.question.zhTW.startsWith('盤查方法'))!.value).toContain('環境部係數表');
+  });
+});

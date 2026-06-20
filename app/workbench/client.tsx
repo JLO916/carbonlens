@@ -4,6 +4,7 @@ import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n/context';
+import { track } from '@vercel/analytics';
 import ProfileForm from '@/components/workbench/ProfileForm';
 import CarbonPnL from '@/components/workbench/CarbonPnL';
 import FootprintSummary from '@/components/workbench/FootprintSummary';
@@ -113,6 +114,16 @@ export default function WorkbenchClient() {
       const lookups = await Promise.all(profile.cbamProducts.map((line) => fetchLookup(line, profile)));
       setSnap({ profile, lookups, result: computeWorkbench(profile, lookups) });
       saveProfile(profile); // remember the profile across visits
+      // Privacy-respecting product analytics: did the user complete the CORE loop, and roughly
+      // what's in scope? Anonymous event name + coarse counts only — NO company name, NO emissions
+      // numbers (those never leave the browser). Lets us see funnel completion without telemetry on data.
+      track('computed_result', {
+        facilities: profile.facilities.length,
+        cbamLines: profile.cbamProducts.length,
+        hasTargets: !!(profile.targetReductionPct && profile.targetReductionPct > 0),
+        hasScorecard: (profile.scorecardCustomers?.length ?? 0) > 0,
+        lang,
+      });
     } finally {
       setBusy(false);
     }
@@ -121,6 +132,7 @@ export default function WorkbenchClient() {
   function takeSnapshot() {
     if (!snap) return;
     setHistory(appendSnapshot(snapshotOf(snap.result, snap.profile, new Date().toISOString())));
+    track('snapshot_taken');
   }
 
   // C2 / R4 #10 — carry the profile forward to next year. Before rolling over: auto-capture a
@@ -133,6 +145,7 @@ export default function WorkbenchClient() {
     setProfile(next);
     saveProfile(next);
     setSnap(null);
+    track('carried_forward');
   }
 
   function downloadText(filename: string, text: string, mime: string) {
@@ -145,6 +158,7 @@ export default function WorkbenchClient() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    track('exported', { kind: filename.replace(/\.[^.]+$/, '') }); // filename is fixed, non-identifying
   }
 
   function exportProfile() {

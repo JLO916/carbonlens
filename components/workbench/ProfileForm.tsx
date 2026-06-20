@@ -255,12 +255,18 @@ export default function ProfileForm({ profile, onChange }: { profile: CompanyPro
                     {(() => {
                       const st = facilityEmissionsStatus(f);
                       const typed = st.typedTotalTonnes.toLocaleString('en-US');
+                      const inv = st.inventoryTotalTonnes.toLocaleString('en-US', { maximumFractionDigits: 2 });
+                      const short = st.shortfallTonnes.toLocaleString('en-US', { maximumFractionDigits: 0 });
                       return st.inventoryIncomplete ? (
                         <p className="mt-2 rounded-lg bg-amber-50 p-2.5 text-[11px] leading-relaxed text-amber-800">
                           ⚠️ {t(`盤查合計目前為 0 tCO₂e(尚未填活動量)。為避免碳費被誤歸零,目前暫以你原填的 ${typed} t 計算——請填入活動數據完成盤查,或切回「直接填總數」。`, `Inventory total is 0 tCO₂e (no activity data yet). To avoid silently zeroing the fee, it currently falls back to your typed ${typed} t — add activity data to complete the inventory, or switch back to “type total”.`)}
                         </p>
+                      ) : st.inventoryBelowTyped ? (
+                        <p className="mt-2 rounded-lg bg-amber-50 p-2.5 text-[11px] leading-relaxed text-amber-800">
+                          → {t('本廠盤查合計', 'Facility total')} <span className="font-medium">{inv} tCO₂e</span>。⚠️ {t(`比你原填的 ${typed} t 少 ${short} t（−${st.shortfallPct}%）。常見原因:製程／逸散排放源尚未填入。`, `that is ${short} t (−${st.shortfallPct}%) below your typed ${typed} t. Common cause: process/fugitive sources not yet entered.`)}{st.crossesFeeThreshold && <span className="font-medium"> {t('且已跌破 2.5 萬噸碳費起徵門檻(碳費可能變 NT$0)——請先確認再採用。', 'It now falls below the 25,000 t carbon-fee threshold (fee may drop to NT$0) — verify before relying on it.')}</span>}
+                        </p>
                       ) : (
-                        <p className="mt-2 text-sm font-medium text-[#5d7d44]">→ {t('本廠盤查合計', 'Facility total')} {st.inventoryTotalTonnes.toLocaleString('en-US', { maximumFractionDigits: 2 })} tCO₂e</p>
+                        <p className="mt-2 text-sm font-medium text-[#5d7d44]">→ {t('本廠盤查合計', 'Facility total')} {inv} tCO₂e</p>
                       );
                     })()}
                   </>

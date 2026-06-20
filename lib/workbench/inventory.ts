@@ -174,6 +174,12 @@ export function petroleumFuelTonnes(facility: FacilityLine): number | null {
   return round(inv.lines.filter((l) => keys.has(l.line.factorKey)).reduce((a, l) => a + l.tonnes, 0));
 }
 
+/** R4 #6 — a built inventory this far (%) below the earlier typed total is flagged as a likely
+ *  missing-source under-count (process/fugitive emissions not yet entered). Below this, normal
+ *  estimate-vs-actual variance isn't worth nagging about. */
+export const MISSING_SOURCE_SHORTFALL_PCT = 20;
+const TW_FEE_THRESHOLD_TONNES = 25_000;
+
 /** Emissions-basis status — drives the UI warning when inventory mode is on but the built total is
  *  still 0, so the fee transparently falls back to the typed total instead of silently dropping to 0. */
 export interface FacilityEmissionsStatus {
@@ -182,17 +188,30 @@ export interface FacilityEmissionsStatus {
   feeBasisTonnes: number; // what actually feeds the carbon fee (inventory, or typed fallback)
   typedTotalTonnes: number; // the preserved "type total" value
   inventoryIncomplete: boolean; // inventory mode + built total 0 → using typed fallback
+  // R4 #6 — inventory built (>0) but materially BELOW the earlier typed total: likely missing
+  // process/fugitive sources. Load-bearing because it can silently flip the 25,000 t fee threshold.
+  inventoryBelowTyped: boolean;
+  shortfallTonnes: number; // typed − inventory when below, else 0
+  shortfallPct: number; // % below the typed total (0 when not below)
+  crossesFeeThreshold: boolean; // TW: typed ≥ 25,000 but inventory < 25,000 → fee can drop to NT$0
 }
 
 export function facilityEmissionsStatus(facility: FacilityLine): FacilityEmissionsStatus {
   const usingInventory = !!facility.useInventory;
   const inventoryTotalTonnes = usingInventory ? computeInventory(facility.activities ?? [], facility.countryCode as CountryCode).totalTonnes : 0;
   const typedTotalTonnes = facility.annualEmissionsTonnes || 0;
+  const shortfallPct = typedTotalTonnes > 0 ? round(((typedTotalTonnes - inventoryTotalTonnes) / typedTotalTonnes) * 100) : 0;
+  const crossesFeeThreshold = usingInventory && facility.countryCode === 'tw' && inventoryTotalTonnes > 0 && typedTotalTonnes >= TW_FEE_THRESHOLD_TONNES && inventoryTotalTonnes < TW_FEE_THRESHOLD_TONNES;
+  const inventoryBelowTyped = usingInventory && inventoryTotalTonnes > 0 && typedTotalTonnes > 0 && (shortfallPct >= MISSING_SOURCE_SHORTFALL_PCT || crossesFeeThreshold);
   return {
     usingInventory,
     inventoryTotalTonnes,
     feeBasisTonnes: facilityEmissionsTonnes(facility),
     typedTotalTonnes,
     inventoryIncomplete: usingInventory && inventoryTotalTonnes === 0,
+    inventoryBelowTyped,
+    shortfallTonnes: inventoryBelowTyped ? round(typedTotalTonnes - inventoryTotalTonnes) : 0,
+    shortfallPct: inventoryBelowTyped ? shortfallPct : 0,
+    crossesFeeThreshold,
   };
 }

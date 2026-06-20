@@ -114,3 +114,41 @@ describe('E1 — multiple targets (a set of SBTi commitments)', () => {
     expect(typo.series[typo.series.length - 1].year).toBe(2100);
   });
 });
+
+describe('R4 #8 — SBTi check depends on scope and term', () => {
+  it('near-term Scope 3 is judged at 2.5%/yr (not the 4.2% Scope 1+2 rate)', () => {
+    const p = emptyProfile();
+    // 16%/6yr = 2.67%/yr → aligned for Scope 3 (≥2.5), but would FAIL the old 4.2 rule
+    p.extraTargets = [{ id: 's3', scope: 'scope3', baseYear: 2024, baseEmissionsTonnes: 100000, targetYear: 2030, targetReductionPct: 16 }];
+    const tr = allTargetTrajectories(p).find((t) => t.id === 's3')!;
+    expect(tr.sbtiKind).toBe('rate');
+    expect(tr.sbtiBasisPct).toBe(2.5);
+    expect(tr.sbtiAligned).toBe(true);
+  });
+
+  it('a −90% by 2050 net-zero target is aligned (depth criterion, not the 4.2%/yr near-term rate)', () => {
+    const p = emptyProfile();
+    p.extraTargets = [{ id: 'nz', scope: 'scope123', baseYear: 2024, baseEmissionsTonnes: 140000, targetYear: 2050, targetReductionPct: 90 }];
+    const tr = allTargetTrajectories(p).find((t) => t.id === 'nz')!;
+    expect(tr.sbtiTerm).toBe('long');
+    expect(tr.sbtiKind).toBe('netzero');
+    expect(tr.sbtiBasisPct).toBe(90);
+    expect(tr.sbtiAligned).toBe(true); // 3.46%/yr would FAIL a near-term rate check, but it IS net-zero
+  });
+
+  it('a shallow long-term target (−50% by 2050) is NOT net-zero aligned', () => {
+    const p = emptyProfile();
+    p.extraTargets = [{ id: 'weak', scope: 'scope123', baseYear: 2024, baseEmissionsTonnes: 140000, targetYear: 2050, targetReductionPct: 50 }];
+    const tr = allTargetTrajectories(p).find((t) => t.id === 'weak')!;
+    expect(tr.sbtiKind).toBe('netzero');
+    expect(tr.sbtiAligned).toBe(false); // 50% < 90%
+  });
+
+  it('near-term Scope 1+2 still uses 4.2%/yr', () => {
+    const p = emptyProfile();
+    p.extraTargets = [{ id: 's12', scope: 'scope12', baseYear: 2024, baseEmissionsTonnes: 50000, targetYear: 2030, targetReductionPct: 30 }];
+    const tr = allTargetTrajectories(p).find((t) => t.id === 's12')!;
+    expect(tr.sbtiBasisPct).toBe(4.2);
+    expect(tr.sbtiAligned).toBe(true); // 30/6 = 5%/yr ≥ 4.2
+  });
+});

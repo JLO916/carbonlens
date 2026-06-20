@@ -53,3 +53,24 @@ describe('cbamRampSeries — 2026→2034 banded ramp', () => {
     expect(withEts.points.every((p) => p.lowEUR === 0)).toBe(true); // no usable lines → 0, but lockedLines flags why
   });
 });
+
+describe('R4 #7 — allocated lines populate the ramp (chart matches the P&L/deduction)', () => {
+  it('an allocated CBAM line yields a non-empty central series and is NOT counted as locked', () => {
+    const p: CompanyProfile = {
+      ...emptyProfile(),
+      etsPrice: 80,
+      facilities: [{
+        ...emptyProfile().facilities[0], id: 'f1', countryCode: 'tw', useInventory: true, annualEmissionsTonnes: 0,
+        activities: [{ id: 'd', factorKey: 'diesel', amount: 1_000_000 }], // 1,000,000 L × 2.6063 = 2,606.3 t Scope 1
+      }],
+      cbamProducts: [{ id: 'c', label: 'steel', product: 'steel', originCountry: 'tw', annualVolumeTonnes: 1000, emissionsSource: 'allocated', facilityId: 'f1' }],
+    };
+    const r = cbamRampSeries(p); // no lookups needed — allocated resolves from the facility inventory
+    expect(r.lockedLines).toBe(0); // was wrongly 1 (treated as locked) before the fix
+    expect(r.hasCentral).toBe(true);
+    const y26 = r.points.find((x) => x.year === 2026)!;
+    // SEE ≈ 2606.3 / 1000 = 2.606; obligation 2026 = 1000 × 2.606 × 0.025 × 80
+    expect(y26.centralEUR).toBeGreaterThan(0);
+    expect(y26.centralEUR).toBeCloseTo(Math.round(1000 * 2.606 * 0.025 * 80), -1);
+  });
+});

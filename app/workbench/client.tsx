@@ -122,9 +122,13 @@ export default function WorkbenchClient() {
     setHistory(appendSnapshot(snapshotOf(snap.result, snap.profile, new Date().toISOString())));
   }
 
-  // C2 — carry the profile forward to next year (keep boundaries/factors/targets; bump the year).
+  // C2 / R4 #10 — carry the profile forward to next year. Before rolling over: auto-capture a
+  // year-end snapshot of the computed result (so the CLOSING year stays on record with its year),
+  // then reset the cycle to 'measure' — a new reporting year starts in measurement, not still
+  // 'disclosed' (which would wrongly mark the new year as already filed/disclosed).
   function carryForward() {
-    const next = { ...profile, year: profile.year + 1 };
+    if (snap) setHistory(appendSnapshot(snapshotOf(snap.result, snap.profile, new Date().toISOString())));
+    const next: CompanyProfile = { ...profile, year: profile.year + 1, cycleStage: 'measure' };
     setProfile(next);
     saveProfile(next);
     setSnap(null);
@@ -282,6 +286,7 @@ export default function WorkbenchClient() {
             <Button variant="outline" onClick={carryForward} className="w-full">
               ⏭ {t(`結轉下一年（${profile.year + 1}）`, `Carry forward to ${profile.year + 1}`)}
             </Button>
+            <p className="text-[11px] leading-relaxed text-gray-400 sm:col-span-2">{t(`結轉會：先把 ${profile.year} 年度的計算結果存成一張年結快照、把週期狀態歸位到「盤查中」,再把年度推進到 ${profile.year + 1}（側寫、目標、廠區邊界都保留）。`, `Carry-forward will: save a year-end snapshot of the ${profile.year} result, reset the cycle to “Measuring”, then advance the year to ${profile.year + 1} (profile, targets and facility boundaries are kept).`)}</p>
           </div>
 
           <RelatedArticles

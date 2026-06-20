@@ -9,8 +9,29 @@ import type { BilingualText, Citation } from '@/lib/diagnose/types';
 
 const round = (x: number) => Math.round(x * 100) / 100;
 
-/** SBTi near-term 1.5°C minimum linear reduction ≈ 4.2%/yr of the base year (absolute contraction). */
-export const SBTI_NEARTERM_ANNUAL_PCT = 4.2;
+// R4 #8 — the SBTi check must depend on the target's scope AND term, not one 4.2% for everything:
+//   near-term Scope 1+2 (and combined)  → 1.5°C ≈ 4.2%/yr absolute
+//   near-term Scope 3                   → well-below-2°C floor ≈ 2.5%/yr absolute (SBTi Scope 3 min)
+//   long-term (net-zero, ~2050)         → ≥90% absolute reduction (SBTi Net-Zero Standard), a DEPTH
+//                                          criterion, not an annual rate — so a −90%/2050 target is
+//                                          aligned and must NOT be failed by the 4.2%/yr near-term rule.
+export const SBTI_NEARTERM_15C_PCT = 4.2;
+export const SBTI_NEARTERM_SCOPE3_PCT = 2.5;
+export const SBTI_NETZERO_REDUCTION_PCT = 90;
+export const SBTI_LONGTERM_FROM_YEAR = 2045; // targetYear ≥ this is treated as a long-term/net-zero target
+/** Back-compat alias (the near-term 1.5°C rate); prefer the scope/term-aware fields on a trajectory. */
+export const SBTI_NEARTERM_ANNUAL_PCT = SBTI_NEARTERM_15C_PCT;
+
+export type SbtiTerm = 'near' | 'long';
+export interface SbtiCheck { aligned: boolean; term: SbtiTerm; basisPct: number; kind: 'rate' | 'netzero' }
+
+/** Which SBTi criterion a target is judged against, given its scope, term and depth. */
+export function sbtiCheckFor(scope: TargetScope, targetYear: number, baseYear: number, reductionPct: number, impliedAnnualPct: number): SbtiCheck {
+  const term: SbtiTerm = targetYear - baseYear >= 10 && targetYear >= SBTI_LONGTERM_FROM_YEAR ? 'long' : 'near';
+  if (term === 'long') return { aligned: reductionPct >= SBTI_NETZERO_REDUCTION_PCT, term, basisPct: SBTI_NETZERO_REDUCTION_PCT, kind: 'netzero' };
+  const basisPct = scope === 'scope3' ? SBTI_NEARTERM_SCOPE3_PCT : SBTI_NEARTERM_15C_PCT;
+  return { aligned: impliedAnnualPct >= basisPct, term, basisPct, kind: 'rate' };
+}
 
 /** Which boundary a target is measured on. SBTi near-term targets are usually Scope 1+2 (with a
  *  SEPARATE Scope 3 target), and a company also carries a long-term net-zero target — so a real
@@ -47,7 +68,10 @@ export interface TargetTrajectory {
   gap?: number; // actual − thisYearTarget (positive = behind target)
   onTrack?: boolean;
   impliedAnnualPct: number; // linear %/yr of base implied by the target
-  sbtiAligned: boolean; // impliedAnnualPct ≥ 4.2
+  sbtiAligned: boolean; // aligned to the SBTi criterion for THIS target's scope + term
+  sbtiTerm: SbtiTerm; // 'near' (rate-based) | 'long' (net-zero depth)
+  sbtiBasisPct: number; // the threshold used: 4.2 / 2.5 (%/yr) or 90 (% reduction) for net-zero
+  sbtiKind: 'rate' | 'netzero'; // whether the check is an annual rate or a net-zero depth
 }
 
 /** Current emissions on a given target boundary, so base vs actual are always comparable (D1). */
@@ -93,7 +117,8 @@ export function trajectoryFor(def: TargetDef, fp: ReturnType<typeof footprintSum
     baseYear, baseEmissions, baseAssumed, targetYear, targetReductionPct: pct, targetEmissions,
     series, thisYear, thisYearTarget, actual, scope,
     gap, onTrack: gap != null ? gap <= 0 : undefined,
-    impliedAnnualPct, sbtiAligned: impliedAnnualPct >= SBTI_NEARTERM_ANNUAL_PCT,
+    impliedAnnualPct,
+    ...(() => { const c = sbtiCheckFor(scope, targetYear, baseYear, pct, impliedAnnualPct); return { sbtiAligned: c.aligned, sbtiTerm: c.term, sbtiBasisPct: c.basisPct, sbtiKind: c.kind }; })(),
   };
 }
 

@@ -69,8 +69,19 @@ function TrajectoryBlock({ tr }: { tr: TargetTrajectory }) {
       </div>
 
       <p className={`mt-2 flex flex-wrap items-center gap-x-1 text-xs ${tr.sbtiAligned ? 'text-[#5d7d44]' : 'text-amber-700'}`}>
-        <InfoHint termKey="sbti" label={t('隱含年減', 'Implied')} /> {tr.impliedAnnualPct}%/{t('年', 'yr')} ·
-        {tr.sbtiAligned ? t(' ✓ 達 SBTi 1.5°C 最低 4.2%/年', ' ✓ meets SBTi 1.5°C min 4.2%/yr') : t(` ✗ 未達 SBTi 1.5°C 最低 4.2%/年`, ` ✗ below SBTi 1.5°C min 4.2%/yr`)}
+        {tr.sbtiKind === 'netzero' ? (
+          <>
+            <InfoHint termKey="sbti" label={t('長期淨零', 'Long-term')} /> −{tr.targetReductionPct}% ·
+            {tr.sbtiAligned ? t(' ✓ 達 SBTi 淨零(減 ≥90%)', ' ✓ meets SBTi Net-Zero (≥90% cut)') : t(' ✗ 未達 SBTi 淨零(需減 ≥90%)', ' ✗ below SBTi Net-Zero (need ≥90% cut)')}
+          </>
+        ) : (
+          <>
+            <InfoHint termKey="sbti" label={t('隱含年減', 'Implied')} /> {tr.impliedAnnualPct}%/{t('年', 'yr')} ·
+            {tr.sbtiAligned
+              ? t(` ✓ 達 SBTi ${tr.scope === 'scope3' ? 'Scope 3' : '1.5°C'} 最低 ${tr.sbtiBasisPct}%/年`, ` ✓ meets SBTi ${tr.scope === 'scope3' ? 'Scope 3' : '1.5°C'} min ${tr.sbtiBasisPct}%/yr`)
+              : t(` ✗ 未達 SBTi ${tr.scope === 'scope3' ? 'Scope 3' : '1.5°C'} 最低 ${tr.sbtiBasisPct}%/年`, ` ✗ below SBTi ${tr.scope === 'scope3' ? 'Scope 3' : '1.5°C'} min ${tr.sbtiBasisPct}%/yr`)}
+          </>
+        )}
         {tr.baseAssumed && t(' ·（基準年排放未填,暫用今年值）', ' · (base-year emissions blank — using current)')}
       </p>
     </div>
@@ -102,7 +113,7 @@ export default function TargetTracker({ profile }: { profile: CompanyProfile }) 
           <CardTitle className="text-base">{t('🎯 減量目標管理', '🎯 Target management')}</CardTitle>
           {trajectories.length > 1 && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">{trajectories.length} {t('條目標', 'targets')}</span>}
         </div>
-        {trajectories.length > 1 && <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{t('一個 SBTi 承諾通常是一組目標:近期 Scope 1+2、近期 Scope 3、與長期淨零,各自於所屬範疇追軌。', 'An SBTi commitment is usually a set: near-term Scope 1+2, near-term Scope 3, and long-term net-zero — each tracked on its own boundary.')}</p>}
+        {trajectories.length > 1 && <p className="mt-1 text-[11px] leading-relaxed text-gray-400">{t('一個 SBTi 承諾通常是一組目標:近期 Scope 1+2(1.5°C·4.2%/年)、近期 Scope 3(≥2.5%/年)、與長期淨零(減≥90%),各依所屬準則檢核。', 'An SBTi commitment is usually a set: near-term Scope 1+2 (1.5°C, 4.2%/yr), near-term Scope 3 (≥2.5%/yr), and long-term net-zero (≥90% cut) — each checked against its own criterion.')}</p>}
       </CardHeader>
       <CardContent className="space-y-3">
         {trajectories.map((tr) => <TrajectoryBlock key={tr.id} tr={tr} />)}

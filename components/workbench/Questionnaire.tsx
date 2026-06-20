@@ -11,8 +11,8 @@ const VAL_CLS: Record<QStatus, string> = { ready: 'text-gray-900', partial: 'tex
 /** S2 — customer questionnaire answer pack: maps the computed result to what customers actually ask
  *  (CDP Supply Chain / brand ESG / SBTi supplier), with ready / partial / missing + the gap list. */
 export default function Questionnaire({ profile }: { profile: CompanyProfile }) {
-  const { t, tObj } = useI18n();
-  const pack = buildQuestionnaire(profile);
+  const { t, tObj, lang } = useI18n();
+  const pack = buildQuestionnaire(profile, lang);
   const readyPct = pack.totalCount > 0 ? Math.round((pack.readyCount / pack.totalCount) * 100) : 0;
 
   return (
